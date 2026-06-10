@@ -2190,6 +2190,12 @@ let lastUserUnreadTotal = 0;
 let lastUserHistorySnapshot = {};
 let userHistoryInitialized = false;
 let manualHistoryRefreshActive = false;
+let userHistoryRequestInFlight = false;
+let lastUserHistoryRequestAt = 0;
+const USER_HISTORY_AUTO_REFRESH_MS = 20000;
+const USER_HISTORY_MIN_REQUEST_GAP_MS = 5000;
+const USER_HISTORY_DEFAULT_ROWS = 3000;
+const USER_HISTORY_ALL_ROWS = 15000;
 
 let notifyAudioCtx = null;
 let notifySoundUnlocked = false;
@@ -2943,7 +2949,7 @@ function loginWithGoogle(){
     })
     .withFailureHandler(function(err){
       status.style.color = "#dc2626";
-      status.innerHTML = "Error: " + esc(err.message);
+      status.innerHTML = "Error: " + esc(getFriendlyUserError_(err));
       btn.disabled = false;
       btn.innerHTML = "🔐 Login with Google";
     })
@@ -3767,7 +3773,7 @@ async function submitData(){
     })
     .withFailureHandler(function(err){
       status.style.color = "#dc2626";
-      status.innerHTML = "Error: " + esc(err.message);
+      status.innerHTML = "Error: " + esc(getFriendlyUserError_(err));
       isSubmitting = false;
       setButtonError_(btn, "Error", 1400);
     })
@@ -3831,8 +3837,26 @@ function refreshHistoryManual(){
 function loadHistory(isAuto){
   if(!currentUser) return;
 
+  const now = Date.now();
+  if(userHistoryRequestInFlight){
+    if(manualHistoryRefreshActive){
+      setHistoryRefreshLoading(false, userLang === "zh" ? "正在更新，請稍候..." : "Refresh sedang berjalan, tunggu sebentar...", "ok");
+      manualHistoryRefreshActive = false;
+    }
+    return;
+  }
+
+  if(isAuto === true && now - lastUserHistoryRequestAt < USER_HISTORY_MIN_REQUEST_GAP_MS){
+    return;
+  }
+
   const mode = document.getElementById("historyMode").value;
-  const filter = { loginEmail: currentUser.email, todayOnly: mode === "today", forceUserOnly: true };
+  const filter = {
+    loginEmail: currentUser.email,
+    todayOnly: mode === "today",
+    forceUserOnly: true,
+    maxRows: (mode === "today" || mode === "yesterday") ? USER_HISTORY_DEFAULT_ROWS : USER_HISTORY_ALL_ROWS
+  };
 
   if(mode === "yesterday"){
     filter.todayOnly = false;
@@ -3850,33 +3874,47 @@ function loadHistory(isAuto){
     filter.todayOnly = false;
   }
 
-  google.script.run
-    .withSuccessHandler(function(unreadMap){
-      const prevUnread = lastUserUnreadTotal;
+  userHistoryRequestInFlight = true;
+  lastUserHistoryRequestAt = now;
+  loadHistoryData_(filter, isAuto);
+}
 
-      bonusCommentUnreadMap = applyBonusCommentLocalReadFilter_(unreadMap || {});
-      lastUserUnreadTotal = getTotalUnread_(bonusCommentUnreadMap);
-      updateUserSidebarUnreadBadge_(lastUserUnreadTotal);
+function getFriendlyUserError_(err){
+  const msg = err && err.message ? String(err.message) : String(err || "");
+  if(/Too many simultaneous invocations|Service invoked too many times|Spreadsheets/i.test(msg)){
+    return userLang === "zh"
+      ? "伺服器正在忙，請幾秒後再試。"
+      : "Server sedang ramai. Coba refresh lagi beberapa detik.";
+  }
+  return msg;
+}
 
-      if(userHistoryInitialized && isAuto === true && lastUserUnreadTotal > prevUnread){
-        showUserToast(userLang === "zh" ? "有新的管理員留言。" : "Ada comment baru dari admin.");
-      }
+function updateUserUnreadFromHistory_(data, isAuto){
+  const prevUnread = lastUserUnreadTotal;
+  const map = {};
 
-      loadHistoryData_(filter, isAuto);
-    })
-    .withFailureHandler(function(){
-      bonusCommentUnreadMap = {};
-      updateUserSidebarUnreadBadge_(0);
-      loadHistoryData_(filter, isAuto);
-    })
-    .getBonusCommentUnreadMapForUserPanel();
+  (data || []).forEach(function(r){
+    const count = Number(r.commentUnread || 0);
+    if(count > 0) map[r.row] = count;
+  });
+
+  bonusCommentUnreadMap = applyBonusCommentLocalReadFilter_(map);
+  lastUserUnreadTotal = getTotalUnread_(bonusCommentUnreadMap);
+  updateUserSidebarUnreadBadge_(lastUserUnreadTotal);
+
+  if(userHistoryInitialized && isAuto === true && lastUserUnreadTotal > prevUnread){
+    showUserToast(userLang === "zh" ? "有新的管理員留言。" : "Ada comment baru dari admin.");
+  }
 }
 
 function loadHistoryData_(filter, isAuto){
   google.script.run
     .withSuccessHandler(function(data){
+      userHistoryRequestInFlight = false;
+      data = data || [];
       const hasUpdate = detectUserHistoryUpdate_(data);
 
+      updateUserUnreadFromHistory_(data, isAuto);
       historyData = data;
       renderHistory(data, isAuto === true);
 
@@ -3893,9 +3931,10 @@ function loadHistoryData_(filter, isAuto){
       }
     })
     .withFailureHandler(function(err){
+      userHistoryRequestInFlight = false;
       if(manualHistoryRefreshActive){
         manualHistoryRefreshActive = false;
-        setHistoryRefreshLoading(false, u("refreshFailed") + ": " + (err && err.message ? err.message : ""), "err");
+        setHistoryRefreshLoading(false, u("refreshFailed") + ": " + getFriendlyUserError_(err), "err");
       }
     })
     .getClaimHistory(filter);
@@ -3912,7 +3951,7 @@ function startUserAutoRefresh(){
     if(activeBonusCommentRow){
       refreshOpenBonusComment();
     }
-  }, 8000);
+  }, USER_HISTORY_AUTO_REFRESH_MS);
 }
 
 
