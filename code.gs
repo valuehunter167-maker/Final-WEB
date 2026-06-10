@@ -250,6 +250,84 @@ function makeShortCacheKey_(prefix, parts) {
   return String(prefix || "KEY").replace(/[^A-Za-z0-9_]/g, "_").slice(0, 20) + "_" + hex;
 }
 
+
+const ACCESS_CACHE_TTL_SECONDS = 45;
+const CLAIM_HISTORY_USER_DEFAULT_ROWS = 3000;
+const CLAIM_HISTORY_ADMIN_DEFAULT_ROWS = 5000;
+const CLAIM_HISTORY_MAX_ROWS = 15000;
+
+function getCachedJson_(key) {
+  try {
+    const raw = CacheService.getScriptCache().get(key);
+    if (raw === null) return { hit: false, value: null };
+    return { hit: true, value: JSON.parse(raw) };
+  } catch (err) {
+    return { hit: false, value: null };
+  }
+}
+
+function putCachedJson_(key, value, ttlSeconds) {
+  try {
+    CacheService.getScriptCache().put(key, JSON.stringify(value), ttlSeconds || ACCESS_CACHE_TTL_SECONDS);
+  } catch (err) {}
+}
+
+function getClaimHistoryReadWindow_(lastRow, filter, isAdmin) {
+  const totalRows = Math.max(0, Number(lastRow || 0) - 1);
+  if (totalRows <= 0) return { startRow: 2, rowCount: 0 };
+
+  const requested = filter && Number(filter.maxRows || 0);
+  const defaultRows = isAdmin ? CLAIM_HISTORY_ADMIN_DEFAULT_ROWS : CLAIM_HISTORY_USER_DEFAULT_ROWS;
+  const maxRows = Math.min(
+    CLAIM_HISTORY_MAX_ROWS,
+    Math.max(1, requested || defaultRows)
+  );
+  const rowCount = Math.min(totalRows, maxRows);
+
+  return {
+    startRow: Math.max(2, lastRow - rowCount + 1),
+    rowCount: rowCount
+  };
+}
+
+function getBonusCommentUnreadMapForRows_(rowNums, viewerRole) {
+  rowNums = Array.isArray(rowNums) ? rowNums : [];
+  const allowedRows = {};
+
+  rowNums.forEach(row => {
+    row = Number(row);
+    if (row) allowedRows[row] = true;
+  });
+
+  if (!Object.keys(allowedRows).length) return {};
+
+  const shComment = ensureBonusCommentsSheet_();
+  if (!shComment || shComment.getLastRow() < 2) return {};
+
+  const comments = shComment.getRange(2, 1, shComment.getLastRow() - 1, 13).getValues();
+  const map = {};
+  viewerRole = String(viewerRole || "User").trim();
+
+  comments.forEach(r => {
+    const claimRow = Number(r[1]);
+    if (!allowedRows[claimRow]) return;
+
+    const senderRole = String(r[3] || "").trim();
+    const readByUser = r[9];
+    const readByAdmin = r[10];
+
+    if (viewerRole === "User" && senderRole === "Admin" && !readByUser) {
+      map[claimRow] = (map[claimRow] || 0) + 1;
+    }
+
+    if (viewerRole === "Admin" && senderRole === "User" && !readByAdmin) {
+      map[claimRow] = (map[claimRow] || 0) + 1;
+    }
+  });
+
+  return map;
+}
+
 function getSubmitFingerprint_(data, email) {
   data = data || {};
   return [
@@ -287,24 +365,32 @@ function getCurrentUser() {
 }
 
 function getAdminAccessRecord_(email) {
+  email = String(email || "").trim().toLowerCase();
   if (!email) return null;
 
+  const cacheKey = makeShortCacheKey_("ADMIN_ACCESS", [email]);
+  const cached = getCachedJson_(cacheKey);
+  if (cached.hit) return cached.value;
+
   const sh = ensureAdminUserAccessSheet_();
-  if (!sh || sh.getLastRow() < 2) return null;
+  if (!sh || sh.getLastRow() < 2) {
+    putCachedJson_(cacheKey, null, ACCESS_CACHE_TTL_SECONDS);
+    return null;
+  }
 
   const data = sh.getRange(2, 1, sh.getLastRow() - 1, 10).getValues();
-  const targetEmail = String(email).trim().toLowerCase();
+  let result = null;
 
   for (let i = 0; i < data.length; i++) {
     const r = data[i];
-    if (String(r[0] || "").trim().toLowerCase() !== targetEmail) continue;
+    if (String(r[0] || "").trim().toLowerCase() !== email) continue;
 
     const role = String(r[1] || "").trim();
     const activeFlag = normalizeAdminActiveFlag_(r[4]);
     const accountStatus = normalizeOwnerAccountStatus_(r[9], activeFlag);
     const active = activeFlag && accountStatus === "ACTIVE";
 
-    return {
+    result = {
       row: i + 2,
       email: String(r[0] || "").trim(),
       role: role,
@@ -318,9 +404,11 @@ function getAdminAccessRecord_(email) {
       notes: String(r[8] || "").trim(),
       accountStatus: accountStatus
     };
+    break;
   }
 
-  return null;
+  putCachedJson_(cacheKey, result, ACCESS_CACHE_TTL_SECONDS);
+  return result;
 }
 
 function getUserAccess_(email) {
@@ -536,23 +624,32 @@ function findUserStaffAccessRow_(email) {
   email = String(email || "").trim().toLowerCase();
   if (!email) return null;
 
+  const cacheKey = makeShortCacheKey_("STAFF_ACCESS", [email]);
+  const cached = getCachedJson_(cacheKey);
+  if (cached.hit) return cached.value;
+
   const sh = ensureUserStaffAccessSheet_();
   const lastRow = sh.getLastRow();
-  if (lastRow < 2) return null;
+  if (lastRow < 2) {
+    return null;
+  }
 
   const values = sh.getRange(2, 1, lastRow - 1, 16).getValues();
+  let result = null;
 
   for (let i = 0; i < values.length; i++) {
     const rowEmail = String(values[i][0] || "").trim().toLowerCase();
     if (rowEmail === email) {
-      return {
+      result = {
         row: i + 2,
         values: values[i]
       };
+      break;
     }
   }
 
-  return null;
+  if (result) putCachedJson_(cacheKey, result, ACCESS_CACHE_TTL_SECONDS);
+  return result;
 }
 
 function getUserStaffAccess_(email) {
@@ -818,23 +915,32 @@ function findAdminAccessRequestRow_(email) {
   email = String(email || "").trim().toLowerCase();
   if (!email) return null;
 
+  const cacheKey = makeShortCacheKey_("ADMIN_REQUEST", [email]);
+  const cached = getCachedJson_(cacheKey);
+  if (cached.hit) return cached.value;
+
   const sh = ensureAdminAccessRequestsSheet_();
   const lastRow = sh.getLastRow();
-  if (lastRow < 2) return null;
+  if (lastRow < 2) {
+    return null;
+  }
 
   const values = sh.getRange(2, 1, lastRow - 1, 10).getValues();
+  let result = null;
 
   for (let i = values.length - 1; i >= 0; i--) {
     const rowEmail = String(values[i][1] || "").trim().toLowerCase();
     if (rowEmail === email) {
-      return {
+      result = {
         row: i + 2,
         values: values[i]
       };
+      break;
     }
   }
 
-  return null;
+  if (result) putCachedJson_(cacheKey, result, ACCESS_CACHE_TTL_SECONDS);
+  return result;
 }
 
 function registerAdminAccessRequest(profile) {
@@ -1963,6 +2069,8 @@ function submitBonus(data) {
 }
 
 function getClaimHistory(filter) {
+  filter = filter || {};
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sh = ss.getSheetByName(SHEET_BONUS_CLAIM);
 
@@ -1973,19 +2081,22 @@ function getClaimHistory(filter) {
   const lastRow = sh.getLastRow();
   if (lastRow < 2) return [];
 
-  const claimColCount = 25;
-  const raw = sh.getRange(2, 1, lastRow - 1, claimColCount).getValues();
-  const display = sh.getRange(2, 1, lastRow - 1, claimColCount).getDisplayValues();
-  const formulas = sh.getRange(2, 1, lastRow - 1, claimColCount).getFormulas();
-  const rich = sh.getRange(2, 1, lastRow - 1, claimColCount).getRichTextValues();
-
   const tz = Session.getScriptTimeZone();
   const today = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd");
 
   const activeUser = getLoginUser_();
-  const forceUserOnly = filter && filter.forceUserOnly === true;
+  const forceUserOnly = filter.forceUserOnly === true;
   const isAdmin = activeUser && isAdminPanelRole_(activeUser.role) && !forceUserOnly;
-  const commentUnreadMap = forceUserOnly ? getBonusCommentUnreadMapForUserPanel() : getBonusCommentUnreadMapSafe_();
+  const viewerRole = isAdmin && isFullAdminRole_(activeUser.role) ? "Admin" : "User";
+  const readWindow = getClaimHistoryReadWindow_(lastRow, filter, isAdmin);
+
+  if (readWindow.rowCount <= 0) return [];
+
+  const claimColCount = 25;
+  const raw = sh.getRange(readWindow.startRow, 1, readWindow.rowCount, claimColCount).getValues();
+  const display = sh.getRange(readWindow.startRow, 1, readWindow.rowCount, claimColCount).getDisplayValues();
+  const formulas = sh.getRange(readWindow.startRow, 13, readWindow.rowCount, 1).getFormulas();
+  const rich = sh.getRange(readWindow.startRow, 13, readWindow.rowCount, 1).getRichTextValues();
 
   const cuSportSlipCount = {};
 
@@ -1998,7 +2109,7 @@ function getClaimHistory(filter) {
     }
   });
 
-  return raw
+  const rows = raw
     .map((r, i) => {
       const d = r[0] instanceof Date ? r[0] : new Date(r[0]);
       const dateKey = d instanceof Date && !isNaN(d)
@@ -2009,12 +2120,12 @@ function getClaimHistory(filter) {
       const category = String(show[4] || "").trim();
       const slipKey = normalizeSlip_(show[7]);
 
-      const driveLinks = getDriveLinksFromRichText_(rich[i][12]);
-      const fallbackLink = extractHyperlink_(formulas[i][12]) || show[12];
+      const driveLinks = getDriveLinksFromRichText_(rich[i][0]);
+      const fallbackLink = extractHyperlink_(formulas[i][0]) || show[12];
       const finalLinks = driveLinks.length ? driveLinks : (fallbackLink ? [fallbackLink] : []);
 
       return {
-        row: i + 2,
+        row: readWindow.startRow + i,
         timestamp: show[0],
         email: show[1],
         staffName: show[2],
@@ -2042,7 +2153,7 @@ function getClaimHistory(filter) {
         thbHelperSyncStatus: show[23],
         thbHelperTglSnapshot: show[24],
         dateKey: dateKey,
-        commentUnread: Number(commentUnreadMap[i + 2] || 0),
+        commentUnread: 0,
         isDuplicateSlip: category === "CU Sport" && slipKey && cuSportSlipCount[slipKey] > 1
       };
     })
@@ -2051,8 +2162,6 @@ function getClaimHistory(filter) {
         if (!activeUser) return false;
         if (String(r.email).trim().toLowerCase() !== activeUser.email.toLowerCase()) return false;
       }
-
-      if (!filter) return true;
 
       if (filter.todayOnly === true) return r.dateKey === today;
       if (filter.dateFrom && r.dateKey < filter.dateFrom) return false;
@@ -2065,6 +2174,17 @@ function getClaimHistory(filter) {
       return true;
     })
     .reverse();
+
+  const canReadUnread = !isAdmin || viewerRole === "Admin";
+  const commentUnreadMap = canReadUnread
+    ? getBonusCommentUnreadMapForRows_(rows.map(r => r.row), viewerRole)
+    : {};
+
+  rows.forEach(r => {
+    r.commentUnread = Number(commentUnreadMap[r.row] || 0);
+  });
+
+  return rows;
 }
 
 function updateClaimStatus(row, status, adminRemarks) {
@@ -4383,7 +4503,7 @@ function ensureChatLogSheet_() {
 // - Read badge user/admin tetap benar.
 // =========================================================
 
-function getCurrentUser() {
+function getCurrentUserForUserPanelIdentity_() {
   const user = getLoginUser_();
 
   return {

@@ -8031,6 +8031,11 @@ let claimFilteredData = [];
 let adminEditingRemarks = false;
 let adminRefreshPausedUntil = 0;
 let adminActionInFlight = 0;
+let adminDataRequestInFlight = false;
+let lastAdminDataRequestAt = 0;
+const ADMIN_AUTO_REFRESH_MS = 25000;
+const ADMIN_MIN_REQUEST_GAP_MS = 6000;
+const ADMIN_CLAIM_DEFAULT_ROWS = 5000;
 let autoSyncCountdownSeconds = 60;
 let autoSyncCountdownTimer = null;
 let adminOnlyUnreadComments = false;
@@ -8967,7 +8972,7 @@ window.onload = function(){
   if(statusFilter) statusFilter.value = savedStatus;
 
   showAdminHomePage(document.getElementById("adminHomeMenu"));
-  setDateFilter("today");
+  setDateFilter("today", true);
   startAdminAutoRefresh();
   startAutoSyncCountdown();
   updateNotifySoundStatus();
@@ -9702,7 +9707,7 @@ function openClaimManagementDefault(el){
   setClaimCategoryView("All", el || document.querySelector('[data-claim-view="All"]'));
 }
 
-function setDateFilter(mode){
+function setDateFilter(mode, silent){
   resetClaimPagination();
   const today = new Date();
   let from = "";
@@ -9736,6 +9741,10 @@ function setDateFilter(mode){
   if(mode !== "custom"){
     document.getElementById("dateFrom").value = from;
     document.getElementById("dateTo").value = to;
+  }
+
+  if(silent === true){
+    return;
   }
 
   loadData(false);
@@ -9799,32 +9808,55 @@ function startAdminAutoRefresh(){
     if(activeBonusCommentRow){
       refreshOpenBonusComment();
     }
-  }, 10000);
+  }, ADMIN_AUTO_REFRESH_MS);
+}
+
+function getFriendlyAdminError_(err){
+  const msg = err && err.message ? String(err.message) : String(err || "");
+  if(/Too many simultaneous invocations|Service invoked too many times|Spreadsheets/i.test(msg)){
+    return "Server sedang ramai. Coba refresh lagi beberapa detik.";
+  }
+  return msg || "Request gagal.";
+}
+
+function updateAdminUnreadFromRows_(data, isAuto){
+  const prevUnread = lastAdminUnreadTotal;
+  const map = {};
+
+  (data || []).forEach(function(r){
+    const count = Number(r.commentUnread || 0);
+    if(count > 0) map[r.row] = count;
+  });
+
+  bonusCommentUnreadMap = map;
+  lastAdminUnreadTotal = getTotalUnread_(bonusCommentUnreadMap);
+
+  if(adminDataInitialized && isAuto === true && lastAdminUnreadTotal > prevUnread){
+    showAdminToast("Ada comment baru dari user.");
+  }
 }
 
 function loadData(isAuto){
+  if(adminPanelAccessBlocked && !adminPanelAccessAllowed){
+    return;
+  }
+
   if(isAuto === true && isAdminAutoRefreshPaused_()){
     return;
   }
 
-  google.script.run
-    .withSuccessHandler(function(unreadMap){
-      const prevUnread = lastAdminUnreadTotal;
+  const now = Date.now();
+  if(adminDataRequestInFlight){
+    return;
+  }
 
-      bonusCommentUnreadMap = unreadMap || {};
-      lastAdminUnreadTotal = getTotalUnread_(bonusCommentUnreadMap);
+  if(isAuto === true && now - lastAdminDataRequestAt < ADMIN_MIN_REQUEST_GAP_MS){
+    return;
+  }
 
-      if(adminDataInitialized && isAuto === true && lastAdminUnreadTotal > prevUnread){
-        showAdminToast("Ada comment baru dari user.");
-      }
-
-      loadClaimData_(isAuto);
-    })
-    .withFailureHandler(function(){
-      bonusCommentUnreadMap = {};
-      loadClaimData_(isAuto);
-    })
-    .getBonusCommentUnreadMap();
+  adminDataRequestInFlight = true;
+  lastAdminDataRequestAt = now;
+  loadClaimData_(isAuto);
 }
 
 
@@ -9848,11 +9880,15 @@ function buildAdminDataSignature(data){
 function loadClaimData_(isAuto){
   google.script.run
     .withSuccessHandler(function(data){
+      adminDataRequestInFlight = false;
       if(isAuto === true && isAdminAutoRefreshPaused_()){
         return;
       }
 
-      const newData = applyLocalClaimStatusOverrides_(data || []);
+      data = data || [];
+      updateAdminUnreadFromRows_(data, isAuto);
+
+      const newData = applyLocalClaimStatusOverrides_(data);
       const newSignature = buildAdminDataSignature(newData);
 
       allData = newData;
@@ -9882,13 +9918,15 @@ function loadClaimData_(isAuto){
       }
     })
     .withFailureHandler(function(err){
-      if(!isAuto) alert(err.message);
+      adminDataRequestInFlight = false;
+      if(!isAuto) alert(getFriendlyAdminError_(err));
     })
     .getClaimHistory({
       todayOnly:false,
       dateFrom:document.getElementById("dateFrom").value,
       dateTo:document.getElementById("dateTo").value,
-      status:"All"
+      status:"All",
+      maxRows:ADMIN_CLAIM_DEFAULT_ROWS
     });
 }
 
@@ -13356,7 +13394,7 @@ function initAdminProfileSessionSafe(){
     .withFailureHandler(function(err){
       showAdminAccessDeniedOverlay_({
         accountStatus:'DENIED',
-        message: err && err.message ? err.message : 'Gagal cek akses admin. Refresh halaman atau hubungi Owner.'
+        message: getFriendlyAdminError_(err) || 'Gagal cek akses admin. Refresh halaman atau hubungi Owner.'
       });
     })
     .getAdminPanelAccessInfo();
@@ -13636,7 +13674,7 @@ function pollAdminPanelAccess_(opts){
       if(opts.firstRun){
         showAdminAccessDeniedOverlay_({
           accountStatus:'DENIED',
-          message: err && err.message ? err.message : 'Gagal cek akses admin. Refresh halaman atau hubungi Owner.'
+          message: getFriendlyAdminError_(err) || 'Gagal cek akses admin. Refresh halaman atau hubungi Owner.'
         });
       }
     })
@@ -13647,7 +13685,7 @@ function startAdminAccessWatcher_(){
   if(adminAccessWatchTimer) return;
   adminAccessWatchTimer = setInterval(function(){
     pollAdminPanelAccess_({ loadData:false });
-  }, 15000);
+  }, 45000);
 }
 
 function initAdminProfileSessionSafe(){
