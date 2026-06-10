@@ -1,0 +1,4515 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,sans-serif;color:#1e293b;background:linear-gradient(135deg,#e8edf5,#eef1f7,#e7e3f3);min-height:100vh}
+    .login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .login-card{width:100%;max-width:430px;background:#f4f6fb;border:1px solid #d7dce8;border-radius:24px;padding:34px;box-shadow:0 18px 40px rgba(71,85,105,.16)}
+    .login-logo{font-size:34px;font-weight:900;color:#6d5dfc;margin-bottom:8px}
+    .login-sub{color:#64748b;font-size:14px;margin-bottom:26px}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:#dfe4ee;border-right:1px solid #cbd5e1;padding:28px 22px;position:fixed;top:0;bottom:0;left:0;overflow:auto}
+    .logo{font-size:32px;font-weight:900;color:#6d5dfc}
+    .sublogo{font-size:12px;letter-spacing:2px;color:#64748b;margin:8px 0 32px}
+    .menu{padding:14px 16px;border-radius:14px;margin-bottom:10px;cursor:pointer;color:#475569;font-weight:800;font-size:14px;position:relative}
+    .active{background:linear-gradient(90deg,#7c3aed,#2563eb);color:white;box-shadow:0 10px 24px rgba(99,102,241,.25)}
+    .profile{margin-top:28px;padding:16px;border-radius:18px;background:#eef2f7;border:1px solid #cbd5e1;color:#475569;font-size:13px}
+    .content{margin-left:240px;width:calc(100% - 240px);padding:24px}
+    .page{display:none}
+    .show{display:block}
+    .wrapper{max-width:1360px;margin:auto}
+    .form-layout{display:grid;grid-template-columns:minmax(620px,820px) 320px;gap:20px;align-items:start;justify-content:center}
+    .panel{background:#f4f6fb;border:1px solid #d7dce8;border-radius:22px;padding:28px;box-shadow:0 12px 28px rgba(71,85,105,.12)}
+    h2{margin:0 0 8px;font-size:30px;color:#172033}
+    .subtitle{color:#64748b;margin-bottom:24px;font-size:14px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .full{grid-column:1/3}
+    label{display:block;font-weight:800;margin-bottom:8px;color:#1e293b;font-size:14px}
+    input,select,textarea{width:100%;padding:14px;border-radius:12px;border:1px solid #cbd5e1;background:#f8fafc;color:#1e293b;outline:none;font-size:14px}
+    input::placeholder,textarea::placeholder{color:#7c86a2}
+    input:focus,select:focus,textarea:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+    textarea{min-height:90px;resize:vertical}
+    .readonly{background:#e8edf5!important;color:#64748b;cursor:not-allowed}
+    .lockline{margin-top:9px;font-size:13px;color:#475569;display:flex;align-items:center;gap:8px;font-weight:600}
+    .lockline input{width:auto;accent-color:#7c3aed}
+    button{width:100%;margin-top:24px;padding:15px;border:0;border-radius:14px;color:white;font-size:15px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#7c3aed,#2563eb);box-shadow:0 10px 24px rgba(99,102,241,.22)}
+    button:disabled{background:#94a3b8;box-shadow:none;cursor:not-allowed}
+    #status,#loginStatus,#syncStatus,#bcStatus{margin-top:15px;text-align:center;font-weight:900}
+    .side-card{background:#f4f6fb;border:1px solid #d7dce8;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 10px 24px rgba(71,85,105,.10)}
+    .side-title{font-size:17px;font-weight:900;color:#6d5dfc;margin-bottom:14px}
+    .note-row{padding:12px 14px;border-radius:14px;background:#f8fafc;border:1px solid #d7dce8;margin-bottom:10px;font-weight:700;color:#1e293b;font-size:13px}
+    .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .upload-card{background:#f8fafc;border:1px dashed #94a3b8;border-radius:16px;padding:14px}
+    .upload-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:13px;background:linear-gradient(90deg,#7c3aed,#2563eb);color:white;font-weight:900;cursor:pointer;font-size:13px}
+    .upload-name{margin-top:10px;font-size:12px;color:#475569;font-weight:700;word-break:break-all;line-height:1.5}
+    .upload-hint{font-size:12px;color:#64748b;margin-top:8px;line-height:1.5}
+    .hidden-file{display:none}
+    .history-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:20px}
+    .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .filter-btn{width:auto;margin:0;padding:12px 16px;font-size:13px}
+    .sync-btn{width:auto;margin:0;padding:12px 16px;font-size:13px;background:linear-gradient(90deg,#16a34a,#2563eb)}
+    .case-btn{width:auto;margin:0;padding:8px 11px;font-size:12px;border-radius:10px;background:linear-gradient(90deg,#7c3aed,#2563eb)}
+    .search{min-width:260px}
+    table{width:100%;border-collapse:collapse;background:#f8fafc;border-radius:18px;overflow:hidden}
+    th{color:#334155;text-align:left;padding:12px 10px;font-size:12px;border-bottom:1px solid #d7dce8;background:#edf1f7;white-space:nowrap}
+    td{padding:12px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#334155;vertical-align:middle}
+    .badge{padding:6px 12px;border-radius:999px;font-size:11px;font-weight:900;display:inline-block;white-space:nowrap}
+    .pending{background:#fff4d6;color:#d97706}
+    .process{background:#dbeafe;color:#2563eb}
+    .approved{background:#dcfce7;color:#16a34a}
+    .rejected{background:#fee2e2;color:#dc2626}
+    .ok{background:#dcfce7;color:#16a34a}
+    .notok{background:#e2e8f0;color:#64748b}
+    .slip{font-weight:900;color:#0f172a;font-size:13px}
+    .slip-red{color:#dc2626}
+    .duplicate{background:#fee2e2;color:#dc2626;font-weight:900;padding:3px 7px;border-radius:8px;display:inline-block;margin-top:4px;font-size:10px}
+    a{color:#2563eb;font-weight:900;text-decoration:none}
+
+    .bc-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:99999;padding:20px}
+    .bc-modal{width:min(900px,96vw);max-height:90vh;overflow:auto;background:#f8fafc;border-radius:22px;border:1px solid #d7dce8;box-shadow:0 22px 60px rgba(15,23,42,.25);padding:22px;color:#1e293b}
+    .bc-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}
+    .bc-title{font-size:22px;font-weight:900;color:#172033;margin-bottom:5px}
+    .bc-sub{font-size:13px;color:#64748b;line-height:1.6}
+    .bc-close{width:auto;margin:0;padding:9px 13px;border-radius:12px;background:#e2e8f0;color:#334155;box-shadow:none}
+    .bc-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .bc-box{background:#eef2f7;border:1px solid #d7dce8;border-radius:14px;padding:12px;font-size:13px;line-height:1.7}
+    .bc-list{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px;max-height:330px;overflow:auto;margin-bottom:14px}
+    .bc-comment{border-bottom:1px solid #e2e8f0;padding:12px 4px}
+    .bc-comment:last-child{border-bottom:0}
+    .bc-comment-head{font-weight:900;font-size:12px;color:#334155;margin-bottom:6px}
+    .bc-comment-msg{font-size:13px;line-height:1.7;white-space:pre-wrap;color:#1e293b}
+    .bc-comment-time{font-size:11px;color:#64748b;margin-top:6px}
+    .bc-form{display:grid;grid-template-columns:1fr 210px;gap:12px;align-items:start}
+    .bc-form textarea{width:100%;min-height:90px;border-radius:14px;border:1px solid #cbd5e1;padding:12px;background:#fff;resize:vertical}
+    .bc-upload-label{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:14px;background:linear-gradient(90deg,#7c3aed,#2563eb);color:white;font-weight:900;cursor:pointer;font-size:13px}
+    .bc-file{display:none}
+    .bc-file-name{font-size:12px;color:#64748b;margin-top:8px;line-height:1.5;word-break:break-all}
+    .bc-send{margin-top:12px;width:100%;padding:14px;border-radius:14px;background:linear-gradient(90deg,#16a34a,#2563eb)}
+    .bc-status{margin-top:10px;text-align:center;font-weight:900}
+
+    @media(max-width:1200px){.form-layout{grid-template-columns:1fr}}
+    @media(max-width:900px){
+      .sidebar{position:relative;width:100%;height:auto}
+      .content{margin-left:0;width:100%;padding:18px}
+      .layout{display:block}
+      .grid{grid-template-columns:1fr}
+      .full{grid-column:1}
+      .upload-grid{grid-template-columns:1fr}
+      table{display:block;overflow:auto}
+      .bc-info{grid-template-columns:1fr}
+      .bc-form{grid-template-columns:1fr}
+    }
+  
+    /* ===== USER LIGHT COOL BLUE GLASS UI ===== */
+    @keyframes userFadeUp{from{opacity:0;transform:translateY(10px);filter:blur(2px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+    @keyframes userSoftGlow{0%,100%{box-shadow:0 14px 34px rgba(59,130,246,.12)}50%{box-shadow:0 18px 42px rgba(99,102,241,.20)}}
+    body{
+      color:#10233f!important;
+      background:
+        radial-gradient(circle at 8% 8%, rgba(96,165,250,.26), transparent 30%),
+        radial-gradient(circle at 90% 8%, rgba(167,139,250,.18), transparent 34%),
+        linear-gradient(135deg,#f5fbff 0%,#eef7ff 45%,#f8fbff 100%)!important;
+      overflow-x:hidden;
+    }
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.55),rgba(255,255,255,.10),rgba(255,255,255,.42));z-index:-1}
+    .login-card,.sidebar,.profile,.panel,.side-card,.bc-modal{
+      background:rgba(255,255,255,.62)!important;
+      border:1px solid rgba(148,163,184,.26)!important;
+      box-shadow:0 18px 42px rgba(15,23,42,.08)!important;
+      backdrop-filter:blur(18px) saturate(150%);
+      -webkit-backdrop-filter:blur(18px) saturate(150%);
+    }
+    .sidebar{background:rgba(240,248,255,.66)!important;box-shadow:18px 0 42px rgba(59,130,246,.10)!important;backdrop-filter:blur(22px) saturate(145%);-webkit-backdrop-filter:blur(22px) saturate(145%)}
+    .logo,.login-logo{color:#2563eb!important;letter-spacing:1px;text-shadow:0 8px 20px rgba(37,99,235,.12)}
+    .menu{background:rgba(255,255,255,.36);border:1px solid rgba(148,163,184,.16);transition:all .22s ease}
+    .menu:hover{transform:translateX(2px);background:rgba(255,255,255,.72);box-shadow:0 12px 26px rgba(59,130,246,.11)}
+    .active{background:linear-gradient(135deg,#60a5fa,#2563eb 52%,#7c3aed)!important;box-shadow:0 16px 32px rgba(37,99,235,.28)!important}
+    .panel,.side-card{animation:userFadeUp .34s ease both}
+    .panel:hover,.side-card:hover{box-shadow:0 18px 42px rgba(59,130,246,.14)!important}
+    button,.filter-btn,.sync-btn,.case-btn{background:linear-gradient(135deg,#60a5fa,#2563eb 55%,#7c3aed)!important;box-shadow:0 12px 24px rgba(37,99,235,.20)!important;transition:all .2s ease}
+    button:not(:disabled):hover,.filter-btn:not(:disabled):hover,.case-btn:not(:disabled):hover{transform:translateY(-1px);animation:userSoftGlow 1.6s ease infinite}
+    input,select,textarea{background:rgba(255,255,255,.74)!important;border:1px solid rgba(148,163,184,.34)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.70),0 8px 20px rgba(59,130,246,.06)}
+    input:focus,select:focus,textarea:focus{border-color:#60a5fa!important;box-shadow:0 0 0 4px rgba(96,165,250,.18)!important;outline:none}
+    .user-lang-box{margin-top:14px;padding:12px;border-radius:16px;background:rgba(255,255,255,.50);border:1px solid rgba(148,163,184,.22)}
+    .user-lang-label{font-size:11px;font-weight:900;color:#64748b;margin-bottom:8px;letter-spacing:.6px}
+    #userLangSelect{width:100%;padding:9px 10px;border-radius:12px;font-weight:900;color:#1e3a8a}
+
+    /* ===== USER CLAIM HISTORY COMPACT TABLE + PAGINATION ===== */
+    .history-table-wrap{width:100%;overflow-x:hidden;border-radius:18px;border:1px solid rgba(148,163,184,.20);background:rgba(255,255,255,.42)}
+    #historyPage table{width:100%!important;min-width:0!important;table-layout:fixed!important;background:rgba(255,255,255,.50)!important;border-radius:18px!important}
+    #historyPage th{font-size:10.8px!important;font-weight:900!important;color:#0f172a!important;background:rgba(224,242,254,.92)!important;padding:9px 5px!important;line-height:1.22!important;text-align:center!important;white-space:normal!important}
+    #historyPage td{font-size:10.8px!important;font-weight:700!important;color:#111827!important;padding:8px 5px!important;line-height:1.25!important;text-align:center!important;overflow-wrap:anywhere!important;word-break:break-word!important}
+    #historyPage tbody tr{animation:none!important;transition:background .18s ease!important}
+    #historyPage tbody tr:hover td{background:rgba(219,234,254,.55)!important}
+    #historyPage .slip{font-size:10.8px!important;font-weight:900!important;color:#0f172a!important}
+    #historyPage .badge{font-size:10px!important;font-weight:900!important;padding:4px 7px!important;white-space:normal!important}
+    #historyPage .case-btn{font-size:10px!important;font-weight:900!important;padding:6px 7px!important;border-radius:9px!important;min-width:58px}
+    #historyPage td a{font-size:10px!important;line-height:1.35!important;display:inline-block}
+    #historyPage .history-top{align-items:flex-start!important}
+    .history-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap;color:#64748b;font-size:13px;font-weight:800;background:rgba(255,255,255,.50);border:1px solid rgba(148,163,184,.22);padding:10px 12px;border-radius:16px}
+    .history-pagination-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .history-page-btn{border:none;border-radius:10px;background:rgba(255,255,255,.70)!important;color:#4f46e5!important;font-weight:900;padding:9px 12px;cursor:pointer;box-shadow:0 8px 18px rgba(59,130,246,.08)!important}
+    .history-page-btn:disabled{background:#e2e8f0!important;color:#94a3b8!important;cursor:not-allowed;box-shadow:none!important}
+    .history-page-size{padding:9px 10px;border-radius:10px;border:1px solid #cbd5e1;background:#f8fafc;font-weight:800;color:#334155}
+    #historyPage th:nth-child(1){width:8.5%}
+    #historyPage th:nth-child(2){width:8.5%}
+    #historyPage th:nth-child(3){width:6.5%}
+    #historyPage th:nth-child(4){width:7.5%}
+    #historyPage th:nth-child(5){width:8.5%}
+    #historyPage th:nth-child(6){width:5.5%}
+    #historyPage th:nth-child(7){width:7%}
+    #historyPage th:nth-child(8){width:6%}
+    #historyPage th:nth-child(9){width:6.5%}
+    #historyPage th:nth-child(10){width:6.5%}
+    #historyPage th:nth-child(11){width:5%}
+    #historyPage th:nth-child(12){width:8%}
+    #historyPage th:nth-child(13){width:8%}
+    #historyPage th:nth-child(14){width:6.5%}
+    @media(max-width:1180px){.form-layout{grid-template-columns:1fr!important}.history-table-wrap{overflow-x:auto}#historyPage table{min-width:980px!important}.content{padding:16px!important}.sidebar{width:220px!important}.content{margin-left:220px!important;width:calc(100% - 220px)!important}}
+
+  
+    /* ===== USER CLAIM HISTORY READABILITY + COMPACT PAGINATION FIX ===== */
+    #historyPage .wrapper{
+      max-width:1500px!important;
+      width:96%!important;
+    }
+    #historyPage .panel{
+      padding:30px!important;
+      border-radius:26px!important;
+    }
+    #historyPage h2{
+      font-size:32px!important;
+      letter-spacing:.3px;
+    }
+    .history-table-wrap{
+      border-radius:20px!important;
+      overflow-x:hidden!important;
+    }
+    #historyPage table{
+      width:100%!important;
+      min-width:0!important;
+      table-layout:fixed!important;
+    }
+    #historyPage th{
+      font-size:11.6px!important;
+      font-weight:900!important;
+      padding:10px 6px!important;
+      color:#0f172a!important;
+    }
+    #historyPage td{
+      font-size:11.6px!important;
+      font-weight:700!important;
+      padding:9px 6px!important;
+      color:#111827!important;
+    }
+    #historyPage .slip{
+      font-size:11.6px!important;
+      font-weight:900!important;
+    }
+    #historyPage .badge{
+      font-size:10.8px!important;
+      font-weight:900!important;
+      padding:5px 8px!important;
+    }
+    #historyPage .case-btn{
+      width:auto!important;
+      margin-top:0!important;
+      font-size:10.8px!important;
+      font-weight:900!important;
+      padding:7px 9px!important;
+      min-width:64px!important;
+      border-radius:10px!important;
+      display:inline-flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+    }
+    #historyPage td a{
+      font-size:10.8px!important;
+      font-weight:900!important;
+    }
+
+    /* Pagination dibuat kecil dan rapi, tidak jadi kotak besar */
+    .history-pagination{
+      display:flex!important;
+      align-items:center!important;
+      justify-content:space-between!important;
+      gap:12px!important;
+      margin-top:12px!important;
+      padding:10px 14px!important;
+      min-height:0!important;
+      border-radius:16px!important;
+      background:rgba(255,255,255,.58)!important;
+    }
+    .history-pagination-controls{
+      display:flex!important;
+      align-items:center!important;
+      justify-content:flex-end!important;
+      gap:8px!important;
+      flex-wrap:nowrap!important;
+    }
+    .history-page-btn{
+      width:auto!important;
+      min-width:86px!important;
+      margin-top:0!important;
+      padding:9px 13px!important;
+      display:inline-flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+      line-height:1.1!important;
+    }
+    .history-page-size{
+      width:auto!important;
+      min-width:110px!important;
+      margin-top:0!important;
+      padding:9px 10px!important;
+      line-height:1.1!important;
+    }
+    #historyPaginationInfo,
+    #historyPageIndicator{
+      white-space:nowrap!important;
+      font-size:12.5px!important;
+      font-weight:900!important;
+      color:#475569!important;
+    }
+
+    /* Sedikit balance ulang lebar kolom supaya tetap muat tanpa scroll */
+    #historyPage th:nth-child(1){width:9%!important}
+    #historyPage th:nth-child(2){width:8.2%!important}
+    #historyPage th:nth-child(3){width:6.2%!important}
+    #historyPage th:nth-child(4){width:7.2%!important}
+    #historyPage th:nth-child(5){width:8.5%!important}
+    #historyPage th:nth-child(6){width:5.2%!important}
+    #historyPage th:nth-child(7){width:7.2%!important}
+    #historyPage th:nth-child(8){width:5.8%!important}
+    #historyPage th:nth-child(9){width:6.4%!important}
+    #historyPage th:nth-child(10){width:6.4%!important}
+    #historyPage th:nth-child(11){width:4.8%!important}
+    #historyPage th:nth-child(12){width:8%!important}
+    #historyPage th:nth-child(13){width:8%!important}
+    #historyPage th:nth-child(14){width:7.1%!important}
+
+    @media(max-width:1250px){
+      #historyPage .wrapper{width:98%!important}
+      #historyPage .panel{padding:22px!important}
+      #historyPage th{font-size:10.8px!important;padding:8px 4px!important}
+      #historyPage td{font-size:10.8px!important;padding:8px 4px!important}
+      .history-pagination{align-items:flex-start!important;flex-direction:column!important}
+      .history-pagination-controls{width:100%!important;justify-content:flex-start!important;flex-wrap:wrap!important}
+    }
+
+  
+    /* ===== USER REFRESH / FILTER FEEDBACK ===== */
+    @keyframes btnPulseGlow{
+      0%{transform:translateY(0);box-shadow:0 10px 22px rgba(37,99,235,.18)}
+      50%{transform:translateY(-1px);box-shadow:0 16px 30px rgba(37,99,235,.32)}
+      100%{transform:translateY(0);box-shadow:0 10px 22px rgba(37,99,235,.18)}
+    }
+    @keyframes miniSpin{
+      from{transform:rotate(0deg)}
+      to{transform:rotate(360deg)}
+    }
+    .filter-btn{
+      transition:all .18s ease!important;
+    }
+    .filter-btn:active{
+      transform:scale(.97)!important;
+    }
+    .filter-btn.is-loading{
+      opacity:.92;
+      cursor:wait!important;
+      animation:btnPulseGlow .9s ease infinite;
+    }
+    .mini-spinner{
+      display:inline-block;
+      width:12px;
+      height:12px;
+      border:2px solid rgba(255,255,255,.45);
+      border-top-color:#fff;
+      border-radius:50%;
+      margin-right:7px;
+      vertical-align:-2px;
+      animation:miniSpin .75s linear infinite;
+    }
+    .history-refresh-status{
+      display:inline-flex;
+      align-items:center;
+      min-height:32px;
+      padding:0 8px;
+      color:#2563eb;
+      font-size:12px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .history-refresh-status.ok{color:#16a34a}
+    .history-refresh-status.err{color:#dc2626}
+
+  
+    /* ===== UPLOAD ACCESS TEST ===== */
+    .upload-access-card{background:rgba(255,255,255,.62)!important;border:1px solid rgba(148,163,184,.26)!important;border-radius:20px!important;padding:18px!important;box-shadow:0 10px 24px rgba(71,85,105,.10)!important;margin-bottom:16px}
+    .upload-access-btn{width:100%!important;margin-top:10px!important;padding:12px 14px!important;border-radius:14px!important;background:linear-gradient(135deg,#22c55e,#2563eb)!important;color:white!important;font-weight:900!important;box-shadow:0 10px 24px rgba(37,99,235,.18)!important}
+    .upload-access-status{margin-top:10px;font-size:12.5px;font-weight:900;line-height:1.5;color:#64748b;text-align:center}
+    .upload-access-status.ok{color:#16a34a}.upload-access-status.err{color:#dc2626}.upload-access-status.loading{color:#2563eb}
+
+  
+    /* ===== USER VIEW MODE + RESPONSIVE READABILITY ===== */
+    .user-view-box{
+      margin-top:12px;
+      padding:12px;
+      border-radius:16px;
+      background:rgba(255,255,255,.50);
+      border:1px solid rgba(148,163,184,.22);
+    }
+    #userViewSelect{
+      width:100%;
+      padding:9px 10px;
+      border-radius:12px;
+      font-weight:900;
+      color:#1e3a8a;
+    }
+    body.user-view-compact .content{padding:18px!important}
+    body.user-view-compact .panel{padding:24px!important}
+    body.user-view-compact .grid{gap:14px!important}
+    body.user-view-compact input,
+    body.user-view-compact select,
+    body.user-view-compact textarea{font-size:13px!important;padding:12px!important}
+    body.user-view-compact #historyPage th{font-size:10.5px!important;padding:8px 4px!important}
+    body.user-view-compact #historyPage td{font-size:10.5px!important;padding:7px 4px!important}
+    body.user-view-compact #historyPage h2{font-size:28px!important}
+
+    body.user-view-comfortable .content{padding:24px!important}
+    body.user-view-comfortable .panel{padding:30px!important}
+
+    body.user-view-large .content{padding:28px!important}
+    body.user-view-large .wrapper{max-width:1540px!important}
+    body.user-view-large .panel{padding:34px!important}
+    body.user-view-large h2{font-size:34px!important}
+    body.user-view-large label{font-size:15px!important}
+    body.user-view-large input,
+    body.user-view-large select,
+    body.user-view-large textarea{font-size:15px!important;padding:15px!important}
+    body.user-view-large .note-row{font-size:14px!important}
+    body.user-view-large #historyPage th{font-size:12.3px!important;padding:11px 7px!important}
+    body.user-view-large #historyPage td{font-size:12.3px!important;padding:10px 7px!important}
+    body.user-view-large #historyPage .badge{font-size:11.5px!important}
+    body.user-view-large #historyPage .case-btn{font-size:11.5px!important;min-width:72px!important}
+
+  
+    /* ===== USER SIDEBAR MINIMAL + ADMIN-MATCH GLASS POLISH ===== */
+    @media(min-width:901px){
+      .sidebar{
+        width:205px!important;
+        padding:18px 12px!important;
+        overflow-y:auto!important;
+      }
+      .content{
+        margin-left:205px!important;
+        width:calc(100% - 205px)!important;
+        padding:20px!important;
+      }
+      .logo{
+        font-size:25px!important;
+        line-height:1.05!important;
+      }
+      .sublogo{
+        font-size:10px!important;
+        letter-spacing:1.4px!important;
+        margin:6px 0 16px!important;
+      }
+      .menu{
+        padding:9px 10px!important;
+        margin-bottom:6px!important;
+        border-radius:12px!important;
+        font-size:12px!important;
+        line-height:1.22!important;
+      }
+      .user-lang-box,
+      .user-view-box{
+        margin-top:8px!important;
+        padding:8px!important;
+        border-radius:13px!important;
+      }
+      .user-lang-label{
+        font-size:9.5px!important;
+        margin-bottom:5px!important;
+      }
+      #userLangSelect,
+      #userViewSelect{
+        padding:7px 8px!important;
+        font-size:11.5px!important;
+        border-radius:10px!important;
+      }
+      .profile{
+        margin-top:10px!important;
+        padding:10px!important;
+        border-radius:14px!important;
+        font-size:11.5px!important;
+        line-height:1.45!important;
+      }
+    }
+
+    /* If screen height is short, make sidebar even tighter */
+    @media(min-width:901px) and (max-height:760px){
+      .sidebar{
+        padding-top:14px!important;
+      }
+      .logo{
+        font-size:23px!important;
+      }
+      .sublogo{
+        margin-bottom:10px!important;
+      }
+      .menu{
+        padding:7px 9px!important;
+        margin-bottom:4px!important;
+        font-size:11.5px!important;
+      }
+      .user-lang-box,
+      .user-view-box{
+        padding:7px!important;
+        margin-top:6px!important;
+      }
+      .profile{
+        padding:8px!important;
+        font-size:11px!important;
+      }
+    }
+
+    /* Keep user design aligned with admin light cool blue glass */
+    .panel,
+    .side-card,
+    .login-card,
+    .profile,
+    .sidebar{
+      backdrop-filter:blur(18px) saturate(150%)!important;
+      -webkit-backdrop-filter:blur(18px) saturate(150%)!important;
+    }
+    .panel{
+      border-radius:24px!important;
+      box-shadow:0 18px 42px rgba(15,23,42,.08)!important;
+    }
+    .side-card{
+      border-radius:20px!important;
+    }
+    .active{
+      background:linear-gradient(135deg,#60a5fa,#2563eb 52%,#7c3aed)!important;
+    }
+
+  
+    /* ===== USER BOTTOM TOOLS: LANGUAGE + VIEW MODE ===== */
+    @media(min-width:901px){
+      .sidebar{
+        padding-bottom:170px!important;
+      }
+      .sidebar-bottom-tools{
+        position:fixed!important;
+        left:12px!important;
+        bottom:14px!important;
+        width:181px!important;
+        z-index:31;
+        display:grid!important;
+        grid-template-columns:1fr!important;
+        gap:6px!important;
+      }
+      .sidebar-bottom-tools .user-lang-box,
+      .sidebar-bottom-tools .user-view-box{
+        margin-top:0!important;
+        padding:6px 7px!important;
+        border-radius:12px!important;
+        background:rgba(255,255,255,.58)!important;
+        border:1px solid rgba(148,163,184,.22)!important;
+        box-shadow:0 8px 18px rgba(59,130,246,.08)!important;
+      }
+      .sidebar-bottom-tools .user-lang-label{
+        font-size:8.8px!important;
+        margin-bottom:4px!important;
+        letter-spacing:.5px!important;
+      }
+      .sidebar-bottom-tools select{
+        padding:6px 7px!important;
+        font-size:10.8px!important;
+        border-radius:9px!important;
+        font-weight:900!important;
+      }
+      .sidebar .profile{
+        margin-top:10px!important;
+        margin-bottom:112px!important;
+      }
+    }
+
+    @media(min-width:901px) and (max-height:760px){
+      .sidebar{
+        padding-bottom:150px!important;
+      }
+      .sidebar-bottom-tools{
+        bottom:8px!important;
+        gap:4px!important;
+      }
+      .sidebar-bottom-tools .user-lang-box,
+      .sidebar-bottom-tools .user-view-box{
+        padding:5px 6px!important;
+      }
+      .sidebar-bottom-tools .user-lang-label{
+        font-size:8px!important;
+        margin-bottom:3px!important;
+      }
+      .sidebar-bottom-tools select{
+        padding:5px 6px!important;
+        font-size:10px!important;
+      }
+      .sidebar .profile{
+        margin-bottom:96px!important;
+      }
+    }
+
+    @media(max-width:900px){
+      .sidebar-bottom-tools{
+        display:block!important;
+      }
+    }
+
+  
+    /* ===== USER PROFILE STATUS ALSO BOTTOM ===== */
+    @media(min-width:901px){
+      .sidebar{
+        padding-bottom:235px!important;
+      }
+      .sidebar .profile{
+        position:fixed!important;
+        left:12px!important;
+        bottom:128px!important;
+        width:181px!important;
+        margin:0!important;
+        padding:8px 9px!important;
+        border-radius:13px!important;
+        font-size:10.8px!important;
+        line-height:1.45!important;
+        z-index:31!important;
+        background:rgba(255,255,255,.58)!important;
+        border:1px solid rgba(148,163,184,.22)!important;
+        box-shadow:0 8px 18px rgba(59,130,246,.08)!important;
+      }
+      .sidebar-bottom-tools{
+        bottom:14px!important;
+        z-index:32!important;
+      }
+    }
+
+    @media(min-width:901px) and (max-height:760px){
+      .sidebar{
+        padding-bottom:210px!important;
+      }
+      .sidebar .profile{
+        bottom:106px!important;
+        padding:6px 8px!important;
+        font-size:10px!important;
+      }
+      .sidebar-bottom-tools{
+        bottom:8px!important;
+      }
+    }
+
+    @media(max-width:900px){
+      .sidebar .profile{
+        position:relative!important;
+        left:auto!important;
+        bottom:auto!important;
+        width:auto!important;
+        margin-top:10px!important;
+      }
+    }
+
+  
+    /* ===== HELLO FRIENDS FIELD ORDER ===== */
+    #bonusFormGrid.hello-friends-grid > div{order:20}
+    #bonusFormGrid.hello-friends-grid > div:nth-child(1){order:1}
+    #bonusFormGrid.hello-friends-grid #tipeBonusUtamaBox{order:2}
+    #bonusFormGrid.hello-friends-grid #helloFixedTypeBox{order:3}
+    #bonusFormGrid.hello-friends-grid #tipeBonusBox{order:4}
+    #bonusFormGrid.hello-friends-grid #nominalBonusBox{order:5}
+    #bonusFormGrid.hello-friends-grid > div:nth-child(2){order:6}
+    #bonusFormGrid.hello-friends-grid #akunDiajakBox{order:7}
+    #bonusFormGrid.hello-friends-grid #jumlahPengenalanBox{order:8}
+    #bonusFormGrid.hello-friends-grid #kodeAgenBox{order:9}
+    #bonusFormGrid.hello-friends-grid #remarksBox{order:10}
+
+  
+    /* ===== FIX USER SIDEBAR BOTTOM STACK: PROFILE + LANGUAGE + VIEW ===== */
+    @media(min-width:901px){
+      .sidebar{
+        padding-bottom:270px!important;
+      }
+      .sidebar-bottom-tools{
+        position:fixed!important;
+        left:12px!important;
+        bottom:14px!important;
+        width:181px!important;
+        z-index:32!important;
+        display:grid!important;
+        grid-template-columns:1fr!important;
+        gap:6px!important;
+      }
+      .sidebar-bottom-tools .user-lang-box,
+      .sidebar-bottom-tools .user-view-box{
+        margin-top:0!important;
+        padding:6px 7px!important;
+        border-radius:12px!important;
+        background:rgba(255,255,255,.58)!important;
+        border:1px solid rgba(148,163,184,.22)!important;
+        box-shadow:0 8px 18px rgba(59,130,246,.08)!important;
+      }
+      .sidebar-bottom-tools .user-lang-label{
+        font-size:8.8px!important;
+        margin-bottom:4px!important;
+        letter-spacing:.5px!important;
+      }
+      .sidebar-bottom-tools select{
+        padding:6px 7px!important;
+        font-size:10.8px!important;
+        border-radius:9px!important;
+        font-weight:900!important;
+      }
+      .sidebar .profile{
+        position:fixed!important;
+        left:12px!important;
+        bottom:132px!important;
+        width:181px!important;
+        margin:0!important;
+        padding:7px 8px!important;
+        border-radius:13px!important;
+        font-size:10.2px!important;
+        line-height:1.36!important;
+        z-index:31!important;
+        background:rgba(255,255,255,.58)!important;
+        border:1px solid rgba(148,163,184,.22)!important;
+        box-shadow:0 8px 18px rgba(59,130,246,.08)!important;
+      }
+      .sidebar .profile b,
+      .sidebar .profile span{
+        font-size:10.2px!important;
+      }
+    }
+
+    @media(min-width:901px) and (max-height:760px){
+      .sidebar{
+        padding-bottom:235px!important;
+      }
+      .sidebar-bottom-tools{
+        bottom:8px!important;
+        gap:4px!important;
+      }
+      .sidebar-bottom-tools .user-lang-box,
+      .sidebar-bottom-tools .user-view-box{
+        padding:5px 6px!important;
+      }
+      .sidebar-bottom-tools .user-lang-label{
+        font-size:8px!important;
+        margin-bottom:3px!important;
+      }
+      .sidebar-bottom-tools select{
+        padding:5px 6px!important;
+        font-size:10px!important;
+      }
+      .sidebar .profile{
+        bottom:108px!important;
+        padding:5px 7px!important;
+        font-size:9.5px!important;
+        line-height:1.28!important;
+      }
+      .sidebar .profile b,
+      .sidebar .profile span{
+        font-size:9.5px!important;
+      }
+    }
+
+    @media(max-width:900px){
+      .sidebar .profile{
+        position:relative!important;
+        left:auto!important;
+        bottom:auto!important;
+        width:auto!important;
+        margin-top:10px!important;
+      }
+      .sidebar-bottom-tools{
+        position:relative!important;
+        left:auto!important;
+        bottom:auto!important;
+        width:auto!important;
+        display:block!important;
+      }
+    }
+
+  
+    /* ===== USER SIDEBAR BOTTOM COMPACT FINAL ===== */
+    @media(min-width:901px){
+      .sidebar{
+        padding-bottom:180px!important;
+      }
+
+      /* Language + View Mode jadi kecil dan tidak makan tempat */
+      .sidebar-bottom-tools{
+        position:fixed!important;
+        left:12px!important;
+        bottom:70px!important;
+        width:181px!important;
+        z-index:32!important;
+        display:grid!important;
+        grid-template-columns:1fr 1fr!important;
+        gap:6px!important;
+      }
+      .sidebar-bottom-tools .user-lang-box,
+      .sidebar-bottom-tools .user-view-box{
+        margin:0!important;
+        padding:5px!important;
+        border-radius:10px!important;
+        background:rgba(255,255,255,.55)!important;
+        border:1px solid rgba(148,163,184,.20)!important;
+        box-shadow:0 6px 14px rgba(59,130,246,.06)!important;
+      }
+      .sidebar-bottom-tools .user-lang-label{
+        font-size:7.5px!important;
+        margin:0 0 3px!important;
+        letter-spacing:.35px!important;
+        line-height:1!important;
+      }
+      .sidebar-bottom-tools select{
+        min-height:27px!important;
+        height:27px!important;
+        padding:3px 5px!important;
+        font-size:9.6px!important;
+        border-radius:8px!important;
+        font-weight:900!important;
+      }
+
+      /* Staff / email / online / sound active paling bawah */
+      .sidebar .profile{
+        position:fixed!important;
+        left:12px!important;
+        bottom:8px!important;
+        width:181px!important;
+        margin:0!important;
+        padding:6px 7px!important;
+        border-radius:11px!important;
+        font-size:9.3px!important;
+        line-height:1.23!important;
+        z-index:31!important;
+        background:rgba(255,255,255,.58)!important;
+        border:1px solid rgba(148,163,184,.22)!important;
+        box-shadow:0 6px 14px rgba(59,130,246,.06)!important;
+      }
+      .sidebar .profile b,
+      .sidebar .profile span{
+        font-size:9.3px!important;
+      }
+    }
+
+    @media(min-width:901px) and (max-height:760px){
+      .sidebar{
+        padding-bottom:158px!important;
+      }
+      .sidebar-bottom-tools{
+        bottom:58px!important;
+        gap:4px!important;
+      }
+      .sidebar-bottom-tools .user-lang-box,
+      .sidebar-bottom-tools .user-view-box{
+        padding:4px!important;
+      }
+      .sidebar-bottom-tools .user-lang-label{
+        font-size:7px!important;
+      }
+      .sidebar-bottom-tools select{
+        min-height:24px!important;
+        height:24px!important;
+        font-size:8.8px!important;
+        padding:2px 4px!important;
+      }
+      .sidebar .profile{
+        bottom:6px!important;
+        padding:5px 6px!important;
+        font-size:8.8px!important;
+        line-height:1.18!important;
+      }
+      .sidebar .profile b,
+      .sidebar .profile span{
+        font-size:8.8px!important;
+      }
+    }
+
+    @media(max-width:900px){
+      .sidebar-bottom-tools{
+        position:relative!important;
+        left:auto!important;
+        bottom:auto!important;
+        width:auto!important;
+        display:grid!important;
+        grid-template-columns:1fr 1fr!important;
+        gap:8px!important;
+      }
+      .sidebar .profile{
+        position:relative!important;
+        left:auto!important;
+        bottom:auto!important;
+        width:auto!important;
+        margin-top:10px!important;
+      }
+    }
+
+  
+    /* ===== USER BOTTOM SELECT VISIBILITY FIX ===== */
+    @media(min-width:901px){
+      .sidebar-bottom-tools{
+        width:186px!important;
+        gap:5px!important;
+      }
+      .sidebar-bottom-tools .user-lang-box,
+      .sidebar-bottom-tools .user-view-box{
+        padding:4px 5px!important;
+        min-width:0!important;
+      }
+      .sidebar-bottom-tools .user-lang-label{
+        font-size:7px!important;
+        margin:0 0 2px!important;
+        line-height:1!important;
+      }
+      .sidebar-bottom-tools select{
+        width:100%!important;
+        min-width:0!important;
+        height:25px!important;
+        min-height:25px!important;
+        line-height:13px!important;
+        padding:2px 18px 2px 5px!important;
+        font-size:8.8px!important;
+        font-weight:900!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:clip!important;
+      }
+      .sidebar-bottom-tools select option{
+        font-size:11px!important;
+      }
+    }
+
+    @media(min-width:901px) and (max-height:760px){
+      .sidebar-bottom-tools select{
+        height:23px!important;
+        min-height:23px!important;
+        line-height:12px!important;
+        font-size:8.2px!important;
+        padding:2px 16px 2px 4px!important;
+      }
+    }
+
+  
+    /* ===== USER BOTTOM DROPDOWN FINAL READABLE FIX ===== */
+    @media(min-width:901px){
+      .sidebar{
+        padding-bottom:215px!important;
+      }
+
+      /* Jangan 2 kolom lagi, karena teks kepotong. Dibuat stack full width tapi tetap compact. */
+      .sidebar-bottom-tools{
+        position:fixed!important;
+        left:12px!important;
+        bottom:72px!important;
+        width:181px!important;
+        z-index:32!important;
+        display:grid!important;
+        grid-template-columns:1fr!important;
+        gap:5px!important;
+      }
+
+      .sidebar-bottom-tools .user-lang-box,
+      .sidebar-bottom-tools .user-view-box{
+        margin:0!important;
+        padding:5px 6px!important;
+        border-radius:10px!important;
+        background:rgba(255,255,255,.58)!important;
+        border:1px solid rgba(148,163,184,.22)!important;
+        box-shadow:0 6px 14px rgba(59,130,246,.06)!important;
+        min-width:0!important;
+      }
+
+      .sidebar-bottom-tools .user-lang-label{
+        font-size:7.5px!important;
+        margin:0 0 3px!important;
+        line-height:1!important;
+        letter-spacing:.35px!important;
+      }
+
+      .sidebar-bottom-tools select,
+      #userLangSelect,
+      #userViewSelect{
+        width:100%!important;
+        min-width:0!important;
+        height:29px!important;
+        min-height:29px!important;
+        line-height:18px!important;
+        padding:4px 24px 4px 8px!important;
+        font-size:10.5px!important;
+        font-weight:900!important;
+        border-radius:9px!important;
+        white-space:nowrap!important;
+        overflow:visible!important;
+        text-overflow:clip!important;
+      }
+
+      .sidebar-bottom-tools select option{
+        font-size:12px!important;
+      }
+
+      .sidebar .profile{
+        position:fixed!important;
+        left:12px!important;
+        bottom:8px!important;
+        width:181px!important;
+        margin:0!important;
+        padding:6px 7px!important;
+        border-radius:11px!important;
+        font-size:9.3px!important;
+        line-height:1.23!important;
+        z-index:31!important;
+      }
+    }
+
+    @media(min-width:901px) and (max-height:760px){
+      .sidebar{
+        padding-bottom:198px!important;
+      }
+
+      .sidebar-bottom-tools{
+        bottom:64px!important;
+        gap:4px!important;
+      }
+
+      .sidebar-bottom-tools .user-lang-box,
+      .sidebar-bottom-tools .user-view-box{
+        padding:4px 5px!important;
+      }
+
+      .sidebar-bottom-tools select,
+      #userLangSelect,
+      #userViewSelect{
+        height:27px!important;
+        min-height:27px!important;
+        line-height:17px!important;
+        font-size:10px!important;
+        padding:3px 22px 3px 7px!important;
+      }
+
+      .sidebar .profile{
+        bottom:6px!important;
+        padding:5px 6px!important;
+        font-size:8.8px!important;
+        line-height:1.18!important;
+      }
+    }
+
+  
+    /* ===== USER PORTAL HOME PROJECT MENU ===== */
+    .menu-group-label{
+      margin:10px 8px 6px;
+      color:#64748b;
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.9px;
+      opacity:.85;
+    }
+    .home-panel{
+      max-width:1180px;
+      margin:0 auto;
+      background:rgba(255,255,255,.62);
+      border:1px solid rgba(148,163,184,.26);
+      border-radius:28px;
+      padding:32px;
+      box-shadow:0 18px 42px rgba(15,23,42,.08);
+      backdrop-filter:blur(18px) saturate(150%);
+      -webkit-backdrop-filter:blur(18px) saturate(150%);
+      animation:userFadeUp .34s ease both;
+    }
+    .home-hero{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom:24px;
+    }
+    .home-kicker{
+      color:#2563eb;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:1.4px;
+      margin-bottom:6px;
+    }
+    .home-badge{
+      padding:10px 14px;
+      border-radius:14px;
+      background:linear-gradient(135deg,#60a5fa,#2563eb 55%,#7c3aed);
+      color:#fff;
+      font-size:12px;
+      font-weight:900;
+      box-shadow:0 12px 24px rgba(37,99,235,.20);
+      white-space:nowrap;
+    }
+    .project-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(180px,1fr));
+      gap:16px;
+    }
+    .project-card{
+      position:relative;
+      min-height:220px;
+      display:flex;
+      flex-direction:column;
+      background:rgba(255,255,255,.68);
+      border:1px solid rgba(148,163,184,.24);
+      border-radius:22px;
+      padding:20px;
+      box-shadow:0 14px 32px rgba(59,130,246,.09);
+      transition:all .22s ease;
+      overflow:hidden;
+    }
+    .project-card:before{
+      content:"";
+      position:absolute;
+      inset:-40% -20% auto auto;
+      width:120px;
+      height:120px;
+      border-radius:999px;
+      background:rgba(96,165,250,.16);
+      pointer-events:none;
+    }
+    .project-active:hover{
+      transform:translateY(-3px);
+      box-shadow:0 18px 42px rgba(37,99,235,.16);
+      border-color:rgba(96,165,250,.46);
+      cursor:pointer;
+    }
+    .project-disabled{
+      opacity:.72;
+      filter:saturate(.75);
+      cursor:not-allowed;
+    }
+    .project-icon{
+      width:48px;
+      height:48px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(239,246,255,.92);
+      font-size:24px;
+      margin-bottom:14px;
+    }
+    .project-title{
+      font-size:18px;
+      font-weight:900;
+      color:#0f172a;
+      margin-bottom:8px;
+    }
+    .project-desc{
+      flex:1;
+      color:#64748b;
+      font-size:13px;
+      font-weight:700;
+      line-height:1.65;
+      margin-bottom:14px;
+    }
+    .project-btn{
+      width:100%;
+      margin:0;
+      padding:12px 14px;
+      border-radius:13px;
+      font-size:13px;
+    }
+    .project-btn.disabled{
+      background:#cbd5e1!important;
+      color:#64748b!important;
+      box-shadow:none!important;
+      cursor:not-allowed!important;
+    }
+    @media(max-width:1300px){
+      .project-grid{grid-template-columns:repeat(2,minmax(220px,1fr))}
+    }
+    @media(max-width:700px){
+      .home-panel{padding:22px}
+      .home-hero{display:block}
+      .home-badge{display:inline-block;margin-top:12px}
+      .project-grid{grid-template-columns:1fr}
+    }
+
+  
+    /* ===== HOME PORTAL MODE: HIDE BONUS SIDEBAR UNTIL CLAIM BONUS CLICKED ===== */
+    .bonus-nav{
+      display:none!important;
+    }
+    body.bonus-mode .bonus-nav{
+      display:block!important;
+    }
+    body.bonus-mode .menu-group-label.bonus-nav{
+      display:block!important;
+    }
+
+  
+    /* ===== USER COMMENT BADGE + BUTTON FEEDBACK FINAL ===== */
+    @keyframes userBtnPulse{
+      0%,100%{transform:translateY(0);box-shadow:0 10px 22px rgba(37,99,235,.18)}
+      50%{transform:translateY(-1px);box-shadow:0 16px 30px rgba(37,99,235,.32)}
+    }
+    @keyframes userBtnDone{
+      0%{transform:scale(.98)}
+      55%{transform:scale(1.035)}
+      100%{transform:scale(1)}
+    }
+    @keyframes userBtnShake{
+      0%,100%{transform:translateX(0)}
+      25%{transform:translateX(-3px)}
+      75%{transform:translateX(3px)}
+    }
+    .btn-loading,
+    button.btn-loading,
+    .case-btn.btn-loading,
+    .bc-send.btn-loading{
+      opacity:.95!important;
+      cursor:wait!important;
+      animation:userBtnPulse .9s ease infinite!important;
+    }
+    .btn-success,
+    button.btn-success,
+    .case-btn.btn-success,
+    .bc-send.btn-success{
+      background:linear-gradient(135deg,#22c55e,#16a34a)!important;
+      animation:userBtnDone .38s ease both!important;
+    }
+    .btn-error,
+    button.btn-error,
+    .case-btn.btn-error,
+    .bc-send.btn-error{
+      background:linear-gradient(135deg,#fb7185,#dc2626)!important;
+      animation:userBtnShake .28s ease both!important;
+    }
+    .bonus-comment-btn{
+      position:relative!important;
+      display:inline-flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+      gap:5px!important;
+    }
+    .comment-unread-pill{
+      display:inline-flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+      min-width:18px!important;
+      height:18px!important;
+      padding:0 5px!important;
+      border-radius:999px!important;
+      background:#ef4444!important;
+      color:#fff!important;
+      font-size:10px!important;
+      font-weight:900!important;
+      line-height:1!important;
+      box-shadow:0 6px 14px rgba(239,68,68,.35)!important;
+    }
+    #historyPage tr.has-unread-comment td{
+      background:rgba(239,246,255,.72)!important;
+      box-shadow:inset 4px 0 0 rgba(37,99,235,.70)!important;
+    }
+
+  
+    /* ===== USER REALTIME COMMENT BADGE ===== */
+    .user-side-badge{
+      display:none;
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      min-width:20px;
+      height:20px;
+      padding:0 6px;
+      border-radius:999px;
+      background:#ef4444;
+      color:#fff;
+      font-size:10.5px;
+      font-weight:900;
+      line-height:20px;
+      text-align:center;
+      box-shadow:0 8px 18px rgba(239,68,68,.25);
+    }
+    .menu.has-user-unread{
+      background:rgba(239,246,255,.88)!important;
+      border-color:rgba(37,99,235,.22)!important;
+      box-shadow:0 10px 24px rgba(37,99,235,.10)!important;
+    }
+    .menu.active .user-side-badge{
+      background:#f87171;
+      color:#fff;
+    }
+
+  
+    /* ===== USER CLAIM HISTORY READABILITY FIX - DO NOT CHANGE LOGIC ===== */
+    /* Fix active Claim History sidebar text: tetap terlihat jelas saat menu aktif */
+    #historyMenu.active{
+      color:#0f172a!important;
+      background:rgba(219,234,254,.82)!important;
+      border-color:rgba(37,99,235,.26)!important;
+      box-shadow:0 10px 24px rgba(37,99,235,.12)!important;
+    }
+    #historyMenu.active #menuHistoryText{
+      color:#0f172a!important;
+      font-weight:900!important;
+    }
+
+    /* Fix unread row: hilangkan garis/border biru per-kolom, ganti jadi highlight lembut satu baris */
+    #historyPage tr.has-unread-comment td,
+    #historyPage tbody tr.has-unread-comment td{
+      box-shadow:none!important;
+      border-left:0!important;
+      border-right:0!important;
+      background:rgba(239,246,255,.68)!important;
+    }
+    #historyPage tr.has-unread-comment td:first-child,
+    #historyPage tbody tr.has-unread-comment td:first-child{
+      box-shadow:inset 4px 0 0 rgba(37,99,235,.70)!important;
+    }
+
+    /* Hindari border vertical tebal akibat highlight unread/comment */
+    #historyPage td{
+      border-left:0!important;
+      border-right:0!important;
+    }
+
+  
+    /* ===== COMMENT BUTTON + WHATSAPP STYLE CHAT FIX ===== */
+    .bonus-comment-btn,
+    .comment-btn-wrap,
+    #historyPage .case-btn.bonus-comment-btn,
+    #managePage .btn.comment-btn-wrap{
+      white-space:nowrap!important;
+      word-break:normal!important;
+      overflow-wrap:normal!important;
+      min-width:88px!important;
+      max-width:none!important;
+      line-height:1.1!important;
+      display:inline-flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+      gap:5px!important;
+    }
+    #historyPage td:last-child,
+    #managePage td:last-child{
+      overflow-wrap:normal!important;
+      word-break:normal!important;
+    }
+    .bc-list{
+      background:rgba(255,255,255,.52)!important;
+    }
+    .bc-comment{
+      width:100%;
+      display:flex!important;
+      flex-direction:column!important;
+      border-bottom:0!important;
+      padding:7px 4px!important;
+    }
+    .bc-bubble{
+      max-width:72%;
+      padding:10px 12px;
+      border-radius:16px;
+      box-shadow:0 8px 20px rgba(15,23,42,.06);
+      border:1px solid rgba(148,163,184,.18);
+    }
+    .bc-comment.mine{
+      align-items:flex-end!important;
+    }
+    .bc-comment.theirs{
+      align-items:flex-start!important;
+    }
+    .bc-comment.mine .bc-bubble{
+      background:linear-gradient(135deg,#60a5fa,#2563eb 62%,#7c3aed);
+      color:#fff;
+      border-color:rgba(96,165,250,.28);
+      border-bottom-right-radius:6px;
+    }
+    .bc-comment.theirs .bc-bubble{
+      background:rgba(255,255,255,.88);
+      color:#1e293b;
+      border-bottom-left-radius:6px;
+    }
+    .bc-comment.mine .bc-comment-head,
+    .bc-comment.mine .bc-comment-msg,
+    .bc-comment.mine .bc-comment-time,
+    .bc-comment.mine a{
+      color:#fff!important;
+    }
+    .bc-comment.theirs .bc-comment-head{
+      color:#334155!important;
+    }
+    .bc-comment-head{
+      font-weight:900!important;
+      font-size:11px!important;
+      margin-bottom:5px!important;
+      opacity:.9;
+    }
+    .bc-comment-msg{
+      font-size:13px!important;
+      line-height:1.55!important;
+      white-space:pre-wrap!important;
+      word-break:break-word!important;
+    }
+    .bc-comment-time{
+      font-size:10.5px!important;
+      margin-top:6px!important;
+      opacity:.78;
+    }
+    @media(max-width:700px){
+      .bc-bubble{max-width:88%!important}
+    }
+
+  
+    /* ===== AUTO UPPERCASE FIELDS ===== */
+    #akunMember,
+    #kodeAgen,
+    #nomorSlip,
+    #akunDiajak{
+      text-transform:uppercase;
+    }
+
+  
+
+    /* ===============================
+       AI WEB PREMIUM UI MERGE FINAL
+       Visual-only polish, no backend/function changes.
+       =============================== */
+    :root{
+      --aiweb-primary:#4f46e5;
+      --aiweb-secondary:#06b6d4;
+      --aiweb-accent:#a855f7;
+      --aiweb-ink:#0f172a;
+      --aiweb-muted:#64748b;
+      --aiweb-card:rgba(255,255,255,.80);
+      --aiweb-line:rgba(148,163,184,.24);
+      --aiweb-shadow:0 24px 60px rgba(15,23,42,.12);
+    }
+    body{
+      background:
+        radial-gradient(circle at 8% 0%,rgba(79,70,229,.18),transparent 34%),
+        radial-gradient(circle at 95% 12%,rgba(6,182,212,.18),transparent 30%),
+        radial-gradient(circle at 65% 100%,rgba(168,85,247,.10),transparent 28%),
+        linear-gradient(135deg,#f8fbff 0%,#eef4ff 48%,#f8f5ff 100%)!important;
+      color:var(--aiweb-ink)!important;
+    }
+    body:before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:linear-gradient(rgba(15,23,42,.032) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.032) 1px,transparent 1px);
+      background-size:36px 36px;
+      mask-image:linear-gradient(to bottom,rgba(0,0,0,.50),transparent 74%);
+      z-index:0;
+    }
+    .layout,.login-page{position:relative;z-index:1}
+    .sidebar{
+      background:linear-gradient(180deg,rgba(255,255,255,.90),rgba(239,246,255,.76))!important;
+      border-right:1px solid rgba(148,163,184,.25)!important;
+      box-shadow:18px 0 50px rgba(30,41,59,.08)!important;
+      backdrop-filter:blur(18px) saturate(150%)!important;
+      -webkit-backdrop-filter:blur(18px) saturate(150%)!important;
+    }
+    .logo,.login-logo{
+      color:#1e1b4b!important;
+      letter-spacing:.08em!important;
+      text-shadow:0 10px 30px rgba(79,70,229,.18)!important;
+    }
+    .aiweb-edition-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin:10px 0 16px;
+      padding:7px 10px;
+      border-radius:999px;
+      background:linear-gradient(135deg,rgba(79,70,229,.12),rgba(6,182,212,.12));
+      border:1px solid rgba(79,70,229,.18);
+      color:#4338ca;
+      font-size:11px;
+      font-weight:1000;
+      letter-spacing:.08em;
+    }
+    .menu{
+      border:1px solid transparent!important;
+      border-radius:16px!important;
+      transition:transform .18s ease,box-shadow .18s ease,background .18s ease,border-color .18s ease!important;
+    }
+    .menu:hover{
+      border-color:rgba(79,70,229,.16)!important;
+      background:rgba(255,255,255,.82)!important;
+      box-shadow:0 14px 30px rgba(79,70,229,.12)!important;
+      transform:translateX(3px);
+    }
+    .menu.active,.active{
+      background:linear-gradient(135deg,#4f46e5,#06b6d4)!important;
+      color:#fff!important;
+      box-shadow:0 16px 34px rgba(79,70,229,.28)!important;
+    }
+    .panel,.home-panel,.side-card,.login-card,.profile,.bc-modal{
+      background:var(--aiweb-card)!important;
+      border:1px solid var(--aiweb-line)!important;
+      box-shadow:var(--aiweb-shadow)!important;
+      backdrop-filter:blur(18px) saturate(150%)!important;
+      -webkit-backdrop-filter:blur(18px) saturate(150%)!important;
+    }
+    .home-hero{
+      background:linear-gradient(135deg,rgba(79,70,229,.09),rgba(6,182,212,.10),rgba(168,85,247,.08))!important;
+      border:1px solid rgba(79,70,229,.14)!important;
+      border-radius:24px!important;
+      padding:22px!important;
+    }
+    .home-badge,.project-btn,#submitBtn,.filter-btn,.sync-btn,.bc-send,#loginBtn,button{
+      background:linear-gradient(135deg,#4f46e5,#06b6d4)!important;
+      box-shadow:0 16px 36px rgba(79,70,229,.22)!important;
+    }
+    .project-card{
+      background:rgba(255,255,255,.82)!important;
+      border:1px solid rgba(148,163,184,.22)!important;
+      box-shadow:0 18px 44px rgba(15,23,42,.10)!important;
+    }
+    .project-active:hover,.project-card:hover{transform:translateY(-5px)!important;box-shadow:0 26px 58px rgba(79,70,229,.18)!important}
+    input,select,textarea{
+      border-radius:14px!important;
+      border:1px solid rgba(148,163,184,.36)!important;
+      background:rgba(255,255,255,.86)!important;
+      transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:rgba(79,70,229,.55)!important;
+      box-shadow:0 0 0 4px rgba(79,70,229,.11)!important;
+      outline:none!important;
+    }
+    .history-table-wrap,table{
+      background:rgba(255,255,255,.72)!important;
+      border-color:rgba(148,163,184,.22)!important;
+      box-shadow:0 18px 42px rgba(15,23,42,.08)!important;
+    }
+    th{
+      background:linear-gradient(180deg,#f8fafc,#eef2ff)!important;
+      color:#334155!important;
+      position:sticky;
+      top:0;
+      z-index:2;
+    }
+    tbody tr{transition:background .16s ease,transform .16s ease}
+    tbody tr:hover{background:rgba(79,70,229,.055)!important}
+    .badge,.case-btn,.comment-unread-pill,.user-side-badge{box-shadow:0 10px 22px rgba(15,23,42,.10)}
+
+  
+    /* ===== WELCOME BONUS KODE AGEN AUTOCOMPLETE ===== */
+    #kodeAgenBox{
+      position:relative;
+    }
+    .kode-agen-helper{
+      display:none;
+      margin-top:8px;
+      font-size:12px;
+      font-weight:800;
+      color:#64748b;
+      line-height:1.45;
+    }
+    .kode-agen-helper.show{
+      display:block;
+    }
+    .kode-agen-helper.warn{
+      color:#d97706;
+    }
+    .kode-agen-suggest{
+      display:none;
+      position:absolute;
+      left:0;
+      right:0;
+      top:calc(100% + 6px);
+      z-index:80;
+      max-height:220px;
+      overflow:auto;
+      padding:8px;
+      border-radius:16px;
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(148,163,184,.26);
+      box-shadow:0 18px 44px rgba(15,23,42,.16);
+      backdrop-filter:blur(16px) saturate(145%);
+      -webkit-backdrop-filter:blur(16px) saturate(145%);
+    }
+    .kode-agen-suggest.show{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(78px,1fr));
+      gap:7px;
+    }
+    .kode-agen-option{
+      padding:9px 10px;
+      border-radius:12px;
+      background:rgba(239,246,255,.86);
+      color:#1e3a8a;
+      font-size:12px;
+      font-weight:900;
+      text-align:center;
+      cursor:pointer;
+      border:1px solid rgba(96,165,250,.18);
+      transition:all .16s ease;
+      user-select:none;
+    }
+    .kode-agen-option:hover{
+      transform:translateY(-1px);
+      background:linear-gradient(135deg,#60a5fa,#2563eb);
+      color:#fff;
+      box-shadow:0 10px 22px rgba(37,99,235,.18);
+    }
+    .kode-agen-empty{
+      grid-column:1/-1;
+      padding:10px;
+      text-align:center;
+      color:#64748b;
+      font-size:12px;
+      font-weight:800;
+    }
+
+  
+    /* ===== WELCOME KODE AGEN FULL LIST VISIBILITY ===== */
+    .kode-agen-suggest{
+      max-height:260px!important;
+      overflow-y:auto!important;
+    }
+    .kode-agen-option{
+      min-height:32px!important;
+    }
+
+  
+    /* ===== USER STAFF REGISTER + BONUS MINGGUAN HOME ===== */
+    .register-card{
+      display:none;
+      margin-top:18px;
+      padding-top:18px;
+      border-top:1px solid rgba(148,163,184,.28);
+    }
+    .register-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:14px;
+    }
+    .register-grid .full{
+      grid-column:1/3;
+    }
+    .register-note{
+      margin-top:14px;
+      color:#64748b;
+      font-size:12px;
+      font-weight:800;
+      line-height:1.55;
+    }
+    .access-pending-box{
+      display:none;
+      margin-top:18px;
+      padding:16px;
+      border-radius:18px;
+      background:rgba(255,247,237,.82);
+      border:1px solid rgba(251,146,60,.24);
+      color:#9a3412;
+      font-size:13px;
+      font-weight:900;
+      line-height:1.65;
+    }
+    .weekly-home{
+      max-width:980px;
+      margin:0 auto;
+      min-height:360px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:38px 18px;
+    }
+    .weekly-home-card{
+      width:100%;
+      border-radius:28px;
+      padding:40px 28px;
+      background:rgba(255,255,255,.70);
+      border:1px solid rgba(148,163,184,.24);
+      box-shadow:0 22px 58px rgba(15,23,42,.10);
+      backdrop-filter:blur(18px) saturate(150%);
+      -webkit-backdrop-filter:blur(18px) saturate(150%);
+    }
+    .weekly-home-icon{
+      width:82px;
+      height:82px;
+      border-radius:28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 18px;
+      font-size:34px;
+      background:linear-gradient(135deg,#facc15,#f97316);
+      color:#fff;
+      box-shadow:0 18px 38px rgba(249,115,22,.20);
+    }
+    .weekly-home-title{
+      margin:0;
+      font-size:34px;
+      font-weight:1000;
+      color:#0f172a;
+    }
+    .weekly-home-sub{
+      margin-top:12px;
+      color:#64748b;
+      font-weight:900;
+      line-height:1.7;
+    }
+    @media(max-width:700px){
+      .register-grid{grid-template-columns:1fr}
+      .register-grid .full{grid-column:1}
+    }
+
+  
+/* =========================================================
+   CLAIM BONUS SIDEBAR SPLIT
+   Bonus Harian + Bonus Mingguan stay inside the same Claim Bonus project.
+   No separate Bonus Mingguan project page, Claim History remains unified.
+   ========================================================= */
+.menu-subgroup-label{
+  display:none!important;
+  margin:10px 10px 5px!important;
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  font-size:9px!important;
+  line-height:1.1!important;
+  font-weight:1000!important;
+  letter-spacing:.12em!important;
+  color:#475569!important;
+  background:linear-gradient(135deg,rgba(241,245,249,.86),rgba(239,246,255,.64))!important;
+  border:1px solid rgba(203,213,225,.36)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72)!important;
+}
+
+body.bonus-mode .menu-subgroup-label.bonus-nav{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+
+body.bonus-mode .weekly-nav-title{
+  margin-top:14px!important;
+  background:linear-gradient(135deg,rgba(255,248,230,.82),rgba(239,246,255,.66))!important;
+  border-color:rgba(214,163,39,.22)!important;
+  color:#92400e!important;
+}
+
+body.bonus-mode .history-nav-title{
+  margin-top:14px!important;
+  background:linear-gradient(135deg,rgba(245,243,255,.72),rgba(239,246,255,.62))!important;
+  border-color:rgba(139,92,246,.18)!important;
+  color:#5b21b6!important;
+}
+
+body.bonus-mode .daily-bonus-nav,
+body.bonus-mode .weekly-bonus-nav,
+body.bonus-mode .history-bonus-nav{
+  margin-top:5px!important;
+}
+
+body.bonus-mode .weekly-bonus-nav{
+  background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,248,230,.52))!important;
+  border-color:rgba(214,163,39,.24)!important;
+}
+
+body.bonus-mode .weekly-bonus-nav.active{
+  background:linear-gradient(135deg,rgba(255,248,230,.96),rgba(219,234,254,.72))!important;
+  border-color:rgba(214,163,39,.42)!important;
+  color:#92400e!important;
+}
+
+body.bonus-mode .history-bonus-nav{
+  margin-bottom:12px!important;
+}
+
+.project-grid{
+  align-items:stretch!important;
+}
+
+
+/* VVIP Special Tipe Game field */
+#tipeGameBox select{
+  width:100%;
+}
+
+
+/* VVIP Special Tipe Game readable label, exact HQ value remains in option value */
+.field-mini-hint{
+  margin-top:6px;
+  font-size:11px;
+  line-height:1.45;
+  color:#64748b;
+  font-weight:800;
+}
+
+
+/* Tiap Hari Bonus Besar - TOTAL IN angka-only */
+#nominalInBox input{
+  font-variant-numeric:tabular-nums;
+}
+#nominalInBox input::-webkit-outer-spin-button,
+#nominalInBox input::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+
+</style>
+</head>
+
+<body>
+<div id="loginPage" class="login-page">
+  <div class="login-card">
+    <div class="login-logo">IX TEAM</div>
+    <div class="login-sub">Staff Bonus Claim Access</div>
+    <button id="loginBtn" type="button">🔐 Login with Google</button>
+    <div id="loginStatus"></div>
+
+    <div id="registerCard" class="register-card">
+      <div style="font-weight:1000;color:#0f172a;font-size:18px;">Register User Access</div>
+      <div class="register-note">
+        Gmail kamu belum aktif. Isi data berikut, lalu tunggu Owner approve akses.
+      </div>
+      <div class="register-grid">
+        <div>
+          <label>Staff Name</label>
+          <input id="regStaffName" placeholder="Contoh: LEO">
+        </div>
+        <div>
+          <label>Staff ID</label>
+          <input id="regStaffId" placeholder="Contoh: IX001">
+        </div>
+        <div>
+          <label>Posisi</label>
+          <select id="regPosisi">
+            <option value="">Pilih Posisi</option>
+            <option value="IT">IT</option>
+            <option value="MT">MT</option>
+            <option value="BZ">BZ</option>
+          </select>
+        </div>
+        <div>
+          <label>Team</label>
+          <input id="regTeam" placeholder="Contoh: L1 / B2 / MT-A">
+        </div>
+      </div>
+      <button id="registerUserBtn" type="button" onclick="submitUserRegistration()">Submit Register</button>
+      <div id="registerStatus"></div>
+    </div>
+
+    <div id="accessPendingBox" class="access-pending-box"></div>
+
+    <div style="margin-top:22px;color:#64748b;font-size:13px;line-height:1.8;">
+      User biasa daftar melalui form ini. Admin/TL/FZR daftar melalui link Admin Panel.
+    </div>
+  </div>
+</div>
+
+<div id="appLayout" class="layout" style="display:none;">
+  <div class="sidebar">
+    <div class="logo">IX TEAM</div>
+    <div class="sublogo" id="subLogoText">INTERNAL SYSTEM</div>
+
+    <div class="menu active" id="homeMenu">🏠 <span id="menuHomeText">Home</span></div>
+    <div class="menu-group-label bonus-nav" id="bonusGroupLabel">CLAIM BONUS</div>
+
+    <div class="menu-subgroup-label bonus-nav" id="bonusDailyGroupLabel">BONUS HARIAN</div>
+    <div class="menu bonus-nav daily-bonus-nav" data-category="CU Sport">🏆 CU Sport</div>
+    <div class="menu bonus-nav daily-bonus-nav" data-category="Welcome Bonus">🎁 Welcome Bonus</div>
+    <div class="menu bonus-nav daily-bonus-nav" data-category="Promo Syukuran">🎉 Promo Syukuran</div>
+    <div class="menu bonus-nav daily-bonus-nav" data-category="Transfer Agen">🔁 Transfer Agen</div>
+    <div class="menu bonus-nav daily-bonus-nav" data-category="VVIP DEPO">💎 VVIP DEPO</div>
+    <div class="menu bonus-nav daily-bonus-nav" data-category="VVIP Special Prize">🏅 VVIP Special Prize</div>
+    <div class="menu bonus-nav daily-bonus-nav" data-category="Lucky Money 88">🍀 Lucky Money 88</div>
+    <div class="menu bonus-nav daily-bonus-nav" data-category="Hello Friends">👥 Hello Friends</div>
+    <div class="menu bonus-nav daily-bonus-nav" data-category="Direct Agent">🤝 Direct Agent</div>
+
+    <div class="menu-subgroup-label bonus-nav weekly-nav-title" id="bonusWeeklyGroupLabel">BONUS MINGGUAN</div>
+    <div class="menu bonus-nav weekly-bonus-nav" data-category="Tiap Hari Bonus Besar">🎯 Tiap Hari Bonus Besar</div>
+
+    <div class="menu-subgroup-label bonus-nav history-nav-title" id="bonusHistoryGroupLabel">HISTORY</div>
+    <div class="menu bonus-nav history-bonus-nav" id="historyMenu">▣ <span id="menuHistoryText">Claim History</span><span id="userHistoryUnreadBadge" class="user-side-badge">0</span></div>
+
+    <div class="sidebar-bottom-tools">
+      <div class="user-lang-box">
+        <div class="user-lang-label" id="userLangLabel">LANGUAGE</div>
+        <select id="userLangSelect">
+          <option value="id">Indonesia</option>
+          <option value="zh">繁體中文</option>
+        </select>
+      </div>
+      <div class="user-view-box">
+        <div class="user-lang-label" id="userViewLabel">VIEW MODE</div>
+        <select id="userViewSelect">
+          <option value="compact">Compact</option>
+          <option value="comfortable">Comfortable</option>
+          <option value="large">Large</option>
+        </select>
+      </div>
+    </div>
+
+
+    <div class="profile">
+      <b id="profileName">Staff</b><br>
+      <span id="profileEmail">-</span><br>
+      <span style="color:#16a34a;">● Online</span><br>
+      <span id="soundStatus" style="color:#d97706;">🔇 Click once to enable sound</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="wrapper">
+
+      <div id="homePage" class="page show">
+        <div class="home-panel">
+          <div class="home-hero">
+            <div>
+              <div class="home-kicker" id="homeKicker">IX TEAM USER PORTAL</div>
+              <h2 id="homeTitle">Pilih Project</h2>
+              <div class="subtitle" id="homeSubtitle">Silakan pilih fitur yang ingin digunakan.</div>
+            </div>
+            <div class="home-badge">AI WEB</div>
+          </div>
+
+          <div class="project-grid">
+            <div class="project-card project-active" id="openBonusProject">
+              <div class="project-icon">🎁</div>
+              <div class="project-title" id="projectBonusTitle">Claim Bonus</div>
+              <div class="project-desc" id="projectBonusDesc">Submit bonus, cek status, dan komunikasi dengan admin.</div>
+              <button class="project-btn" type="button" id="projectBonusBtn">Masuk Claim Bonus</button>
+            </div>
+
+            <div class="project-card project-disabled" onclick="showProjectComingSoon()">
+              <div class="project-icon">📱</div>
+              <div class="project-title" id="projectDeviceTitle">Device Report</div>
+              <div class="project-desc" id="projectDeviceDesc">Project device akan ditambahkan nanti.</div>
+              <button class="project-btn disabled" type="button" disabled id="projectDeviceBtn">Coming Soon</button>
+            </div>
+
+            <div class="project-card project-disabled" onclick="showProjectComingSoon()">
+              <div class="project-icon">📌</div>
+              <div class="project-title" id="project4Title">Project 4</div>
+              <div class="project-desc" id="project4Desc">Project tambahan masih dalam tahap persiapan.</div>
+              <button class="project-btn disabled" type="button" disabled id="project4Btn">Coming Soon</button>
+            </div>
+
+            <div class="project-card project-disabled" onclick="showProjectComingSoon()">
+              <div class="project-icon">🧩</div>
+              <div class="project-title" id="project5Title">Project 5</div>
+              <div class="project-desc" id="project5Desc">Project tambahan berikutnya masih dalam tahap persiapan.</div>
+              <button class="project-btn disabled" type="button" disabled id="project5Btn">Coming Soon</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="submitPage" class="page">
+        <div class="form-layout">
+          <div class="panel">
+            <h2 id="formTitle">CU SPORT CLAIM</h2>
+            <div class="subtitle" id="formSubtitle">Isi data claim CU Sport lalu submit ke database.</div>
+
+            <div class="grid" id="bonusFormGrid">
+              <div>
+                <label id="lblStaffName">Staff Name</label>
+                <input id="staffName" type="text" placeholder="Contoh: Leo">
+                <label class="lockline"><input id="lockStaff" type="checkbox"><span id="lblLockStaff">Lock Staff Name</span></label>
+              </div>
+
+              <div>
+                <label id="lblAkunMember">Akun Member</label>
+                <input id="akunMember" type="text" placeholder="Contoh: MEMBER123">
+                <label class="lockline"><input id="lockMember" type="checkbox"><span id="lblLockMember">Lock Akun Member</span></label>
+              </div>
+
+              <div id="nicknameBox" class="full" style="display:none;">
+                <label id="lblNicknameMb">Nickname MB</label>
+                <input id="nicknameMb" type="text" placeholder="Contoh: nickname member">
+              </div>
+
+              <div id="tipeBonusBox" class="full">
+                <label id="lblTipeBonus">Tipe Bonus</label>
+                <select id="tipeBonus"></select>
+              </div>
+
+              <div id="parlayBox" style="display:none;">
+                <label id="lblParlay">Parlay</label>
+                <select id="parlay">
+                  <option value="">Pilih Parlay</option>
+                </select>
+                <div class="field-mini-hint" id="parlayHint">Pilih Parlay sesuai slip. Tidak wajib ikut Tipe Bonus.</div>
+              </div>
+
+              <div id="nominalBonusBox">
+                <label id="lblNominalBonus">Nominal Bonus</label>
+                <input id="nominalBonus" class="readonly" type="text" placeholder="Auto isi sesuai tipe bonus" readonly>
+              </div>
+
+              <div id="nominalInBox">
+                <label id="lblNominalIn">TOTAL IN</label>
+                <input id="nominalIn" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Contoh: 10000" autocomplete="off">
+              </div>
+
+              <div id="nominalBettingBox">
+                <label id="lblNominalBetting">Nominal Betting</label>
+                <input id="nominalBetting" type="number" placeholder="Contoh: 5000">
+              </div>
+
+              <div id="slipBox" class="full">
+                <label id="lblNomorSlip">Nomor Slip Taruhan</label>
+                <input id="nomorSlip" type="text" placeholder="Contoh: 123456789">
+              </div>
+
+              <div id="tipeGameBox" class="full" style="display:none;">
+                <label id="lblTipeGame">Tipe Game</label>
+                <select id="tipeGame">
+                  <option value="">Pilih Tipe Game</option>
+                  <option value="CU體育">CU Sport / CU體育</option>
+                  <option value="CU真人">CU Casino / CU真人</option>
+                  <option value="CU彩票">CU Lottery / CU彩票</option>
+                  <option value="CD電子">CD Slot / CD電子</option>
+                  <option value="第三方(備註填寫平台)">Third Party / 第三方(備註填寫平台)</option>
+                </select>
+                <div class="field-mini-hint" id="tipeGameHint">Tampilan dibuat mudah dibaca, value tetap sesuai validasi HQ.</div>
+              </div>
+
+              <div id="kodeAgenBox" class="full" style="display:none;">
+                <label id="lblKodeAgen">Kode Agen</label>
+                <input id="kodeAgen" type="text" placeholder="Contoh: AG001" autocomplete="off">
+                <div id="kodeAgenHelper" class="kode-agen-helper"></div>
+                <div id="kodeAgenSuggest" class="kode-agen-suggest"></div>
+              </div>
+
+              <div id="tipeBonusUtamaBox" class="full" style="display:none;">
+                <label id="lblTipeBonusUtama">Tipe Bonus Utama</label>
+                <select id="tipeBonusUtama"></select>
+              </div>
+
+              <div id="helloFixedTypeBox" class="full" style="display:none;">
+                <label id="lblHelloFixedType">Detail Tipe</label>
+                <input id="helloFixedType" class="readonly" type="text" placeholder="Auto ikut Tipe Bonus Utama" readonly>
+                <div class="field-mini-hint" id="helloFixedTypeHint">Auto: 普通-介紹好友 / VIP-介紹好友, akan dikirim ke HQ.</div>
+              </div>
+
+              <div id="akunDiajakBox" class="full" style="display:none;">
+                <label id="lblAkunDiajak">Akun MB yang Diajak</label>
+                <input id="akunDiajak" type="text" placeholder="Contoh: MEMBER456">
+              </div>
+
+              <div id="jumlahPengenalanBox" class="full" style="display:none;">
+                <label id="lblJumlahPengenalan">Jumlah Pengenalan</label>
+                <select id="jumlahPengenalan">
+                  <option value="">Pilih Jumlah Pengenalan</option>
+                  <option value="1~10">1~10</option>
+                  <option value="11~20">11~20</option>
+                  <option value="21~30+">21~30+</option>
+                </select>
+                <div class="field-mini-hint" id="jumlahPengenalanHint">Wajib dipilih, akan dikirim ke HQ kolom Jumlah Pengenalan.</div>
+              </div>
+
+              <div id="tanggalInBox" class="full" style="display:none;">
+                <label id="lblTanggalIn">Remarks / Tanggal IN</label>
+                <input id="tanggalIn" type="date">
+              </div>
+
+              <div id="uploadBox" class="full" style="display:none;">
+                <label id="lblUploadFoto">Upload Foto</label>
+                <div id="uploadGrid" class="upload-grid"></div>
+                <div class="upload-hint" id="uploadHintText">File akan otomatis tersimpan ke folder AI TAMPUNG FOTO.</div>
+              </div>
+
+              <div id="driveBox" class="full" style="display:none;">
+                <label id="lblDriveBackup">Google Drive Link Backup</label>
+                <input id="driveLink" type="text" placeholder="Opsional, link1, link2, link3">
+              </div>
+
+              <div id="remarksBox" class="full">
+                <label id="lblRemarks">Remarks</label>
+                <textarea id="remarks" placeholder="Opsional, contoh: sudah dicek / catatan tambahan"></textarea>
+              </div>
+            </div>
+
+            <button id="submitBtn" type="button">✦ <span id="submitBtnText">Submit Claim</span></button>
+            <div id="status"></div>
+          </div>
+
+          <div>
+            <div class="side-card">
+              <div class="side-title" id="noteTitle">📌 Sport Parlay Bonus</div>
+              <div id="noteContent"></div>
+            </div>
+
+            <div class="side-card">
+              <div class="side-title" id="internalNotesTitle">⚡ Internal Notes</div>
+              <div style="color:#475569;line-height:1.9;font-size:13px;">
+                <span id="internalNotesContent">• Pastikan data claim valid<br>
+                • Status claim mengikuti admin<br>
+                • StatusHQ akan ikut data dari file sumber<br>
+                • Jika ada revisi, gunakan tombol Comment di Claim History</span>
+              </div>
+            </div>
+
+            <div class="upload-access-card" style="display:none;">
+              <div class="side-title" id="uploadAccessTitle">🔐 Cek Akses Upload</div>
+              <div id="uploadAccessDesc" style="color:#475569;line-height:1.7;font-size:13px;font-weight:700;">Klik test sebelum submit bonus yang memakai foto.</div>
+              <button id="uploadAccessBtn" class="upload-access-btn" type="button">Cek Akses Upload</button>
+              <div id="uploadAccessStatus" class="upload-access-status"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="historyPage" class="page">
+        <div class="panel">
+          <div class="history-top">
+            <div>
+              <h2 id="historyTitle">CLAIM HISTORY</h2>
+              <div class="subtitle" id="historySubtitle" style="margin-bottom:0;">Default tampil hari ini. Semua bonus bisa pakai Comment.</div>
+            </div>
+
+            <div class="filters">
+              <select id="historyMode">
+                <option value="today" id="historyOptToday">Today</option>
+                <option value="yesterday" id="historyOptYesterday">Yesterday</option>
+                <option value="all" id="historyOptAll">All History</option>
+                <option value="custom" id="historyOptCustom">Custom Date</option>
+              </select>
+
+              <input type="date" id="historyFrom" style="display:none;">
+              <input type="date" id="historyTo" style="display:none;">
+
+              <button class="filter-btn" id="filterBtn" type="button" title="Refresh StatusHQ / Filter">Refresh Status</button>
+              <span id="historyRefreshStatus" class="history-refresh-status"></span>
+              <button id="syncBtn" class="sync-btn" type="button" style="display:none;">SyncHQ</button>
+
+              <input type="text" id="searchInput" class="search" placeholder="Cari slip / member / status...">
+            </div>
+          </div>
+
+          <div id="syncStatus"></div>
+
+          <div class="history-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th id="hThTimestamp">Timestamp</th>
+                  <th id="hThCategory">Category</th>
+                  <th id="hThStaff">Staff</th>
+                  <th id="hThMember">Member</th>
+                  <th id="hThBonus">Bonus</th>
+                  <th id="hThNominal">Nominal</th>
+                  <th id="hThSlip">Slip</th>
+                  <th id="hThKodeAgen">Kode Agen</th>
+                  <th id="hThStatus">Status</th>
+                  <th id="hThStatusHQ">StatusHQ</th>
+                  <th id="hThDrive">Drive</th>
+                  <th id="hThUserRemarks">User Remarks</th>
+                  <th id="hThAdminRemarks">Admin Remarks</th>
+                  <th id="hThComment">Comment</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+
+          <div class="history-pagination">
+            <div id="historyPaginationInfo">Showing 0 of 0</div>
+            <div class="history-pagination-controls">
+              <button class="history-page-btn" id="historyPrevBtn" type="button">Previous</button>
+              <span id="historyPageIndicator">Page 1 / 1</span>
+              <button class="history-page-btn" id="historyNextBtn" type="button">Next</button>
+              <select id="historyPageSize" class="history-page-size">
+                <option value="10">10 / page</option>
+                <option value="20">20 / page</option>
+                <option value="50">50 / page</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="bonusCommentOverlay" class="bc-overlay">
+  <div class="bc-modal">
+    <div class="bc-head">
+      <div>
+        <div class="bc-title" id="bcTitle">Bonus Comment</div>
+        <div class="bc-sub" id="bcSub">Loading...</div>
+      </div>
+      <button class="bc-close" type="button" id="bcCloseBtn">Close</button>
+    </div>
+
+    <div class="bc-info" id="bcInfo"></div>
+
+    <div class="bc-list" id="bcList">
+      <div style="text-align:center;color:#64748b;font-weight:800;">Loading comments...</div>
+    </div>
+
+    <div class="bc-form">
+      <textarea id="bcMessage" placeholder="Tulis comment tambahan..."></textarea>
+      <div>
+        <input id="bcFile" class="bc-file" type="file" accept="image/*">
+        <label for="bcFile" class="bc-upload-label" id="bcUploadLabel">📎 Upload Optional</label>
+        <div class="bc-file-name" id="bcFileName">Optional</div>
+      </div>
+    </div>
+
+    <button class="bc-send" id="bcSendBtn" type="button">Send Comment</button>
+    <div class="bc-status" id="bcStatus"></div>
+  </div>
+</div>
+
+<script>
+let historyData = [];
+let isSubmitting = false;
+let currentUser = null;
+let currentCategory = "CU Sport";
+let selectedUploadFiles = [];
+let activeBonusCommentRow = null;
+let bonusCommentUnreadMap = {};
+let bonusCommentRequestToken = 0;
+let bonusCommentRefreshToken = 0;
+let bonusCommentSendToken = 0;
+let bonusCommentLocalReadRows = {};
+const BONUS_COMMENT_LOCAL_READ_TTL_MS = 15000;
+let userLang = localStorage.getItem("ixUserLang") || "id";
+let userViewMode = localStorage.getItem("ixUserViewMode") || "comfortable";
+let historyCurrentPage = 1;
+let historyPageSize = 10;
+let historyFilteredData = [];
+
+let userAutoRefreshTimer = null;
+let lastUserUnreadTotal = 0;
+let lastUserHistorySnapshot = {};
+let userHistoryInitialized = false;
+let manualHistoryRefreshActive = false;
+
+let notifyAudioCtx = null;
+let notifySoundUnlocked = false;
+let lastNotifySoundAt = 0;
+
+function updateNotifySoundStatus(){
+  const el = document.getElementById("soundStatus");
+  if(!el) return;
+
+  if(notifySoundUnlocked){
+    el.style.color = "#16a34a";
+    el.innerHTML = "🔊 Sound Active";
+  }else{
+    el.style.color = "#d97706";
+    el.innerHTML = "🔇 Click once to enable sound";
+  }
+}
+
+function unlockNotifySound(){
+  try{
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if(!AudioContextClass) return;
+
+    if(!notifyAudioCtx){
+      notifyAudioCtx = new AudioContextClass();
+    }
+
+    if(notifyAudioCtx.state === "suspended"){
+      notifyAudioCtx.resume();
+    }
+
+    notifySoundUnlocked = true;
+    updateNotifySoundStatus();
+  }catch(err){}
+}
+
+function notifyBeep(freq, start, dur, volume, type){
+  try{
+    unlockNotifySound();
+
+    if(!notifyAudioCtx || !notifySoundUnlocked) return;
+
+    const ctx = notifyAudioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = type || "sine";
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+
+    gain.gain.setValueAtTime(0.001, ctx.currentTime + start);
+    gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + start + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(ctx.currentTime + start);
+    osc.stop(ctx.currentTime + start + dur + 0.04);
+  }catch(err){}
+}
+
+function playNotifySound(type){
+  try{
+    const now = Date.now();
+
+    // Anti terlalu berisik: maksimal 1 bunyi tiap 3 detik.
+    if(now - lastNotifySoundAt < 3000) return;
+    lastNotifySoundAt = now;
+
+    if(type === "pending"){
+      // Pending submit baru: suara lebih tegas, 3 nada.
+      notifyBeep(392, 0.00, 0.18, 0.32, "triangle");
+      notifyBeep(523, 0.21, 0.18, 0.34, "triangle");
+      notifyBeep(784, 0.42, 0.28, 0.36, "triangle");
+      return;
+    }
+
+    // Comment / update: ting-ting ringan.
+    notifyBeep(880, 0.00, 0.16, 0.18, "sine");
+    notifyBeep(1175, 0.23, 0.18, 0.16, "sine");
+  }catch(err){}
+}
+
+document.addEventListener("click", unlockNotifySound, true);
+
+
+const CU_SPORT_OPTIONS = [
+  ["CU Sport Crazy Parlay 128", 128],
+  ["CU Sport Crazy Parlay 168", 168],
+  ["CU Sport Crazy Parlay 268", 268],
+  ["CU Sport Crazy Parlay 328", 328],
+  ["CU Sport Crazy Parlay 388", 388],
+  ["CU Sport Crazy Parlay 588", 588],
+  ["CU Sport Crazy Parlay 688", 688],
+  ["CU Sport Crazy Parlay 888", 888]
+];
+
+const CU_SPORT_PARLAY_OPTIONS = [
+  "3 Parlay",
+  "4 Parlay",
+  "5 Parlay",
+  "6 Parlay",
+  "7 Parlay",
+  "8 Parlay",
+  "9 Parlay",
+  "10 Parlay"
+];
+
+const CU_SPORT_PARLAY_BY_BONUS = {
+  "CU Sport Crazy Parlay 128": "3 Parlay",
+  "CU Sport Crazy Parlay 168": "4 Parlay",
+  "CU Sport Crazy Parlay 268": "5 Parlay",
+  "CU Sport Crazy Parlay 328": "6 Parlay",
+  "CU Sport Crazy Parlay 388": "7 Parlay",
+  "CU Sport Crazy Parlay 588": "8 Parlay",
+  "CU Sport Crazy Parlay 688": "9 Parlay",
+  "CU Sport Crazy Parlay 888": "10 Parlay"
+};
+
+const WELCOME_OPTIONS = [
+  ["體驗金-完善資料/Bonus percobaan 28", 28],
+  ["體驗金-首存50/ Bonus percobaan 28 ( PERTAMA 50)", 28],
+  ["體驗金-二存99/ Bonus percobaan48 (IN kedua 99)", 48],
+  ["體驗金-三存99/ Bonus percobaan68 (IN ketiga 99）", 68],
+  ["體驗金-完善+首存50/ Bonus percobaan56 (berhasil lengkapi data + IN 50 : 28+28）", 56],
+  ["體驗金-完善28+首存199/ Bonus percobaan148 (berhasil lengkapi data 28 + pertama  199）", 148],
+  ["體驗金-首存199/ Bonus percobaan177（IN pertama 199）", 177]
+];
+
+const PROMO_SYUKURAN_OPTIONS = [
+  ["Telesale DW Cashback 28", 28],
+  ["Telesale DW Cashback 80", 80],
+  ["Telesale DW Cashback 80+80", "80+80"],
+  ["Telesale DW Cashback 188", 188],
+  ["Telesale DW Cashback 200", 200],
+  ["Telesale DW Cashback 400", 400],
+  ["Telesale DW Cashback 700", 700],
+  ["Telesale DW Cashback 110", 110],
+  ["Telesale DW Cashback 138", 138],
+  ["Telesale DW Cashback 328", 328]
+];
+
+const VVIP_DEPO_OPTIONS = [
+  ["VVIP-BONUS-77", 77],
+  ["VVIP-BONUS-177", 177],
+  ["VVIP-BONUS-377", 377],
+  ["VVIP-BONUS-777", 777]
+];
+
+const VVIP_SPECIAL_OPTIONS = [
+  ["VVIP BONUS-77", 77],
+  ["SUPER VIP SPECIAL 1688", 1688],
+  ["SUPER VIP SPECIAL 588", 588],
+  ["SUPER VIP SPECIAL 888", 888]
+];
+
+const LUCKY_MONEY_OPTIONS = [
+  ["Lucky money 88", 88]
+];
+
+const TIAP_HARI_OPTIONS = [
+  ["Hari-hari dapat bonus besar 38", 38],
+  ["Hari-hari dapat bonus besar 128", 128],
+  ["Hari-hari dapat bonus besar 268", 268],
+  ["Hari-hari dapat bonus besar 368", 368],
+  ["Hari-hari dapat bonus besar 568", 568]
+];
+
+
+const HELLO_MAIN_OPTIONS = [
+  { value: "HELLOFRIENDS-介紹朋友活動-普通 / HELLOFRIENDS Pengenalan Teman", label: "普通 / HELLOFRIENDS Pengenalan Teman" },
+  { value: "HELLOFRIENDS-介紹朋友活動-VIP / HELLOFRIENDS VIP", label: "VIP / HELLOFRIENDS VIP" }
+];
+
+const HELLO_FRIEND_OPTIONS = [
+  ["HELLO FRIEND-77", "77"],
+  ["HELLO FRIEND-77+77", "77+77"],
+  ["HELLO FRIEND-77+127", "77+127"],
+  ["HELLO FRIEND-77+177", "77+177"]
+];
+
+
+function setButtonLoading_(btn, text){
+  if(!btn) return;
+  btn.dataset.originalText = btn.dataset.originalText || btn.innerHTML;
+  btn.disabled = true;
+  btn.classList.remove("btn-success","btn-error");
+  btn.classList.add("btn-loading");
+  btn.innerHTML = text || "Processing...";
+}
+
+function setButtonSuccess_(btn, text, restoreDelay){
+  if(!btn) return;
+  btn.classList.remove("btn-loading","btn-error");
+  btn.classList.add("btn-success");
+  btn.innerHTML = text || "✓ Done";
+  if(restoreDelay !== 0){
+    setTimeout(function(){
+      btn.classList.remove("btn-success");
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.originalText || btn.innerHTML;
+    }, restoreDelay || 1300);
+  }
+}
+
+function setButtonError_(btn, text, restoreDelay){
+  if(!btn) return;
+  btn.classList.remove("btn-loading","btn-success");
+  btn.classList.add("btn-error");
+  btn.innerHTML = text || "Error";
+  setTimeout(function(){
+    btn.classList.remove("btn-error");
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.originalText || btn.innerHTML;
+  }, restoreDelay || 1500);
+}
+
+function getRowUnreadCommentCount_(r){
+  if(!r) return 0;
+  if(isBonusCommentRowLocallyRead_(r.row)) return 0;
+  return Math.max(Number(r.commentUnread || 0), Number((bonusCommentUnreadMap || {})[r.row] || 0));
+}
+
+function renderUserCommentButton_(row, unreadCount){
+  const count = Number(unreadCount || 0);
+  const bubble = count > 0 ? '<span class="comment-unread-pill">' + esc(count > 99 ? '99+' : count) + '</span>' : '';
+  return '<button class="case-btn bonus-comment-btn" data-row="' + Number(row) + '" type="button">' + esc(u("comment")) + bubble + '</button>';
+}
+
+function esc(v){
+  return String(v == null ? "" : v)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+const USER_I18N = {
+  id:{
+    language:"Language", viewMode:"View Mode", viewCompact:"Compact", viewComfortable:"Comfortable", viewLarge:"Large", internalSystem:"INTERNAL SYSTEM", home:"Home", bonusGroup:"BONUS CLAIM", claimHistory:"Claim History", homeKicker:"IX TEAM USER PORTAL", homeTitle:"Pilih Project", homeSubtitle:"Silakan pilih fitur yang ingin digunakan.", projectBonusTitle:"Claim Bonus", projectBonusDesc:"Submit bonus, cek status, dan komunikasi dengan admin.", projectBonusBtn:"Masuk Claim Bonus", projectWeeklyTitle:"Bonus Mingguan", projectWeeklyDesc:"Home Bonus Mingguan. Detail form akan diatur setelah ini.", projectWeeklyBtn:"Masuk Bonus Mingguan", projectDeviceTitle:"Device Report", projectDeviceDesc:"Project device akan ditambahkan nanti.", project4Title:"Project 4", project4Desc:"Project tambahan masih dalam tahap persiapan.", project5Title:"Project 5", project5Desc:"Project tambahan berikutnya masih dalam tahap persiapan.", weeklyHomeTitle:"Bonus Mingguan", weeklyHomeSub:"Home Bonus Mingguan sudah aktif.<br>Detail form, kategori, dan history akan kita atur di tahap berikutnya.", comingSoon:"Coming Soon",
+    staffName:"Staff Name", lockStaff:"Lock Staff Name", akunMember:"Akun Member", lockMember:"Lock Akun Member",
+    nicknameMb:"Nickname MB", tipeBonusUtama:"Tipe Bonus Utama", helloFixedType:"Detail Tipe", akunDiajak:"Akun MB yang Diajak", tipeBonus:"Tipe Bonus", nominalBonus:"Nominal Bonus", nominalBetting:"Nominal Betting",
+    nomorSlip:"Nomor Slip Taruhan", kodeAgen:"Kode Agen", tanggalIn:"Remarks / Tanggal IN", uploadFoto:"Upload Foto",
+    uploadHint:"File akan otomatis tersimpan ke folder AI TAMPUNG FOTO.", driveBackup:"Google Drive Link Backup", remarks:"Remarks",
+    submitClaim:"Submit Claim", internalNotes:"⚡ Internal Notes",
+    internalContent:"• Pastikan data claim valid<br>• Status claim mengikuti admin<br>• StatusHQ akan ikut data dari file sumber<br>• Jika ada revisi, gunakan tombol Comment di Claim History",
+    historyTitle:"CLAIM HISTORY", historySubtitle:"Default tampil hari ini. Semua bonus bisa pakai Comment.",
+    today:"Today", yesterday:"Yesterday", allHistory:"All History", customDate:"Custom Date", filter:"Refresh Status", refreshing:"Refreshing...", refreshStatusInfo:"Checking latest StatusHQ...", updatedAt:"Updated", refreshFailed:"Refresh failed", searchPlaceholder:"Cari slip / member / status...",
+    timestamp:"Timestamp", category:"Category", staff:"Staff", member:"Member", bonus:"Bonus", nominal:"Nominal", slip:"Slip", status:"Status", drive:"Drive", userRemarks:"User Remarks", adminRemarks:"Admin Remarks", comment:"Comment",
+    showing:"Showing", of:"of", previous:"Previous", next:"Next", page:"page", pageLabel:"Page", noData:"Tidak ada data",
+    bonusComment:"Bonus Comment", close:"Close", commentPlaceholder:"Tulis comment tambahan...", uploadOptional:"📎 Upload Optional", sendComment:"Send Comment", chooseBonus:"Pilih Bonus",
+    uploadAccessTitle:"🔐 Cek Akses Upload", uploadAccessDesc:"Klik test sebelum submit bonus yang memakai foto.", checkUploadAccess:"Cek Akses Upload", checkingUploadAccess:"Checking upload access...", uploadAccessReady:"Upload access ready.", uploadAccessFail:"Upload access belum siap",
+    formSubtitle:"Isi data {category} lalu submit ke database."
+  },
+  zh:{
+    language:"語言", viewMode:"顯示模式", viewCompact:"緊湊", viewComfortable:"舒適", viewLarge:"大字", internalSystem:"內部系統", home:"首頁", bonusGroup:"禮金申請", claimHistory:"申請紀錄", homeKicker:"IX TEAM 用戶入口", homeTitle:"選擇項目", homeSubtitle:"請選擇要使用的功能。", projectBonusTitle:"禮金申請", projectBonusDesc:"提交禮金、查看狀態，並與管理員溝通。", projectBonusBtn:"進入禮金申請", projectWeeklyTitle:"每週禮金", projectWeeklyDesc:"每週禮金首頁已啟用，表單細節之後設定。", projectWeeklyBtn:"進入每週禮金", projectDeviceTitle:"設備回報", projectDeviceDesc:"設備相關項目之後會再加入。", project4Title:"項目 4", project4Desc:"其他項目仍在準備中。", project5Title:"項目 5", project5Desc:"下一個項目仍在準備中。", weeklyHomeTitle:"每週禮金", weeklyHomeSub:"每週禮金首頁已啟用。<br>表單、分類與紀錄之後再設定。", comingSoon:"即將開放",
+    staffName:"人員", lockStaff:"鎖定人員", akunMember:"會員賬號", lockMember:"鎖定會員賬號",
+    nicknameMb:"會員暱稱", tipeBonusUtama:"禮金主類型", helloFixedType:"介紹類型", akunDiajak:"被介紹會員賬號", tipeBonus:"禮金類型", nominalBonus:"禮金金額", nominalBetting:"投注金額",
+    nomorSlip:"注單號", kodeAgen:"代理代碼", tanggalIn:"備註 / IN 日期", uploadFoto:"上傳照片",
+    uploadHint:"檔案會自動儲存至 AI TAMPUNG FOTO 資料夾。", driveBackup:"Google Drive 備用連結", remarks:"備註",
+    submitClaim:"提交申請", internalNotes:"⚡ 內部提醒",
+    internalContent:"• 請確認申請資料正確<br>• 申請狀態以管理員處理為準<br>• StatusHQ 會同步來源檔案資料<br>• 如需補充或修改，請使用申請紀錄中的留言功能",
+    historyTitle:"申請紀錄", historySubtitle:"預設顯示今日資料，所有禮金都可以使用留言功能。",
+    today:"今天", yesterday:"昨天", allHistory:"全部紀錄", customDate:"自訂日期", filter:"刷新狀態", refreshing:"刷新中...", refreshStatusInfo:"正在檢查最新 StatusHQ...", updatedAt:"已更新", refreshFailed:"刷新失敗", searchPlaceholder:"搜尋注單 / 會員 / 狀態...",
+    timestamp:"時間", category:"類型", staff:"人員", member:"會員賬號", bonus:"禮金", nominal:"金額", slip:"注單號", status:"狀態", drive:"附件", userRemarks:"用戶備註", adminRemarks:"管理備註", comment:"留言",
+    showing:"顯示", of:"共", previous:"上一頁", next:"下一頁", page:"每頁", pageLabel:"頁數", noData:"沒有資料",
+    bonusComment:"禮金留言", close:"關閉", commentPlaceholder:"輸入補充留言...", uploadOptional:"📎 選擇上傳附件", sendComment:"送出留言", chooseBonus:"選擇禮金",
+    uploadAccessTitle:"🔐 檢查上傳權限", uploadAccessDesc:"提交需要照片的禮金前，請先點擊測試。", checkUploadAccess:"檢查上傳權限", checkingUploadAccess:"正在檢查上傳權限...", uploadAccessReady:"上傳權限正常。", uploadAccessFail:"上傳權限尚未正常",
+    formSubtitle:"填寫 {category} 申請資料並提交。"
+  }
+};
+
+function u(key){
+  return (USER_I18N[userLang] && USER_I18N[userLang][key]) || USER_I18N.id[key] || key;
+}
+
+function setText(id, value){
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = value;
+}
+
+function setPlaceholder(id, value){
+  const el = document.getElementById(id);
+  if(el) el.placeholder = value;
+}
+
+function setUserLang(lang){
+  userLang = lang === "zh" ? "zh" : "id";
+  localStorage.setItem("ixUserLang", userLang);
+  applyUserLanguage();
+  applyUserViewMode();
+  renderBonusForm();
+  renderHistory(historyFilteredData.length ? historyFilteredData : historyData, true);
+}
+
+
+function getUserCategoryIcon(category){
+  const map = {
+    "CU Sport":"🏆",
+    "Welcome Bonus":"🎁",
+    "Promo Syukuran":"🎉",
+    "Transfer Agen":"🔁",
+    "VVIP DEPO":"💎",
+    "VVIP Special Prize":"🏅",
+    "Lucky Money 88":"🍀",
+    "Tiap Hari Bonus Besar":"🎯",
+    "Hello Friends":"👥",
+    "Direct Agent":"🤝"
+  };
+  return map[category] || "📌";
+}
+
+function getUserCategoryLabel(category){
+  const idMap = {
+    "CU Sport":"CU Sport",
+    "Welcome Bonus":"Welcome Bonus",
+    "Promo Syukuran":"Promo Syukuran",
+    "Transfer Agen":"Transfer Agen",
+    "VVIP DEPO":"VVIP DEPO",
+    "VVIP Special Prize":"VVIP Special Prize",
+    "Lucky Money 88":"Lucky Money 88",
+    "Tiap Hari Bonus Besar":"Tiap Hari Bonus Besar",
+    "Hello Friends":"Hello Friends",
+    "Direct Agent":"Direct Agent"
+  };
+
+  const zhMap = {
+    "CU Sport":"酷體育瘋串串",
+    "Welcome Bonus":"體驗金777",
+    "Promo Syukuran":"感恩禮金",
+    "Transfer Agen":"轉線- Transfer Agen",
+    "VVIP DEPO":"VVIP-當日存款",
+    "VVIP Special Prize":"VVIP-特別獎",
+    "Lucky Money 88":"新升銅禮金Lucky money",
+    "Tiap Hari Bonus Besar":"(新)天天拿大獎",
+    "Hello Friends":"介紹好友 FRIENDS",
+    "Direct Agent":"Direct Agent"
+  };
+
+  const map = userLang === "zh" ? zhMap : idMap;
+  return map[category] || category;
+}
+
+function updateUserSidebarLabels(){
+  document.querySelectorAll(".menu[data-category]").forEach(function(menu){
+    const cat = menu.dataset.category;
+    menu.innerHTML = esc(getUserCategoryIcon(cat) + " " + getUserCategoryLabel(cat));
+  });
+}
+
+function updateUserViewModeOptions(){
+  const select = document.getElementById("userViewSelect");
+  if(!select) return;
+
+  const current = select.value || userViewMode || "comfortable";
+  const labels = {
+    compact:u("viewCompact"),
+    comfortable:u("viewComfortable"),
+    large:u("viewLarge")
+  };
+
+  Array.from(select.options).forEach(function(opt){
+    if(labels[opt.value]) opt.textContent = labels[opt.value];
+  });
+
+  select.value = current;
+}
+
+function applyUserViewMode(){
+  const mode = ["compact","comfortable","large"].includes(userViewMode) ? userViewMode : "comfortable";
+  userViewMode = mode;
+
+  document.body.classList.remove("user-view-compact","user-view-comfortable","user-view-large");
+  document.body.classList.add("user-view-" + mode);
+
+  const select = document.getElementById("userViewSelect");
+  if(select) select.value = mode;
+}
+
+function setUserViewMode(mode){
+  userViewMode = ["compact","comfortable","large"].includes(mode) ? mode : "comfortable";
+  localStorage.setItem("ixUserViewMode", userViewMode);
+  applyUserViewMode();
+  renderHistory(historyData || [], true);
+}
+
+
+function applyUserLanguage(){
+  const select = document.getElementById("userLangSelect");
+  if(select) select.value = userLang;
+
+
+  setText("menuHomeText", u("home"));
+  setText("bonusGroupLabel", u("bonusGroup"));
+  setText("bonusDailyGroupLabel", userLang === "zh" ? "每日禮金" : "BONUS HARIAN");
+  setText("bonusWeeklyGroupLabel", userLang === "zh" ? "每週禮金" : "BONUS MINGGUAN");
+  setText("bonusHistoryGroupLabel", userLang === "zh" ? "紀錄" : "HISTORY");
+  setText("homeKicker", u("homeKicker"));
+  setText("homeTitle", u("homeTitle"));
+  setText("homeSubtitle", u("homeSubtitle"));
+  setText("projectBonusTitle", u("projectBonusTitle"));
+  setText("projectBonusDesc", u("projectBonusDesc"));
+  setText("projectBonusBtn", u("projectBonusBtn"));
+  setText("projectWeeklyTitle", u("projectWeeklyTitle"));
+  setText("projectWeeklyDesc", u("projectWeeklyDesc"));
+  setText("projectWeeklyBtn", u("projectWeeklyBtn"));
+  setText("projectDeviceTitle", u("projectDeviceTitle"));
+  setText("projectDeviceDesc", u("projectDeviceDesc"));
+  setText("projectDeviceBtn", u("comingSoon"));
+  setText("project4Title", u("project4Title"));
+  setText("project4Desc", u("project4Desc"));
+  setText("project4Btn", u("comingSoon"));
+  setText("project5Title", u("project5Title"));
+  setText("project5Desc", u("project5Desc"));
+  setText("project5Btn", u("comingSoon"));
+  setText("weeklyHomeTitle", u("weeklyHomeTitle"));
+  setText("weeklyHomeSub", u("weeklyHomeSub"));
+
+  setText("userLangLabel", u("language"));
+  setText("userViewLabel", u("viewMode"));
+  updateUserViewModeOptions();
+  updateUserSidebarLabels();
+  setText("subLogoText", u("internalSystem"));
+  setText("menuHistoryText", u("claimHistory"));
+
+  setText("lblStaffName", u("staffName"));
+  setText("lblLockStaff", u("lockStaff"));
+  setText("lblAkunMember", u("akunMember"));
+  setText("lblLockMember", u("lockMember"));
+  setText("lblNicknameMb", u("nicknameMb"));
+  setText("lblTipeBonusUtama", u("tipeBonusUtama"));
+  setText("lblHelloFixedType", u("helloFixedType"));
+  setText("helloFixedTypeHint", userLang === "zh" ? "自動依主類型帶出：普通-介紹好友 / VIP-介紹好友，會寫入 HQ。" : "Auto ikut Tipe Bonus Utama: 普通-介紹好友 / VIP-介紹好友, akan dikirim ke HQ.");
+  setText("lblAkunDiajak", u("akunDiajak"));
+  setText("lblJumlahPengenalan", userLang === "zh" ? "介紹人數" : "Jumlah Pengenalan");
+  setText("jumlahPengenalanHint", userLang === "zh" ? "必選，會寫入 HQ 介紹人數欄位。" : "Wajib dipilih, akan dikirim ke HQ kolom Jumlah Pengenalan.");
+  setText("lblTipeBonus", u("tipeBonus"));
+  setText("lblParlay", userLang === "zh" ? "串關" : "Parlay");
+  setText("lblNominalBonus", u("nominalBonus"));
+  setText("lblNominalIn", userLang === "zh" ? "總 IN" : "TOTAL IN");
+  setText("lblNominalBetting", u("nominalBetting"));
+  setText("lblNomorSlip", u("nomorSlip"));
+  setText("lblTipeGame", userLang === "zh" ? "遊戲類型" : "Tipe Game");
+  setText("lblKodeAgen", u("kodeAgen"));
+  setText("lblTanggalIn", u("tanggalIn"));
+  setText("lblUploadFoto", u("uploadFoto"));
+  setText("uploadHintText", u("uploadHint"));
+  setText("lblDriveBackup", u("driveBackup"));
+  setText("lblRemarks", u("remarks"));
+  setText("submitBtnText", u("submitClaim"));
+  setText("internalNotesTitle", u("internalNotes"));
+  setText("internalNotesContent", u("internalContent"));
+  setText("uploadAccessTitle", u("uploadAccessTitle"));
+  setText("uploadAccessDesc", u("uploadAccessDesc"));
+  setText("uploadAccessBtn", u("checkUploadAccess"));
+
+  setText("historyTitle", u("historyTitle"));
+  setText("historySubtitle", u("historySubtitle"));
+  setText("historyOptToday", u("today"));
+  setText("historyOptYesterday", u("yesterday"));
+  setText("historyOptAll", u("allHistory"));
+  setText("historyOptCustom", u("customDate"));
+  if(!manualHistoryRefreshActive){
+    setText("filterBtn", u("filter"));
+  }
+  setPlaceholder("searchInput", u("searchPlaceholder"));
+
+  setText("hThTimestamp", u("timestamp"));
+  setText("hThCategory", u("category"));
+  setText("hThStaff", u("staff"));
+  setText("hThMember", u("member"));
+  setText("hThBonus", u("bonus"));
+  setText("hThNominal", u("nominal"));
+  setText("hThSlip", u("slip"));
+  setText("hThKodeAgen", u("kodeAgen"));
+  setText("hThStatus", u("status"));
+  setText("hThStatusHQ", "StatusHQ");
+  setText("hThDrive", u("drive"));
+  setText("hThUserRemarks", u("userRemarks"));
+  setText("hThAdminRemarks", u("adminRemarks"));
+  setText("hThComment", u("comment"));
+
+  setText("bcCloseBtn", u("close"));
+  setPlaceholder("bcMessage", u("commentPlaceholder"));
+  setText("bcUploadLabel", u("uploadOptional"));
+  setText("bcSendBtn", u("sendComment"));
+  updateHistoryPageSizeLabels();
+}
+
+
+
+function getDateByOffset(offsetDays){
+  const d = new Date();
+  d.setDate(d.getDate() + Number(offsetDays || 0));
+  return formatDate(d);
+}
+
+function formatDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function formatSlashDate(value){
+  if(!value) return "";
+  const p = value.split("-");
+  return p.length === 3 ? `${p[0]}/${p[1]}/${p[2]}` : value;
+}
+
+
+const WELCOME_KODE_AGEN_LIST = [
+  "DW31","DW32","DW33","DW35","DW318",
+  "DW36",
+  "DW311","DW312","DW315","DW319","DW329","DW357","DW358","DW359","DW360","DW362",
+  "DW353","DW355",
+  "DW38",
+  "DW316","DW330","DW331","DW332","DW333","DW335","DW336","DW337","DW338","DW339","DW351","DW352",
+  "DW320"
+];
+
+function isWelcomeKodeAgenMode_(){
+  return currentCategory === "Welcome Bonus";
+}
+
+function isWelcomeKodeAgenRegistered_(value){
+  const code = normalizeUpperText_(value);
+  return WELCOME_KODE_AGEN_LIST.includes(code);
+}
+
+function updateKodeAgenHelper_(message, type){
+  const helper = document.getElementById("kodeAgenHelper");
+  if(!helper) return;
+
+  helper.className = "kode-agen-helper";
+  if(!message){
+    helper.innerHTML = "";
+    return;
+  }
+
+  helper.innerHTML = esc(message);
+  helper.classList.add("show");
+  if(type === "warn") helper.classList.add("warn");
+}
+
+function hideKodeAgenSuggestions_(){
+  const box = document.getElementById("kodeAgenSuggest");
+  if(box) box.classList.remove("show");
+}
+
+function renderKodeAgenSuggestions_(){
+  const input = document.getElementById("kodeAgen");
+  const box = document.getElementById("kodeAgenSuggest");
+  if(!input || !box) return;
+
+  if(!isWelcomeKodeAgenMode_()){
+    box.innerHTML = "";
+    hideKodeAgenSuggestions_();
+    updateKodeAgenHelper_("", "");
+    return;
+  }
+
+  const q = normalizeUpperText_(input.value);
+  const matched = WELCOME_KODE_AGEN_LIST.filter(function(code){
+    return !q || code.includes(q);
+  });
+
+  if(q && isWelcomeKodeAgenRegistered_(q)){
+    updateKodeAgenHelper_("✓ Kode agen terdaftar.", "ok");
+  }else if(q){
+    updateKodeAgenHelper_("Kode agen belum ada di daftar. Tetap bisa submit jika memang kode baru/khusus, tapi pastikan tidak typo.", "warn");
+  }else{
+    updateKodeAgenHelper_("Semua kode agen terdaftar ditampilkan sampai DW320. Bisa ketik contoh: DW3 untuk filter lebih cepat.", "");
+  }
+
+  box.innerHTML = matched.length ? matched.map(function(code){
+    return `<div class="kode-agen-option" data-code="${esc(code)}">${esc(code)}</div>`;
+  }).join("") : `<div class="kode-agen-empty">Tidak ada kode yang cocok</div>`;
+
+  box.classList.add("show");
+}
+
+function updateKodeAgenAutocompleteMode_(){
+  const input = document.getElementById("kodeAgen");
+  if(!input) return;
+
+  hideKodeAgenSuggestions_();
+
+  if(isWelcomeKodeAgenMode_()){
+    input.placeholder = "Ketik / pilih kode agen, contoh: DW31";
+    updateKodeAgenHelper_("Ketik contoh: DW3, lalu pilih kode agen dari saran.", "");
+  }else{
+    input.placeholder = "Contoh: AG001";
+    updateKodeAgenHelper_("", "");
+  }
+}
+
+function initKodeAgenAutocomplete_(){
+  const input = document.getElementById("kodeAgen");
+  const box = document.getElementById("kodeAgenSuggest");
+  if(!input || !box || input.dataset.kodeAgenAutoBound === "1") return;
+
+  input.dataset.kodeAgenAutoBound = "1";
+
+  input.addEventListener("focus", function(){
+    if(isWelcomeKodeAgenMode_()) renderKodeAgenSuggestions_();
+  });
+
+  input.addEventListener("input", function(){
+    if(!isWelcomeKodeAgenMode_()) return;
+    input.value = normalizeUpperText_(input.value);
+    renderKodeAgenSuggestions_();
+  });
+
+  input.addEventListener("blur", function(){
+    setTimeout(hideKodeAgenSuggestions_, 160);
+  });
+
+  box.addEventListener("mousedown", function(e){
+    const opt = e.target.closest(".kode-agen-option");
+    if(!opt) return;
+    e.preventDefault();
+    input.value = normalizeUpperText_(opt.dataset.code || opt.textContent || "");
+    updateKodeAgenHelper_("✓ Kode agen terdaftar.", "ok");
+    hideKodeAgenSuggestions_();
+  });
+}
+
+
+window.addEventListener("load", function(){
+  const today = formatDate(new Date());
+  document.getElementById("historyFrom").value = today;
+  document.getElementById("historyTo").value = today;
+
+  document.getElementById("loginBtn").addEventListener("click", loginWithGoogle);
+  document.getElementById("submitBtn").addEventListener("click", submitData);
+  document.getElementById("uploadAccessBtn").addEventListener("click", checkUploadAccess);
+  document.getElementById("tipeBonus").addEventListener("change", autoNominal);
+  if(document.getElementById("parlay")) document.getElementById("parlay").addEventListener("change", validateCuSportParlayUi_);
+  document.getElementById("historyMode").addEventListener("change", changeHistoryMode);
+  document.getElementById("filterBtn").addEventListener("click", refreshHistoryManual);
+  document.getElementById("syncBtn").addEventListener("click", syncHQ);
+  document.getElementById("searchInput").addEventListener("keyup", filterHistory);
+  document.getElementById("bcCloseBtn").addEventListener("click", closeBonusCommentModal);
+  document.getElementById("bcFile").addEventListener("change", showBonusCommentFileName);
+  document.getElementById("bcSendBtn").addEventListener("click", sendBonusComment);
+  document.getElementById("userLangSelect").addEventListener("change", function(){ setUserLang(this.value); });
+  document.getElementById("userViewSelect").addEventListener("change", function(){ setUserViewMode(this.value); });
+  document.getElementById("historyPrevBtn").addEventListener("click", function(){ changeHistoryPage(-1); });
+  document.getElementById("historyNextBtn").addEventListener("click", function(){ changeHistoryPage(1); });
+  document.getElementById("historyPageSize").addEventListener("change", function(){ changeHistoryPageSize(this.value); });
+
+  document.querySelectorAll(".menu[data-category]").forEach(menu=>{
+    menu.addEventListener("click", function(){
+      setBonusCategory(this.dataset.category, this);
+    });
+  });
+
+  document.getElementById("homeMenu").addEventListener("click", function(){
+    enterHomePortalMode();
+    showPage("homePage", this);
+  });
+
+  document.getElementById("openBonusProject").addEventListener("click", function(){
+    const firstBonusMenu = document.querySelector('.daily-bonus-nav[data-category="CU Sport"]') || document.querySelector(".menu[data-category]");
+    setBonusCategory("CU Sport", firstBonusMenu);
+  });
+
+  document.getElementById("historyMenu").addEventListener("click", function(){
+    enterBonusClaimMode();
+    showPage("historyPage", this);
+    loadHistory(false);
+  });
+
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest(".bonus-comment-btn");
+    if(!btn) return;
+
+    e.preventDefault();
+    openBonusComment(Number(btn.dataset.row));
+  });
+
+  enterHomePortalMode();
+  applyUserLanguage();
+  renderBonusForm();
+  initUppercaseFields_();
+  initKodeAgenAutocomplete_();
+  updateKodeAgenAutocompleteMode_();
+  updateNotifySoundStatus();
+});
+
+
+
+function enterHomePortalMode(){
+  document.body.classList.remove("bonus-mode");
+}
+
+function enterBonusClaimMode(){
+  document.body.classList.add("bonus-mode");
+}
+
+function showProjectComingSoon(){
+  alert(userLang === "zh" ? "此項目尚未開放。" : "Project ini belum bisa diakses.");
+}
+
+function loginWithGoogle(){
+  const btn = document.getElementById("loginBtn");
+  const status = document.getElementById("loginStatus");
+  const registerCard = document.getElementById("registerCard");
+  const pendingBox = document.getElementById("accessPendingBox");
+
+  if(registerCard) registerCard.style.display = "none";
+  if(pendingBox) pendingBox.style.display = "none";
+
+  btn.disabled = true;
+  btn.innerHTML = "Checking...";
+  status.style.color = "#2563eb";
+  status.innerHTML = "Validating Google account...";
+
+  google.script.run
+    .withSuccessHandler(function(user){
+      user = user || {};
+      currentUser = user;
+
+      if(user.needsRegistration){
+        status.style.color = "#d97706";
+        status.innerHTML = "Gmail belum terdaftar. Silakan register dulu.";
+        if(registerCard) registerCard.style.display = "block";
+        btn.disabled = false;
+        btn.innerHTML = "🔐 Check Again";
+        return;
+      }
+
+      if(user.needsApproval || user.ok === false || user.active === false){
+        status.style.color = "#d97706";
+        status.innerHTML = "Akses kamu belum aktif.";
+        if(pendingBox){
+          pendingBox.style.display = "block";
+          pendingBox.innerHTML = "Status akses: " + esc(user.accessStatus || "PENDING") + "<br>Silakan tunggu Owner approve / ON-kan akses kamu.";
+        }
+        btn.disabled = false;
+        btn.innerHTML = "🔐 Check Again";
+        return;
+      }
+
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("appLayout").style.display = "flex";
+      document.getElementById("profileName").innerHTML = esc(user.staffName || "Staff");
+      document.getElementById("profileEmail").innerHTML = esc(user.email);
+
+      loadHistory(false);
+      startUserAutoRefresh();
+    })
+    .withFailureHandler(function(err){
+      status.style.color = "#dc2626";
+      status.innerHTML = "Error: " + esc(err.message);
+      btn.disabled = false;
+      btn.innerHTML = "🔐 Login with Google";
+    })
+    .getCurrentUser();
+}
+
+function submitUserRegistration(){
+  const btn = document.getElementById("registerUserBtn");
+  const st = document.getElementById("registerStatus");
+
+  const payload = {
+    staffName: (document.getElementById("regStaffName") || {}).value || "",
+    staffId: (document.getElementById("regStaffId") || {}).value || "",
+    posisi: (document.getElementById("regPosisi") || {}).value || "",
+    team: (document.getElementById("regTeam") || {}).value || ""
+  };
+
+  if(!payload.staffName || !payload.staffId || !payload.posisi || !payload.team){
+    st.style.color = "#dc2626";
+    st.innerHTML = "Staff Name, Staff ID, Posisi, dan Team wajib diisi.";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = "Submitting...";
+  st.style.color = "#2563eb";
+  st.innerHTML = "Menyimpan register...";
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      res = res || {};
+      st.style.color = "#16a34a";
+      st.innerHTML = esc(res.message || "Register berhasil. Tunggu Owner approve.");
+      btn.disabled = false;
+      btn.innerHTML = "Submit Register";
+      loginWithGoogle();
+    })
+    .withFailureHandler(function(err){
+      st.style.color = "#dc2626";
+      st.innerHTML = "Error: " + esc(err && err.message ? err.message : err);
+      btn.disabled = false;
+      btn.innerHTML = "Submit Register";
+    })
+    .registerUserStaffAccess(payload);
+}
+
+function setBonusCategory(category, el){
+  enterBonusClaimMode();
+  currentCategory = category;
+  showPage("submitPage", el);
+  renderBonusForm();
+}
+
+function showPage(pageId, el){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("show"));
+  document.getElementById(pageId).classList.add("show");
+  document.querySelectorAll(".menu").forEach(m=>m.classList.remove("active"));
+  if(el) el.classList.add("active");
+}
+
+function getHelloFixedTypeFromMain_(mainValue){
+  const text = String(mainValue || "").toUpperCase();
+  if(text.indexOf("VIP") >= 0) return "VIP-介紹好友";
+  if(text.indexOf("普通") >= 0 || text.indexOf("PENGENALAN") >= 0 || text.indexOf("HELLOFRIENDS") >= 0) return "普通-介紹好友";
+  return "";
+}
+
+function updateHelloFixedType_(){
+  const main = document.getElementById("tipeBonusUtama");
+  const fixed = document.getElementById("helloFixedType");
+  if(!fixed) return;
+  fixed.value = getHelloFixedTypeFromMain_(main ? main.value : "");
+}
+
+function renderBonusForm(){
+  selectedUploadFiles = [];
+  setTimeout(initUppercaseFields_, 0);
+
+  const formGrid = document.getElementById("bonusFormGrid");
+  if(formGrid){
+    formGrid.classList.toggle("hello-friends-grid", currentCategory === "Hello Friends");
+  }
+
+  const select = document.getElementById("tipeBonus");
+  select.disabled = false;
+  select.innerHTML = `<option value="">${esc(u("chooseBonus"))}</option>`;
+
+  let options = [];
+  if(currentCategory === "CU Sport") options = CU_SPORT_OPTIONS;
+  if(currentCategory === "Welcome Bonus") options = WELCOME_OPTIONS;
+  if(currentCategory === "Promo Syukuran") options = PROMO_SYUKURAN_OPTIONS;
+  if(currentCategory === "VVIP DEPO") options = VVIP_DEPO_OPTIONS;
+  if(currentCategory === "VVIP Special Prize") options = VVIP_SPECIAL_OPTIONS;
+  if(currentCategory === "Lucky Money 88") options = LUCKY_MONEY_OPTIONS;
+  if(currentCategory === "Tiap Hari Bonus Besar") options = TIAP_HARI_OPTIONS;
+  if(currentCategory === "Hello Friends") options = HELLO_FRIEND_OPTIONS;
+
+  options.forEach(x=>{
+    const opt = document.createElement("option");
+    opt.value = x[0];
+    opt.textContent = x[0];
+    opt.dataset.nominal = x[1];
+    select.appendChild(opt);
+  });
+
+  ["nominalBonus","nominalIn","nomorSlip","nominalBetting","kodeAgen","driveLink","remarks","tanggalIn","nicknameMb","akunDiajak","jumlahPengenalan","helloFixedType","parlay"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = "";
+  });
+  hideKodeAgenSuggestions_();
+  updateKodeAgenHelper_("", "");
+  const tipeBonusUtama = document.getElementById("tipeBonusUtama");
+  if(tipeBonusUtama) tipeBonusUtama.innerHTML = `<option value="">${esc(u("chooseBonus"))}</option>`;
+
+  document.getElementById("status").innerHTML = "";
+
+  ["nicknameBox","tipeBonusBox","parlayBox","nominalBonusBox","nominalInBox","nominalBettingBox","slipBox","tipeGameBox","kodeAgenBox","tipeBonusUtamaBox","helloFixedTypeBox","akunDiajakBox","jumlahPengenalanBox","tanggalInBox","uploadBox","driveBox","remarksBox"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = "none";
+  });
+
+  document.getElementById("tipeBonusBox").style.display = "block";
+  document.getElementById("nominalBonusBox").style.display = "block";
+  document.getElementById("remarksBox").style.display = "block";
+  if(document.getElementById("nominalIn")){
+    document.getElementById("nominalIn").readOnly = false;
+    document.getElementById("nominalIn").classList.remove("readonly");
+    document.getElementById("nominalIn").placeholder = "Contoh: 10000";
+  }
+
+  if(currentCategory === "CU Sport"){
+    document.getElementById("formTitle").innerHTML = "CU SPORT CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Isi data claim CU Sport lalu submit ke database.";
+    document.getElementById("parlayBox").style.display = "block";
+    renderCuSportParlayOptions_();
+    syncCuSportParlay_();
+    document.getElementById("nominalBettingBox").style.display = "block";
+    document.getElementById("slipBox").style.display = "block";
+    document.getElementById("uploadBox").style.display = "block";
+    renderUploadInputs([{key:"cuSportPhoto", label:"Upload Foto Bukti CU Sport", required:false}]);
+    document.getElementById("noteTitle").innerHTML = "📌 Sport Parlay Bonus";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">3 Parlay → Jackpot 128</div>
+      <div class="note-row">4 Parlay → Jackpot 168</div>
+      <div class="note-row">5 Parlay → Jackpot 268</div>
+      <div class="note-row">6 Parlay → Jackpot 328</div>
+      <div class="note-row">7 Parlay → Jackpot 388</div>
+      <div class="note-row">8 Parlay → Jackpot 588</div>
+      <div class="note-row">9 Parlay → Jackpot 688</div>
+      <div class="note-row">10 Parlay → Jackpot 888</div>
+      <div class="note-row">Foto bukti optional.</div>
+    `;
+  }
+
+  if(currentCategory === "Welcome Bonus"){
+    document.getElementById("formTitle").innerHTML = "WELCOME BONUS CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Isi data Welcome Bonus lalu submit ke database.";
+    document.getElementById("kodeAgenBox").style.display = "block";
+    document.getElementById("noteTitle").innerHTML = "🎁 Welcome Bonus";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">完善資料 → 28</div>
+      <div class="note-row">首存50 → 28</div>
+      <div class="note-row">二存99 → 48</div>
+      <div class="note-row">三存99 → 68</div>
+      <div class="note-row">完善+首存50 → 56</div>
+      <div class="note-row">完善28+首存199 → 148</div>
+      <div class="note-row">首存199 → 177</div>
+    `;
+  }
+
+  if(currentCategory === "Promo Syukuran"){
+    document.getElementById("formTitle").innerHTML = "PROMO SYUKURAN CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Isi data Promo Syukuran lalu submit ke database.";
+    document.getElementById("noteTitle").innerHTML = "🎉 Promo Syukuran";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">Nominal bonus mengikuti tipe bonus.</div>
+      <div class="note-row">Untuk Syukuran Login First / Second, Remarks wajib diisi.</div>
+      <div class="note-row">Member wajib login di hari berjalan.</div>
+    `;
+  }
+
+  if(currentCategory === "Transfer Agen"){
+    document.getElementById("formTitle").innerHTML = "TRANSFER AGEN CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Isi data Transfer Agen lalu submit ke database.";
+    document.getElementById("tipeBonusBox").style.display = "none";
+    document.getElementById("nominalBonusBox").style.display = "none";
+    document.getElementById("kodeAgenBox").style.display = "block";
+    document.getElementById("uploadBox").style.display = "block";
+    renderUploadInputs([{key:"transferPhoto", label:"Upload Foto Transfer Agen", required:false}]);
+    document.getElementById("noteTitle").innerHTML = "🔁 Transfer Agen";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">Isi Kode Agen tujuan transfer.</div>
+      <div class="note-row">Foto bersifat opsional.</div>
+      <div class="note-row">Gunakan Comment jika ada revisi dari admin.</div>
+    `;
+  }
+
+  if(currentCategory === "VVIP DEPO"){
+    document.getElementById("formTitle").innerHTML = "VVIP DEPO CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Isi data VVIP DEPO lalu submit ke database.";
+    document.getElementById("tanggalInBox").style.display = "block";
+    document.getElementById("remarksBox").style.display = "none";
+    document.getElementById("noteTitle").innerHTML = "💎 VVIP DEPO";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">👉 Akumulasi IN pada hari bersangkutan mencapai 10.000 💰 VVIP77</div>
+      <div class="note-row">👉 Akumulasi IN pada hari bersangkutan mencapai 20.000 💰 VVIP177</div>
+      <div class="note-row">👉 Akumulasi IN pada hari bersangkutan mencapai 50.000 💰 VVIP377</div>
+      <div class="note-row">👉 Akumulasi IN pada hari bersangkutan mencapai 100.000 💰 VVIP777</div>
+    `;
+  }
+
+  if(currentCategory === "VVIP Special Prize"){
+    document.getElementById("formTitle").innerHTML = "VVIP SPECIAL PRIZE CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Isi data VVIP Special Prize lalu submit ke database.";
+    document.getElementById("tipeBonusBox").style.display = "block";
+    document.getElementById("nominalBonusBox").style.display = "block";
+    document.getElementById("tipeGameBox").style.display = "block";
+    document.getElementById("slipBox").style.display = "none";
+    document.getElementById("nomorSlip").value = "";
+    document.getElementById("uploadBox").style.display = "block";
+    renderUploadInputs([{key:"specialPhoto", label:"Upload Foto Bukti Special Prize", required:true}]);
+    document.getElementById("noteTitle").innerHTML = "🏅 VVIP Special Prize";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">Pilih Tipe Bonus dan Tipe Game.</div>
+      <div class="note-row">Foto bukti wajib diupload.</div>
+      <div class="note-row">Slip taruhan akan diisi oleh admin sebelum Submit HQ.</div>
+    `;
+  }
+
+  if(currentCategory === "Lucky Money 88"){
+    document.getElementById("formTitle").innerHTML = "LUCKY MONEY 88 CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Isi data Lucky Money 88 lalu submit ke database.";
+    select.value = "Lucky money 88";
+    document.getElementById("nominalBonus").value = "88";
+    select.disabled = true;
+    document.getElementById("noteTitle").innerHTML = "🍀 Lucky Money 88";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">Tipe Bonus terkunci: Lucky money 88</div>
+      <div class="note-row">Nominal Bonus: 88</div>
+      <div class="note-row">Gunakan Comment jika ada revisi dari admin.</div>
+    `;
+  }
+
+  if(currentCategory === "Tiap Hari Bonus Besar"){
+    document.getElementById("formTitle").innerHTML = "TIAP HARI BONUS BESAR";
+    document.getElementById("formSubtitle").innerHTML = "Bonus Mingguan • Isi data Tiap Hari Bonus Besar lalu submit ke database.";
+    document.getElementById("nominalInBox").style.display = "block";
+    document.getElementById("nominalIn").readOnly = false;
+    document.getElementById("nominalIn").classList.remove("readonly");
+    document.getElementById("nominalIn").placeholder = "Contoh: 10000";
+    document.getElementById("remarksBox").style.display = "none";
+    document.getElementById("noteTitle").innerHTML = "🎯 Tiap Hari Bonus Besar";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">Pilih tipe bonus sesuai bonus yang diajukan.</div>
+      <div class="note-row">Nominal Bonus otomatis sama dengan tipe bonus: 38 / 128 / 268 / 368 / 568.</div>
+      <div class="note-row">IN HARIAN akan dihitung otomatis oleh sistem admin.</div>
+      <div class="note-row">TOTAL IN wajib diisi manual oleh user dan hanya angka.</div>
+      <div class="note-row">StatusHQ scan dari sheet (新)天天拿大獎.</div>
+    `;
+  }
+
+  if(currentCategory === "Hello Friends"){
+    document.getElementById("formTitle").innerHTML = "HELLO FRIENDS CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Isi data Hello Friends lalu submit ke database.";
+    document.getElementById("tipeBonusUtamaBox").style.display = "block";
+    document.getElementById("helloFixedTypeBox").style.display = "block";
+    document.getElementById("kodeAgenBox").style.display = "block";
+    document.getElementById("akunDiajakBox").style.display = "block";
+    document.getElementById("jumlahPengenalanBox").style.display = "block";
+    document.getElementById("remarksBox").style.display = "block";
+
+    const mainSelect = document.getElementById("tipeBonusUtama");
+    mainSelect.innerHTML = `<option value="">${esc(u("chooseBonus"))}</option>`;
+    HELLO_MAIN_OPTIONS.forEach(function(item){
+      const opt = document.createElement("option");
+      opt.value = item.value;
+      opt.textContent = item.label;
+      mainSelect.appendChild(opt);
+    });
+    mainSelect.onchange = updateHelloFixedType_;
+    updateHelloFixedType_();
+
+    document.getElementById("noteTitle").innerHTML = "👥 Hello Friends";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">Akun MB Pengenal disimpan sebagai Akun Member.</div>
+      <div class="note-row">Akun MB yang Diajak disimpan ke Remarks.</div>
+      <div class="note-row">Jumlah Pengenalan wajib dipilih: 1~10 / 11~20 / 21~30+.</div>
+      <div class="note-row">Jika ada remarks tambahan, akan digabung pakai pembatas " - ".</div>
+      <div class="note-row">Nominal Bonus otomatis mengikuti Tipe Bonus.</div>
+      <div class="note-row">StatusHQ scan dari sheet 介紹好友 FRIENDS.</div>
+    `;
+  }
+
+  if(currentCategory === "Direct Agent"){
+    document.getElementById("formTitle").innerHTML = "DIRECT AGENT CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Isi data Direct Agent lalu submit ke database.";
+    document.getElementById("nicknameBox").style.display = "block";
+    document.getElementById("tipeBonusBox").style.display = "none";
+    document.getElementById("nominalBonusBox").style.display = "none";
+    document.getElementById("kodeAgenBox").style.display = "block";
+    document.getElementById("uploadBox").style.display = "block";
+    renderUploadInputs([
+      {key:"nicknamePhoto", label:"Upload Foto Nickname MB", required:true},
+      {key:"chatPhoto", label:"Upload Foto Percakapan MB 1", required:true}
+    ]);
+    document.getElementById("noteTitle").innerHTML = "🤝 Direct Agent";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">Tidak ada SyncHQ otomatis.</div>
+      <div class="note-row">Foto Nickname MB wajib upload.</div>
+      <div class="note-row">Foto Percakapan MB 1 wajib upload.</div>
+      <div class="note-row">Jika ada revisi, gunakan tombol Comment di Claim History.</div>
+    `;
+  }
+
+  updateKodeAgenAutocompleteMode_();
+  document.getElementById("formSubtitle").innerHTML = esc(u("formSubtitle").replace("{category}", getUserCategoryLabel(currentCategory)));
+  applyUserLanguage();
+
+  if(currentCategory === "Hello Friends"){
+    setText("lblAkunMember", userLang === "zh" ? "介紹人會員賬號" : "Akun MB Pengenal");
+    setText("lblTipeBonusUtama", userLang === "zh" ? "禮金主類型" : "Bonus Category");
+    setText("lblAkunDiajak", userLang === "zh" ? "被介紹會員賬號" : "Akun MB yang Diajak");
+    setText("lblHelloFixedType", userLang === "zh" ? "介紹類型" : "Detail Tipe");
+    setText("helloFixedTypeHint", userLang === "zh" ? "自動依主類型帶出，會寫入 HQ。" : "Auto ikut Tipe Bonus Utama, akan dikirim ke HQ.");
+    setText("lblJumlahPengenalan", userLang === "zh" ? "介紹人數" : "Jumlah Pengenalan");
+    setText("jumlahPengenalanHint", userLang === "zh" ? "必選：1~10 / 11~20 / 21~30+" : "Wajib pilih: 1~10 / 11~20 / 21~30+");
+    setText("lblRemarks", userLang === "zh" ? "備註" : "Remarks");
+    setPlaceholder("akunMember", userLang === "zh" ? "例如：介紹人會員賬號" : "Contoh: Akun MB Pengenal");
+    setPlaceholder("akunDiajak", userLang === "zh" ? "例如：被介紹會員賬號" : "Contoh: Akun MB yang Diajak");
+    setPlaceholder("remarks", userLang === "zh" ? "選填，補充備註" : "Opsional, remarks tambahan");
+  }
+}
+
+
+function getUploadLabel_(item){
+  const key = String((item && item.key) || "");
+  const fallback = String((item && item.label) || "");
+  if(userLang !== "zh") return fallback;
+
+  const zhMap = {
+    cuSportPhoto:"上傳 CU Sport 證明照片",
+    transferAgenPhoto:"上傳轉線證明照片",
+    vvipSpecialPhoto:"上傳 VVIP 特別獎證明照片",
+    directNicknamePhoto:"上傳會員暱稱照片",
+    directChatPhoto:"上傳與會員對話照片"
+  };
+
+  return zhMap[key] || fallback || "上傳照片";
+}
+
+function renderUploadInputs(items){
+  selectedUploadFiles = [];
+  const grid = document.getElementById("uploadGrid");
+  grid.innerHTML = "";
+
+  items.forEach((item, index)=>{
+    const wrap = document.createElement("div");
+    wrap.className = "upload-card";
+
+    const input = document.createElement("input");
+    input.className = "hidden-file";
+    input.id = "file_" + item.key;
+    input.type = "file";
+    input.accept = "image/*";
+
+    const label = document.createElement("label");
+    label.className = "upload-btn";
+    label.setAttribute("for", input.id);
+    label.innerHTML = "📎 " + esc(getUploadLabel_(item));
+
+    const name = document.createElement("div");
+    name.className = "upload-name";
+    name.id = "fileName_" + item.key;
+    name.innerHTML = item.required ? (userLang === "zh" ? "必須上傳照片" : "Wajib upload foto") : (userLang === "zh" ? "選填" : "Optional");
+
+    input.addEventListener("change", function(){
+      handleFileSelect(input, name, index);
+    });
+
+    wrap.appendChild(input);
+    wrap.appendChild(label);
+    wrap.appendChild(name);
+    grid.appendChild(wrap);
+  });
+}
+
+function handleFileSelect(input, nameBox, index){
+  if(!input.files || !input.files[0]){
+    selectedUploadFiles[index] = null;
+    nameBox.innerHTML = userLang === "zh" ? "尚未選擇檔案" : "Belum pilih file";
+    return;
+  }
+
+  const file = input.files[0];
+
+  if(file.size > 5 * 1024 * 1024){
+    alert(userLang === "zh" ? "照片大小最多 5MB。" : "Ukuran foto maksimal 5MB.");
+    input.value = "";
+    selectedUploadFiles[index] = null;
+    nameBox.innerHTML = userLang === "zh" ? "檔案太大" : "File terlalu besar";
+    return;
+  }
+
+  selectedUploadFiles[index] = file;
+  nameBox.innerHTML = "✓ " + esc(file.name);
+}
+
+function readFiles(files){
+  return Promise.all(files.map(file=>{
+    return new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+
+      reader.onload = e => resolve({
+        name: file.name,
+        mimeType: file.type || "application/octet-stream",
+        data: e.target.result
+      });
+
+      reader.onerror = () => reject(new Error("Gagal membaca file: " + file.name));
+      reader.readAsDataURL(file);
+    });
+  }));
+}
+
+
+function checkUploadAccess(){
+  const btn = document.getElementById("uploadAccessBtn");
+  const status = document.getElementById("uploadAccessStatus");
+
+  if(!btn || !status) return;
+
+  btn.disabled = true;
+  btn.innerHTML = esc(u("checkingUploadAccess"));
+  status.className = "upload-access-status loading";
+  status.innerHTML = esc(u("checkingUploadAccess"));
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      status.className = "upload-access-status ok";
+      status.innerHTML = "✅ " + esc(res && res.message ? res.message : u("uploadAccessReady"));
+      btn.disabled = false;
+      btn.innerHTML = esc(u("checkUploadAccess"));
+    })
+    .withFailureHandler(function(err){
+      status.className = "upload-access-status err";
+      status.innerHTML = "❌ " + esc(u("uploadAccessFail")) + ": " + esc(err && err.message ? err.message : "Unknown error");
+      btn.disabled = false;
+      btn.innerHTML = esc(u("checkUploadAccess"));
+    })
+    .testUploadAccess();
+}
+
+function renderCuSportParlayOptions_(){
+  const parlaySelect = document.getElementById("parlay");
+  if(!parlaySelect) return;
+
+  const currentValue = parlaySelect.value;
+  parlaySelect.innerHTML = `<option value="">${userLang === "zh" ? "選擇串關" : "Pilih Parlay"}</option>`;
+
+  CU_SPORT_PARLAY_OPTIONS.forEach(function(v){
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    parlaySelect.appendChild(opt);
+  });
+
+  if(currentValue) parlaySelect.value = currentValue;
+}
+
+function syncCuSportParlay_(){
+  const parlaySelect = document.getElementById("parlay");
+  const hint = document.getElementById("parlayHint");
+
+  if(!parlaySelect) return;
+
+  if(currentCategory !== "CU Sport"){
+    parlaySelect.value = "";
+    if(hint) hint.innerHTML = "";
+    return;
+  }
+
+  renderCuSportParlayOptions_();
+
+  if(hint){
+    hint.style.color = "#64748b";
+    hint.innerHTML = "Pilih Parlay sesuai slip. Tidak wajib ikut nominal Tipe Bonus.";
+  }
+}
+
+function validateCuSportParlayUi_(){
+  if(currentCategory !== "CU Sport") return true;
+
+  const parlaySelect = document.getElementById("parlay");
+  const hint = document.getElementById("parlayHint");
+
+  if(!parlaySelect) return true;
+
+  const selected = parlaySelect.value || "";
+
+  if(!selected){
+    if(hint){
+      hint.style.color = "#dc2626";
+      hint.innerHTML = "CU Sport wajib pilih Parlay sesuai slip.";
+    }
+    return false;
+  }
+
+  if(hint){
+    hint.style.color = "#16a34a";
+    hint.innerHTML = "✓ Parlay dipilih. Parlay bebas sesuai slip/HQ.";
+  }
+  return true;
+}
+
+function autoNominal(){
+  const select = document.getElementById("tipeBonus");
+  const opt = select.options[select.selectedIndex];
+  document.getElementById("nominalBonus").value = opt && opt.dataset.nominal ? opt.dataset.nominal : "";
+  syncCuSportParlay_();
+}
+
+
+function normalizeUpperText_(value){
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, "")
+    .toUpperCase();
+}
+
+function onlyDigits_(value){
+  return String(value || "").replace(/\D+/g, "");
+}
+
+function bindDigitsOnlyInput_(id){
+  const el = document.getElementById(id);
+  if(!el || el.dataset.digitsBound === "1") return;
+
+  el.dataset.digitsBound = "1";
+
+  const apply = function(){
+    const old = el.value;
+    const next = onlyDigits_(old);
+    if(old !== next){
+      const pos = el.selectionStart || next.length;
+      el.value = next;
+      try{
+        const safePos = Math.min(pos, next.length);
+        el.setSelectionRange(safePos, safePos);
+      }catch(err){}
+    }
+  };
+
+  el.addEventListener("input", apply);
+  el.addEventListener("blur", apply);
+  el.addEventListener("paste", function(){ setTimeout(apply, 0); });
+  el.addEventListener("keydown", function(e){
+    if(e.ctrlKey || e.metaKey || e.altKey) return;
+    const allowed = ["Backspace","Delete","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Tab","Home","End","Enter"];
+    if(allowed.indexOf(e.key) >= 0) return;
+    if(!/^\d$/.test(e.key)) e.preventDefault();
+  });
+}
+
+function bindUppercaseInput_(id){
+  const el = document.getElementById(id);
+  if(!el || el.dataset.uppercaseBound === "1") return;
+
+  el.dataset.uppercaseBound = "1";
+
+  const apply = function(){
+    const old = el.value;
+    const pos = el.selectionStart;
+    const next = normalizeUpperText_(old);
+
+    if(old !== next){
+      el.value = next;
+      try{
+        const safePos = Math.min(pos || next.length, next.length);
+        el.setSelectionRange(safePos, safePos);
+      }catch(err){}
+    }
+  };
+
+  el.addEventListener("input", apply);
+  el.addEventListener("blur", apply);
+  el.addEventListener("paste", function(){
+    setTimeout(apply, 0);
+  });
+}
+
+function initUppercaseFields_(){
+  ["akunMember", "kodeAgen", "nomorSlip", "akunDiajak"].forEach(bindUppercaseInput_);
+  bindDigitsOnlyInput_("nominalIn");
+}
+
+function applyUppercaseBeforeSubmit_(){
+  ["akunMember", "kodeAgen", "nomorSlip", "akunDiajak"].forEach(function(id){
+    const el = document.getElementById(id);
+    if(el) el.value = normalizeUpperText_(el.value);
+  });
+  const nominalInEl = document.getElementById("nominalIn");
+  if(nominalInEl) nominalInEl.value = onlyDigits_(nominalInEl.value);
+}
+
+async function submitData(){
+  if(isSubmitting) return;
+  applyUppercaseBeforeSubmit_();
+
+  const btn = document.getElementById("submitBtn");
+  const status = document.getElementById("status");
+
+  if(!currentUser){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Silakan login ulang.";
+    return;
+  }
+
+  let remarksValue = document.getElementById("remarks").value.trim();
+
+  if(currentCategory === "VVIP DEPO"){
+    remarksValue = formatSlashDate(document.getElementById("tanggalIn").value);
+  }
+
+  let helloExtraRemarks = "";
+
+  if(currentCategory === "Hello Friends"){
+    helloExtraRemarks = document.getElementById("remarks").value.trim();
+    remarksValue = normalizeUpperText_(document.getElementById("akunDiajak").value);
+  }
+
+  const finalBonusCategory = currentCategory;
+
+  const data = {
+    loginEmail: currentUser.email,
+    staffName: document.getElementById("staffName").value.trim(),
+    bonusCategory: finalBonusCategory,
+    akunMember: normalizeUpperText_(document.getElementById("akunMember").value),
+    tipeBonus: document.getElementById("tipeBonus").value,
+    parlay: document.getElementById("parlay") ? document.getElementById("parlay").value : "",
+    nominalBonus: document.getElementById("nominalBonus").value,
+    nominalIn: document.getElementById("nominalIn") ? onlyDigits_(document.getElementById("nominalIn").value) : "",
+    nomorSlip: currentCategory === "VVIP Special Prize" ? "" : normalizeUpperText_(document.getElementById("nomorSlip").value),
+    tipeGame: document.getElementById("tipeGame") ? document.getElementById("tipeGame").value : "",
+    nominalBetting: document.getElementById("nominalBetting").value.trim(),
+    kodeAgen: normalizeUpperText_(document.getElementById("kodeAgen").value),
+    nicknameMb: document.getElementById("nicknameMb").value.trim(),
+    akunDiajak: normalizeUpperText_(document.getElementById("akunDiajak").value),
+    jumlahPengenalan: document.getElementById("jumlahPengenalan") ? document.getElementById("jumlahPengenalan").value : "",
+    helloFixedType: document.getElementById("helloFixedType") ? document.getElementById("helloFixedType").value : "",
+    extraRemarks: helloExtraRemarks,
+    remarks: remarksValue,
+    driveLink: document.getElementById("driveLink").value.trim(),
+    uploadFiles: []
+  };
+
+  if(currentCategory === "VVIP Special Prize"){
+    const tipeGameValue = String(data.tipeGame || "").trim();
+    data.remarks = [
+      tipeGameValue ? "Tipe Game: " + tipeGameValue : "",
+      data.remarks ? "Remarks: " + data.remarks : ""
+    ].filter(Boolean).join("\n");
+  }
+
+  if(currentCategory === "Tiap Hari Bonus Besar"){
+    data.nominalIn = onlyDigits_(data.nominalIn);
+    data.nominalBetting = data.nominalIn;
+    data.remarks = data.nominalIn ? "TOTAL IN: " + data.nominalIn : "";
+  }
+
+  if(!data.staffName || !data.akunMember){
+    status.style.color = "#dc2626";
+    status.innerHTML = currentCategory === "Hello Friends" ? "Mohon isi Staff Name dan Akun MB Pengenal." : "Mohon isi Staff Name dan Akun Member.";
+    return;
+  }
+
+  if(currentCategory !== "Transfer Agen" && currentCategory !== "VVIP Special Prize" && currentCategory !== "Direct Agent" && !data.tipeBonus){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Mohon pilih Tipe Bonus.";
+    return;
+  }
+
+  if(currentCategory === "Hello Friends" && !data.bonusCategory){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Mohon pilih Tipe Bonus Utama.";
+    return;
+  }
+
+  if(currentCategory === "Hello Friends" && !data.helloFixedType){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Hello Friends wajib pilih Tipe Bonus Utama yang valid.";
+    return;
+  }
+
+  if(currentCategory === "Hello Friends" && !data.kodeAgen){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Hello Friends wajib isi Kode Agen.";
+    return;
+  }
+
+  if(currentCategory === "Hello Friends" && !data.akunDiajak){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Hello Friends wajib isi Akun MB yang Diajak.";
+    return;
+  }
+
+  if(currentCategory === "Hello Friends" && !data.jumlahPengenalan){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Hello Friends wajib pilih Jumlah Pengenalan.";
+    return;
+  }
+
+  if(currentCategory === "CU Sport" && !data.parlay){
+    status.style.color = "#dc2626";
+    status.innerHTML = "CU Sport wajib pilih Parlay.";
+    return;
+  }
+
+  if(currentCategory === "CU Sport" && (!data.nomorSlip || !data.nominalBetting)){
+    status.style.color = "#dc2626";
+    status.innerHTML = "CU Sport wajib isi Nomor Slip dan Nominal Betting.";
+    return;
+  }
+
+  if(currentCategory === "Welcome Bonus" && !data.kodeAgen){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Welcome Bonus wajib isi Kode Agen.";
+    return;
+  }
+
+  if(currentCategory === "Welcome Bonus" && data.kodeAgen && !isWelcomeKodeAgenRegistered_(data.kodeAgen)){
+    updateKodeAgenHelper_("Kode agen belum ada di daftar. Submit tetap dilanjutkan, pastikan ini kode baru/khusus dan bukan typo.", "warn");
+  }
+
+  if(currentCategory === "Transfer Agen" && !data.kodeAgen){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Transfer Agen wajib isi Kode Agen.";
+    return;
+  }
+
+  if(currentCategory === "VVIP DEPO" && !data.remarks){
+    status.style.color = "#dc2626";
+    status.innerHTML = "VVIP DEPO wajib pilih Tanggal IN.";
+    return;
+  }
+
+  if(currentCategory === "Tiap Hari Bonus Besar" && !data.nominalIn){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Tiap Hari Bonus Besar wajib isi TOTAL IN angka saja.";
+    return;
+  }
+
+  if(currentCategory === "VVIP Special Prize" && !data.tipeBonus){
+    status.style.color = "#dc2626";
+    status.innerHTML = "VVIP Special Prize wajib pilih Tipe Bonus.";
+    return;
+  }
+
+  if(currentCategory === "VVIP Special Prize" && !data.tipeGame){
+    status.style.color = "#dc2626";
+    status.innerHTML = "VVIP Special Prize wajib pilih Tipe Game.";
+    return;
+  }
+
+  if(currentCategory === "VVIP Special Prize" && selectedUploadFiles.filter(Boolean).length < 1){
+    status.style.color = "#dc2626";
+    status.innerHTML = "VVIP Special Prize wajib upload foto.";
+    return;
+  }
+
+  if(currentCategory === "Direct Agent" && !data.nicknameMb){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Direct Agent wajib isi Nickname MB.";
+    return;
+  }
+
+  if(currentCategory === "Direct Agent" && !data.kodeAgen){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Direct Agent wajib isi Kode Agen.";
+    return;
+  }
+
+  if(currentCategory === "Direct Agent" && selectedUploadFiles.filter(Boolean).length < 2){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Direct Agent wajib upload 2 foto.";
+    return;
+  }
+
+  isSubmitting = true;
+  setButtonLoading_(btn, "Processing...");
+  status.style.color = "#2563eb";
+  status.innerHTML = "Reading upload files...";
+
+  try{
+    data.uploadFiles = await readFiles(selectedUploadFiles.filter(Boolean));
+  }catch(err){
+    status.style.color = "#dc2626";
+    status.innerHTML = esc(err.message);
+    isSubmitting = false;
+    setButtonError_(btn, "File Error", 1200);
+    return;
+  }
+
+  status.innerHTML = "Saving data...";
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      status.style.color = "#16a34a";
+      status.innerHTML = "✅ " + esc(res);
+
+      if(!document.getElementById("lockStaff").checked) document.getElementById("staffName").value = "";
+      if(!document.getElementById("lockMember").checked) document.getElementById("akunMember").value = "";
+
+      renderBonusForm();
+
+      setButtonSuccess_(btn, "✓ Claim Submitted", 1600);
+      setTimeout(function(){
+        isSubmitting = false;
+      },1700);
+
+      loadHistory(false);
+    })
+    .withFailureHandler(function(err){
+      status.style.color = "#dc2626";
+      status.innerHTML = "Error: " + esc(err.message);
+      isSubmitting = false;
+      setButtonError_(btn, "Error", 1400);
+    })
+    .submitBonus(data);
+}
+
+function changeHistoryMode(){
+  resetHistoryPagination();
+  const mode = document.getElementById("historyMode").value;
+
+  document.getElementById("historyFrom").style.display = mode === "custom" ? "block" : "none";
+  document.getElementById("historyTo").style.display = mode === "custom" ? "block" : "none";
+
+  if(mode === "today"){
+    document.getElementById("historyFrom").value = getDateByOffset(0);
+    document.getElementById("historyTo").value = getDateByOffset(0);
+  }
+
+  if(mode === "yesterday"){
+    document.getElementById("historyFrom").value = getDateByOffset(-1);
+    document.getElementById("historyTo").value = getDateByOffset(-1);
+  }
+
+  loadHistory(false);
+}
+
+
+function getNowTimeText(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,"0") + ":" +
+         String(d.getMinutes()).padStart(2,"0") + ":" +
+         String(d.getSeconds()).padStart(2,"0");
+}
+
+function setHistoryRefreshLoading(isLoading, message, type){
+  const btn = document.getElementById("filterBtn");
+  const status = document.getElementById("historyRefreshStatus");
+
+  if(btn){
+    btn.disabled = isLoading;
+    btn.classList.toggle("is-loading", isLoading);
+    btn.innerHTML = isLoading
+      ? `<span class="mini-spinner"></span>${esc(u("refreshing"))}`
+      : esc(u("filter"));
+  }
+
+  if(status){
+    status.className = "history-refresh-status" + (type ? " " + type : "");
+    status.innerHTML = message ? esc(message) : "";
+  }
+}
+
+function refreshHistoryManual(){
+  resetHistoryPagination();
+  manualHistoryRefreshActive = true;
+  setHistoryRefreshLoading(true, u("refreshStatusInfo"));
+  loadHistory(false);
+}
+
+
+function loadHistory(isAuto){
+  if(!currentUser) return;
+
+  const mode = document.getElementById("historyMode").value;
+  const filter = { loginEmail: currentUser.email, todayOnly: mode === "today", forceUserOnly: true };
+
+  if(mode === "yesterday"){
+    filter.todayOnly = false;
+    filter.dateFrom = getDateByOffset(-1);
+    filter.dateTo = getDateByOffset(-1);
+  }
+
+  if(mode === "custom"){
+    filter.todayOnly = false;
+    filter.dateFrom = document.getElementById("historyFrom").value;
+    filter.dateTo = document.getElementById("historyTo").value;
+  }
+
+  if(mode === "all"){
+    filter.todayOnly = false;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(unreadMap){
+      const prevUnread = lastUserUnreadTotal;
+
+      bonusCommentUnreadMap = applyBonusCommentLocalReadFilter_(unreadMap || {});
+      lastUserUnreadTotal = getTotalUnread_(bonusCommentUnreadMap);
+      updateUserSidebarUnreadBadge_(lastUserUnreadTotal);
+
+      if(userHistoryInitialized && isAuto === true && lastUserUnreadTotal > prevUnread){
+        showUserToast(userLang === "zh" ? "有新的管理員留言。" : "Ada comment baru dari admin.");
+      }
+
+      loadHistoryData_(filter, isAuto);
+    })
+    .withFailureHandler(function(){
+      bonusCommentUnreadMap = {};
+      updateUserSidebarUnreadBadge_(0);
+      loadHistoryData_(filter, isAuto);
+    })
+    .getBonusCommentUnreadMapForUserPanel();
+}
+
+function loadHistoryData_(filter, isAuto){
+  google.script.run
+    .withSuccessHandler(function(data){
+      const hasUpdate = detectUserHistoryUpdate_(data);
+
+      historyData = data;
+      renderHistory(data, isAuto === true);
+
+      if(userHistoryInitialized && isAuto === true && hasUpdate){
+        showUserToast("Ada update claim dari admin.");
+      }
+
+      saveUserHistorySnapshot_(data);
+      userHistoryInitialized = true;
+
+      if(manualHistoryRefreshActive){
+        manualHistoryRefreshActive = false;
+        setHistoryRefreshLoading(false, u("updatedAt") + ": " + getNowTimeText(), "ok");
+      }
+    })
+    .withFailureHandler(function(err){
+      if(manualHistoryRefreshActive){
+        manualHistoryRefreshActive = false;
+        setHistoryRefreshLoading(false, u("refreshFailed") + ": " + (err && err.message ? err.message : ""), "err");
+      }
+    })
+    .getClaimHistory(filter);
+}
+
+function startUserAutoRefresh(){
+  if(userAutoRefreshTimer) return;
+
+  userAutoRefreshTimer = setInterval(function(){
+    if(!currentUser) return;
+
+    loadHistory(true);
+
+    if(activeBonusCommentRow){
+      refreshOpenBonusComment();
+    }
+  }, 8000);
+}
+
+
+function updateUserSidebarUnreadBadge_(total){
+  total = Number(total || 0);
+  const badge = document.getElementById("userHistoryUnreadBadge");
+  const menu = document.getElementById("historyMenu");
+
+  if(!badge || !menu) return;
+
+  if(total > 0){
+    badge.style.display = "inline-block";
+    badge.innerHTML = esc(total > 99 ? "99+" : total);
+    menu.classList.add("has-user-unread");
+  }else{
+    badge.style.display = "none";
+    badge.innerHTML = "0";
+    menu.classList.remove("has-user-unread");
+  }
+}
+
+function getTotalUnread_(map){
+  return Object.keys(map || {}).reduce(function(total, key){
+    return total + Number(map[key] || 0);
+  }, 0);
+}
+
+function isBonusCommentRowLocallyRead_(row){
+  row = Number(row);
+  const ts = Number((bonusCommentLocalReadRows || {})[row] || 0);
+  if(!ts) return false;
+
+  if(Date.now() - ts > BONUS_COMMENT_LOCAL_READ_TTL_MS){
+    delete bonusCommentLocalReadRows[row];
+    return false;
+  }
+
+  return true;
+}
+
+function applyBonusCommentLocalReadFilter_(map){
+  const next = Object.assign({}, map || {});
+
+  Object.keys(bonusCommentLocalReadRows || {}).forEach(function(row){
+    if(isBonusCommentRowLocallyRead_(row)){
+      next[row] = 0;
+    }
+  });
+
+  return next;
+}
+
+function markBonusCommentRowReadLocally_(row){
+  row = Number(row);
+  if(!row) return;
+
+  bonusCommentLocalReadRows[row] = Date.now();
+  if(bonusCommentUnreadMap) bonusCommentUnreadMap[row] = 0;
+
+  lastUserUnreadTotal = getTotalUnread_(applyBonusCommentLocalReadFilter_(bonusCommentUnreadMap || {}));
+  updateUserSidebarUnreadBadge_(lastUserUnreadTotal);
+
+  (historyData || []).forEach(function(r){ if(Number(r.row) === row) r.commentUnread = 0; });
+  (historyFilteredData || []).forEach(function(r){ if(Number(r.row) === row) r.commentUnread = 0; });
+
+  if(typeof renderHistory === "function"){
+    renderHistory(historyFilteredData.length ? historyFilteredData : historyData, true);
+  }
+}
+
+
+function saveUserHistorySnapshot_(data){
+  const snap = {};
+
+  (data || []).forEach(function(r){
+    snap[r.row] = {
+      status: String(r.status || ""),
+      adminRemarks: String(r.adminRemarks || ""),
+      statusHQ: String(r.statusHQ || "")
+    };
+  });
+
+  lastUserHistorySnapshot = snap;
+}
+
+function detectUserHistoryUpdate_(data){
+  if(!userHistoryInitialized) return false;
+
+  let changed = false;
+
+  (data || []).forEach(function(r){
+    const old = lastUserHistorySnapshot[r.row];
+
+    if(!old) {
+      changed = true;
+      return;
+    }
+
+    if(
+      old.status !== String(r.status || "") ||
+      old.adminRemarks !== String(r.adminRemarks || "") ||
+      old.statusHQ !== String(r.statusHQ || "")
+    ){
+      changed = true;
+    }
+  });
+
+  return changed;
+}
+
+function showUserToast(message){
+  playNotifySound("comment");
+
+  let toast = document.getElementById("userToastNotice");
+
+  if(!toast){
+    toast = document.createElement("div");
+    toast.id = "userToastNotice";
+    toast.style.position = "fixed";
+    toast.style.right = "24px";
+    toast.style.bottom = "24px";
+    toast.style.zIndex = "999999";
+    toast.style.background = "linear-gradient(90deg,#7c3aed,#2563eb)";
+    toast.style.color = "#fff";
+    toast.style.padding = "14px 18px";
+    toast.style.borderRadius = "14px";
+    toast.style.fontWeight = "900";
+    toast.style.boxShadow = "0 14px 30px rgba(15,23,42,.25)";
+    toast.style.maxWidth = "320px";
+    toast.style.fontSize = "13px";
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = "🔔 " + esc(message);
+  toast.style.display = "block";
+
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function(){
+    toast.style.display = "none";
+  }, 5000);
+}
+
+
+function resetHistoryPagination(){
+  historyCurrentPage = 1;
+}
+
+function changeHistoryPage(delta){
+  const totalPages = Math.max(1, Math.ceil((historyFilteredData || []).length / historyPageSize));
+  historyCurrentPage = Math.min(totalPages, Math.max(1, historyCurrentPage + Number(delta || 0)));
+  renderHistory(historyFilteredData, true);
+}
+
+function changeHistoryPageSize(value){
+  historyPageSize = Number(value || 10);
+  if(!historyPageSize || historyPageSize < 1) historyPageSize = 10;
+  historyCurrentPage = 1;
+  renderHistory(historyFilteredData, true);
+}
+
+function updateHistoryPageSizeLabels(){
+  const size = document.getElementById("historyPageSize");
+  if(!size) return;
+  const current = size.value || String(historyPageSize || 10);
+  [10,20,50].forEach(function(n){
+    const opt = Array.from(size.options).find(o => o.value === String(n));
+    if(opt) opt.text = n + " / " + u("page");
+  });
+  size.value = current;
+}
+
+function renderHistoryPagination(totalItems){
+  const totalPages = Math.max(1, Math.ceil(Number(totalItems || 0) / historyPageSize));
+  historyCurrentPage = Math.min(totalPages, Math.max(1, historyCurrentPage));
+
+  const start = totalItems === 0 ? 0 : ((historyCurrentPage - 1) * historyPageSize) + 1;
+  const end = Math.min(totalItems, historyCurrentPage * historyPageSize);
+
+  const info = document.getElementById("historyPaginationInfo");
+  const indicator = document.getElementById("historyPageIndicator");
+  const prev = document.getElementById("historyPrevBtn");
+  const next = document.getElementById("historyNextBtn");
+
+  if(info) info.innerHTML = `${u("showing")} ${start}-${end} ${u("of")} ${totalItems}`;
+  if(indicator) indicator.innerHTML = `${u("pageLabel")} ${historyCurrentPage} / ${totalPages}`;
+  if(prev){ prev.disabled = historyCurrentPage <= 1; prev.innerHTML = u("previous"); }
+  if(next){ next.disabled = historyCurrentPage >= totalPages; next.innerHTML = u("next"); }
+  updateHistoryPageSizeLabels();
+}
+
+function renderHistory(data, keepPage){
+  let html = "";
+  historyFilteredData = data || [];
+  if(keepPage !== true){ historyCurrentPage = Math.max(1, historyCurrentPage || 1); }
+  const totalPages = Math.max(1, Math.ceil(historyFilteredData.length / historyPageSize));
+  historyCurrentPage = Math.min(totalPages, Math.max(1, historyCurrentPage));
+  const startIndex = (historyCurrentPage - 1) * historyPageSize;
+  const pageData = historyFilteredData.slice(startIndex, startIndex + historyPageSize);
+
+  pageData.forEach(r=>{
+    let badgeClass = "pending";
+    if(r.status === "On Process") badgeClass = "process";
+    if(r.status === "Approved") badgeClass = "approved";
+    if(r.status === "Rejected") badgeClass = "rejected";
+
+    const hqText = r.statusHQ || "-";
+    const hqClass = r.statusHQ ? "ok" : "notok";
+    const unreadComment = getRowUnreadCommentCount_(r);
+    const commentBtn = renderUserCommentButton_(r.row, unreadComment);
+
+    html += `
+      <tr class="${unreadComment > 0 ? 'has-unread-comment' : ''}">
+        <td>${esc(r.timestamp || "-")}</td>
+        <td>${esc(r.bonusCategory || "-")}</td>
+        <td>${esc(r.staffName || "-")}</td>
+        <td>${esc(r.akunMember || "-")}</td>
+        <td>${esc(r.tipeBonus || "-")}</td>
+        <td>${esc(r.nominalBonus || "-")}</td>
+        <td>
+          <div class="slip ${r.isDuplicateSlip ? 'slip-red' : ''}">${esc(r.nomorSlip || "-")}</div>
+          ${r.isDuplicateSlip ? `<div class="duplicate">DUPLICATE</div>` : ""}
+        </td>
+        <td>${esc(r.kodeAgen || "-")}</td>
+        <td><span class="badge ${badgeClass}">${esc(r.status || "Pending")}</span></td>
+        <td><span class="badge ${hqClass}">${esc(hqText)}</span></td>
+        <td>${renderDriveLinks(r)}</td>
+        <td>${esc(r.remarks || "-")}</td>
+        <td>${esc(r.adminRemarks || "-")}</td>
+        <td>${commentBtn}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("historyBody").innerHTML =
+    html || `<tr><td colspan="14" style="text-align:center;color:#64748b;">${esc(u("noData"))}</td></tr>`;
+
+  renderHistoryPagination(historyFilteredData.length);
+}
+
+function filterHistory(){
+  resetHistoryPagination();
+  const keyword = document.getElementById("searchInput").value.toLowerCase();
+
+  const filtered = historyData.filter(r =>
+    String(r.staffName).toLowerCase().includes(keyword) ||
+    String(r.akunMember).toLowerCase().includes(keyword) ||
+    String(r.status).toLowerCase().includes(keyword) ||
+    String(r.statusHQ).toLowerCase().includes(keyword) ||
+    String(r.nomorSlip).toLowerCase().includes(keyword) ||
+    String(r.kodeAgen).toLowerCase().includes(keyword) ||
+    String(r.bonusCategory).toLowerCase().includes(keyword) ||
+    String(r.remarks).toLowerCase().includes(keyword) ||
+    String(r.adminRemarks).toLowerCase().includes(keyword)
+  );
+
+  renderHistory(filtered);
+}
+
+function syncHQ(){
+  const btn = document.getElementById("syncBtn");
+  const status = document.getElementById("syncStatus");
+
+  btn.disabled = true;
+  btn.innerHTML = "Syncing...";
+  status.style.color = "#2563eb";
+  status.innerHTML = "SyncHQ sedang berjalan...";
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      status.style.color = "#16a34a";
+      status.innerHTML = esc(res);
+      loadHistory(false);
+
+      let sec = 60;
+      btn.innerHTML = "SyncHQ " + sec + "s";
+
+      const timer = setInterval(function(){
+        sec--;
+        btn.innerHTML = "SyncHQ " + sec + "s";
+
+        if(sec <= 0){
+          clearInterval(timer);
+          btn.disabled = false;
+          btn.innerHTML = "SyncHQ";
+        }
+      },1000);
+    })
+    .withFailureHandler(function(err){
+      status.style.color = "#dc2626";
+      status.innerHTML = esc(err.message);
+      btn.disabled = false;
+      btn.innerHTML = "SyncHQ";
+    })
+    .syncBonusReceivedForCurrentUser();
+}
+
+function renderDriveLinks(r){
+  return renderLinksArray(r.driveLinks || []);
+}
+
+function renderLinksArray(links){
+  if(!links || !links.length) return "-";
+  return links.map((link,i)=>`<a href="${esc(link)}" target="_blank">OPEN ${i+1}</a>`).join("<br>");
+}
+
+function openBonusComment(row, clickedBtn){
+  const requestedRow = Number(row);
+  activeBonusCommentRow = requestedRow;
+  const requestToken = ++bonusCommentRequestToken;
+
+  if(clickedBtn){ setButtonLoading_(clickedBtn, "Opening..."); }
+
+  const overlay = document.getElementById("bonusCommentOverlay");
+  const title = document.getElementById("bcTitle");
+  const sub = document.getElementById("bcSub");
+  const info = document.getElementById("bcInfo");
+  const list = document.getElementById("bcList");
+  const status = document.getElementById("bcStatus");
+
+  overlay.style.display = "flex";
+  title.innerHTML = "Bonus Comment #" + requestedRow;
+  sub.innerHTML = "Loading case detail...";
+  info.innerHTML = "";
+  list.innerHTML = `<div style="text-align:center;color:#64748b;font-weight:800;">Loading comments...</div>`;
+  status.innerHTML = "";
+
+  document.getElementById("bcMessage").value = "";
+  document.getElementById("bcFile").value = "";
+  document.getElementById("bcFileName").innerHTML = "Optional";
+
+  google.script.run
+    .withSuccessHandler(function(data){
+      if(requestToken !== bonusCommentRequestToken || Number(activeBonusCommentRow) !== requestedRow) return;
+      if(data && data.claim && Number(data.claim.row) && Number(data.claim.row) !== requestedRow) return;
+
+      if(clickedBtn){ setButtonSuccess_(clickedBtn, "✓ Opened", 650); }
+      renderBonusCommentModal(data);
+
+      // Setelah modal dibuka, backend sudah mark read.
+      // Simpan local-read supaya badge tidak muncul balik dari response auto-refresh lama.
+      markBonusCommentRowReadLocally_(requestedRow);
+
+      setTimeout(function(){
+        if(Number(activeBonusCommentRow) === requestedRow){
+          loadHistory(false);
+        }
+      }, 500);
+    })
+    .withFailureHandler(function(err){
+      if(requestToken !== bonusCommentRequestToken || Number(activeBonusCommentRow) !== requestedRow) return;
+      if(clickedBtn){ setButtonError_(clickedBtn, "Error", 1200); }
+      sub.innerHTML = "";
+      list.innerHTML = `<div style="text-align:center;color:#dc2626;font-weight:900;">${esc(err.message)}</div>`;
+    })
+    .getBonusCommentCaseForUserPanel(requestedRow);
+}
+
+function refreshOpenBonusComment(){
+  if(!activeBonusCommentRow) return;
+
+  const overlay = document.getElementById("bonusCommentOverlay");
+  if(!overlay || overlay.style.display !== "flex") return;
+
+  const requestedRow = Number(activeBonusCommentRow);
+  const refreshToken = ++bonusCommentRefreshToken;
+
+  google.script.run
+    .withSuccessHandler(function(data){
+      if(refreshToken !== bonusCommentRefreshToken || Number(activeBonusCommentRow) !== requestedRow) return;
+      if(data && data.claim && Number(data.claim.row) && Number(data.claim.row) !== requestedRow) return;
+
+      renderBonusCommentModal(data);
+      markBonusCommentRowReadLocally_(requestedRow);
+    })
+    .getBonusCommentCaseForUserPanel(requestedRow);
+}
+
+function renderBonusCommentModal(data){
+  const claim = data.claim || {};
+  const comments = data.comments || [];
+  const claimRow = Number(claim.row || activeBonusCommentRow || 0);
+
+  // Guard: jangan render response lama ke modal row lain.
+  if(activeBonusCommentRow && claimRow && Number(activeBonusCommentRow) !== claimRow) return;
+
+  document.getElementById("bcTitle").innerHTML =
+    "Bonus Comment #" + esc(claim.row || activeBonusCommentRow);
+
+  document.getElementById("bcSub").innerHTML =
+    `${esc(claim.bonusCategory || "-")} • ${esc(claim.akunMember || "-")} • Status: ${esc(claim.status || "Pending")}`;
+
+  document.getElementById("bcInfo").innerHTML = `
+    <div class="bc-box">
+      <b>Staff:</b> ${esc(claim.staffName || "-")}<br>
+      <b>Akun MB:</b> ${esc(claim.akunMember || "-")}<br>
+      <b>Tipe Bonus:</b> ${esc(claim.tipeBonus || "-")}<br>
+      <b>Kode Agen:</b> ${esc(claim.kodeAgen || "-")}
+    </div>
+    <div class="bc-box">
+      <b>User Remarks:</b><br>
+      ${esc(claim.remarks || "-")}<br><br>
+      <b>Admin Remarks:</b><br>
+      ${esc(claim.adminRemarks || "-")}
+    </div>
+  `;
+
+  let html = "";
+
+  const viewerRole = data.viewerRole || "";
+  comments.forEach(c=>{
+    const links = c.attachmentLinks || [];
+    const linkHtml = links.length
+      ? `<div style="margin-top:8px;">${links.map((x,i)=>`<a href="${esc(x)}" target="_blank">OPEN ${i+1}</a>`).join("<br>")}</div>`
+      : "";
+
+    const isMine = String(c.senderRole || "") === String(viewerRole || "");
+    const sideClass = isMine ? "mine" : "theirs";
+
+    html += `
+      <div class="bc-comment ${sideClass}">
+        <div class="bc-bubble">
+          <div class="bc-comment-head">
+            ${esc(c.senderRole || "-")} - ${esc(c.senderName || "-")}
+          </div>
+          <div class="bc-comment-msg">${esc(c.message || "")}</div>
+          ${linkHtml}
+          <div class="bc-comment-time">
+            ${esc(c.timestamp || "")}
+            ${c.statusSnapshot ? " • Status: " + esc(c.statusSnapshot) : ""}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("bcList").innerHTML =
+    html || `<div style="text-align:center;color:#64748b;font-weight:800;">Belum ada comment.</div>`;
+
+  const list = document.getElementById("bcList");
+  list.scrollTop = list.scrollHeight;
+
+  const formBox = document.querySelector(".bc-form");
+  const sendBtn = document.getElementById("bcSendBtn");
+  const statusBox = document.getElementById("bcStatus");
+  const msgBox = document.getElementById("bcMessage");
+  const fileInput = document.getElementById("bcFile");
+  const fileName = document.getElementById("bcFileName");
+
+  if(data.canAddComment === false){
+    if(formBox) formBox.style.display = "none";
+    if(sendBtn) sendBtn.style.display = "none";
+
+    statusBox.style.color = "#dc2626";
+    statusBox.innerHTML = esc(data.lockedMessage || "Case sudah selesai. Comment untuk user sudah ditutup.");
+  }else{
+    if(formBox) formBox.style.display = "grid";
+    if(sendBtn){
+      sendBtn.style.display = "block";
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = "Send Comment";
+    }
+
+    if(statusBox) statusBox.innerHTML = "";
+    if(msgBox) msgBox.disabled = false;
+    if(fileInput) fileInput.disabled = false;
+    if(fileName && !fileName.innerHTML) fileName.innerHTML = "Optional";
+  }
+}
+
+function showBonusCommentFileName(){
+  const input = document.getElementById("bcFile");
+  const nameBox = document.getElementById("bcFileName");
+
+  if(!input.files || !input.files[0]){
+    nameBox.innerHTML = "Optional";
+    return;
+  }
+
+  const file = input.files[0];
+
+  if(file.size > 5 * 1024 * 1024){
+    alert(userLang === "zh" ? "照片大小最多 5MB。" : "Ukuran foto maksimal 5MB.");
+    input.value = "";
+    nameBox.innerHTML = userLang === "zh" ? "檔案太大" : "File terlalu besar";
+    return;
+  }
+
+  nameBox.innerHTML = "✓ " + esc(file.name);
+}
+
+function readBonusCommentFiles(files){
+  return Promise.all(files.map(file=>{
+    return new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+
+      reader.onload = function(e){
+        resolve({
+          name:file.name,
+          mimeType:file.type || "application/octet-stream",
+          data:e.target.result
+        });
+      };
+
+      reader.onerror = function(){
+        reject(new Error("Gagal membaca file: " + file.name));
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }));
+}
+
+async function sendBonusComment(){
+  if(!activeBonusCommentRow) return;
+
+  const rowToSend = Number(activeBonusCommentRow);
+  const sendToken = ++bonusCommentSendToken;
+  const btn = document.getElementById("bcSendBtn");
+  const status = document.getElementById("bcStatus");
+  const message = document.getElementById("bcMessage").value.trim();
+  const input = document.getElementById("bcFile");
+
+  let files = [];
+
+  if(input && input.files && input.files[0]){
+    files = [input.files[0]];
+  }
+
+  if(!message && files.length === 0){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Isi comment atau upload attachment terlebih dahulu.";
+    return;
+  }
+
+  setButtonLoading_(btn, "Sending...");
+  btn.disabled = true;
+  status.style.color = "#2563eb";
+  status.innerHTML = "Reading attachment...";
+
+  let uploadFiles = [];
+
+  try{
+    uploadFiles = await readBonusCommentFiles(files);
+  }catch(err){
+    status.style.color = "#dc2626";
+    status.innerHTML = esc(err.message);
+    btn.disabled = false;
+    setButtonError_(btn, "File Error", 1200);
+    return;
+  }
+
+  status.innerHTML = "Sending comment...";
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(sendToken !== bonusCommentSendToken || Number(activeBonusCommentRow) !== rowToSend) return;
+
+      status.style.color = "#16a34a";
+      status.innerHTML = esc(res);
+
+      document.getElementById("bcMessage").value = "";
+      document.getElementById("bcFile").value = "";
+      document.getElementById("bcFileName").innerHTML = "Optional";
+
+      markBonusCommentRowReadLocally_(rowToSend);
+      setButtonSuccess_(btn, "✓ Comment Sent", 900);
+
+      setTimeout(function(){
+        if(Number(activeBonusCommentRow) === rowToSend){
+          btn.disabled = false;
+          refreshOpenBonusComment();
+          if(typeof loadHistory === "function"){
+            loadHistory(false);
+          }
+        }
+      }, 250);
+    })
+    .withFailureHandler(function(err){
+      if(sendToken !== bonusCommentSendToken || Number(activeBonusCommentRow) !== rowToSend) return;
+      status.style.color = "#dc2626";
+      status.innerHTML = esc(err.message);
+      btn.disabled = false;
+      setButtonError_(btn, "Error", 1400);
+    })
+    .addBonusCommentForUserPanel({
+      row: rowToSend,
+      message: message,
+      uploadFiles: uploadFiles
+    });
+}
+
+function closeBonusCommentModal(){
+  bonusCommentRequestToken++;
+  bonusCommentRefreshToken++;
+  document.getElementById("bonusCommentOverlay").style.display = "none";
+  activeBonusCommentRow = null;
+}
+</script>
+</body>
+</html>
