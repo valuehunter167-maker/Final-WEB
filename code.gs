@@ -10,7 +10,10 @@
 // - TL/FZR can view Admin Panel claim data; only Admin can run actions.
 // =========================================================
 
-const SOURCE_SPREADSHEET_ID = "1-MoAS4Bruy581reiZr4xgKKkAC4KChSs3BHjgGdB_KU";
+const SOURCE_SPREADSHEET_ID = "1wF7FQEGTXGMVP5BhJoSkIrS-8-RMJTjX3eDgG90AMHQ";
+const SOURCE_VVIP_TO_MINGGUAN_SPREADSHEET_ID = "1wF7FQEGTXGMVP5BhJoSkIrS-8-RMJTjX3eDgG90AMHQ";
+const GOOGLE_IDENTITY_CLIENT_ID = "471883018064-9cd4tvq4e9ptde7ulrhlt1dc2oqmmej8.apps.googleusercontent.com";
+const APP_AUTH_SESSION_TTL_SECONDS = 21600;
 const SHEET_BONUS_CLAIM = "BONUS_CLAIM";
 const SHEET_THB_HELPER = "THB_HELPER";
 const SHEET_USER_ACCESS = "USER_ACCESS";
@@ -27,6 +30,7 @@ const SOURCE_VVIP_SPECIAL_SHEET = "VVIP-特別獎";
 const SOURCE_LUCKY_MONEY_SHEET = "新升銅禮金Lucky money";
 const SOURCE_HELLO_FRIENDS_SHEET = "介紹好友 FRIENDS";
 const SOURCE_TIAP_HARI_SHEET = "(新)天天拿大獎";
+const SOURCE_VVIP_TO_MINGGUAN_SHEET = "VVIP-每周流水";
 const NO_SYNC_CATEGORIES = {
   "Direct Agent": true
 };
@@ -193,6 +197,25 @@ const VVIP_DEPO_NOMINAL_MAP = {
   "VVIP-BONUS-377": 377,
   "VVIP-BONUS-777": 777
 };
+const VVIP_TO_MINGGUAN_HQ_TIPE_MAP = {
+  "VVIP BONUS-77": "VVIP BONUS-77",
+  "VVIP BONUS-177": "VVIP BONUS-177",
+  "VVIP BONUS-277": "VVIP BONUS-277",
+  "VVIP BONUS-477": "VVIP BONUS-477",
+  "VVIP BONUS-1077": "VVIP BONUS-1077"
+};
+const VVIP_TO_MINGGUAN_NOMINAL_MAP = {
+  "VVIP BONUS-77": 77,
+  "VVIP BONUS-177": 177,
+  "VVIP BONUS-277": 277,
+  "VVIP BONUS-477": 477,
+  "VVIP BONUS-1077": 1077
+};
+const VVIP_TO_MINGGUAN_PROMO_MAP = {
+  "優惠3-流水-Promo TO": true,
+  "優惠1-存款-Promo DEPO": true,
+  "優惠2-投注5000- Promo BET5000": true
+};
 const VVIP_SPECIAL_HQ_TIPE_MAP = {
   // MUST match HQ VVIP-特別獎 column E data validation exactly.
   "VVIP BONUS-77": "VVIP BONUS-77",
@@ -250,6 +273,242 @@ function makeShortCacheKey_(prefix, parts) {
   return String(prefix || "KEY").replace(/[^A-Za-z0-9_]/g, "_").slice(0, 20) + "_" + hex;
 }
 
+
+const ACCESS_CACHE_TTL_SECONDS = 45;
+const CLAIM_HISTORY_USER_DEFAULT_ROWS = 3000;
+const CLAIM_HISTORY_ADMIN_DEFAULT_ROWS = 5000;
+const CLAIM_HISTORY_MAX_ROWS = 15000;
+const CLAIM_DATA_VERSION_PROPERTY = "IX_CLAIM_DATA_VERSION_V2";
+const SUBMIT_DEDUP_TTL_SECONDS = 300;
+const APP_UPDATE_NOTICE_PROPERTY = "IX_APP_UPDATE_NOTICE_V1";
+const APP_UPDATE_NOTICE_CACHE_KEY = "IX_APP_UPDATE_NOTICE_V1";
+const APP_UPDATE_NOTICE_CACHE_TTL_SECONDS = 20;
+const APP_UPDATE_DEFAULT_COUNTDOWN_SECONDS = 45;
+const APP_UPDATE_ACTION_LOCK_SECONDS = 15;
+
+function getCachedJson_(key) {
+  try {
+    const raw = CacheService.getScriptCache().get(key);
+    if (raw === null) return { hit: false, value: null };
+    return { hit: true, value: JSON.parse(raw) };
+  } catch (err) {
+    return { hit: false, value: null };
+  }
+}
+
+function putCachedJson_(key, value, ttlSeconds) {
+  try {
+    CacheService.getScriptCache().put(key, JSON.stringify(value), ttlSeconds || ACCESS_CACHE_TTL_SECONDS);
+  } catch (err) {}
+}
+
+function removeCachedJson_(key) {
+  try {
+    CacheService.getScriptCache().remove(key);
+  } catch (err) {}
+}
+
+function invalidateAccessCache_(email) {
+  email = String(email || "").trim().toLowerCase();
+  if (!email) return;
+  removeCachedJson_(makeShortCacheKey_("ADMIN_ACCESS", [email]));
+  removeCachedJson_(makeShortCacheKey_("STAFF_ACCESS", [email]));
+  removeCachedJson_(makeShortCacheKey_("ADMIN_REQUEST", [email]));
+}
+
+function acquireOwnerControlWriteLock_() {
+  return acquireDocumentWriteLock_(
+    20000,
+    "Owner Control sedang memproses update lain / submit lain. Coba ulang beberapa detik lagi."
+  );
+}
+
+function normalizeAppUpdateNotice_(raw) {
+  let notice = {};
+
+  if (raw && typeof raw === "object") {
+    notice = raw;
+  } else if (raw) {
+    try {
+      notice = JSON.parse(String(raw || "{}"));
+    } catch (err) {
+      notice = {};
+    }
+  }
+
+  const active = notice.active === true;
+  const version = String(notice.version || "").trim();
+  const releaseAt = Number(notice.releaseAt || 0);
+  const countdownSeconds = Math.max(10, Math.min(300, Number(notice.countdownSeconds || APP_UPDATE_DEFAULT_COUNTDOWN_SECONDS)));
+
+  return {
+    active: !!(active && version && releaseAt),
+    version: version,
+    message: String(notice.message || "Update terbaru sudah tersedia. Selesaikan pekerjaan yang sedang berjalan lalu klik Update.").trim(),
+    releaseAt: releaseAt,
+    countdownSeconds: countdownSeconds,
+    lockSeconds: APP_UPDATE_ACTION_LOCK_SECONDS,
+    serverNow: Date.now()
+  };
+}
+
+function getAppUpdateNotice() {
+  const cached = getCachedJson_(APP_UPDATE_NOTICE_CACHE_KEY);
+  if (cached.hit) {
+    const notice = normalizeAppUpdateNotice_(cached.value);
+    notice.serverNow = Date.now();
+    return notice;
+  }
+
+  const raw = PropertiesService.getScriptProperties().getProperty(APP_UPDATE_NOTICE_PROPERTY);
+  const notice = normalizeAppUpdateNotice_(raw);
+  putCachedJson_(APP_UPDATE_NOTICE_CACHE_KEY, notice, APP_UPDATE_NOTICE_CACHE_TTL_SECONDS);
+  notice.serverNow = Date.now();
+  return notice;
+}
+
+function clearAppUpdateNoticeCache_() {
+  try {
+    CacheService.getScriptCache().remove(APP_UPDATE_NOTICE_CACHE_KEY);
+  } catch (err) {}
+}
+
+function ownerReleaseAppUpdateNotice(message, countdownSeconds, authToken) {
+  assertOwner_(authToken);
+
+  const notice = normalizeAppUpdateNotice_({
+    active: true,
+    version: Date.now() + ":" + Math.floor(Math.random() * 1000000),
+    message: String(message || "Update terbaru sudah tersedia. Selesaikan pekerjaan yang sedang berjalan lalu klik Update.").trim(),
+    releaseAt: Date.now(),
+    countdownSeconds: countdownSeconds || APP_UPDATE_DEFAULT_COUNTDOWN_SECONDS
+  });
+
+  PropertiesService.getScriptProperties().setProperty(APP_UPDATE_NOTICE_PROPERTY, JSON.stringify(notice));
+  clearAppUpdateNoticeCache_();
+
+  return {
+    ok: true,
+    message: "Update notice aktif. User/Admin akan melihat tombol Update.",
+    notice: getAppUpdateNotice()
+  };
+}
+
+function ownerClearAppUpdateNotice(authToken) {
+  assertOwner_(authToken);
+
+  PropertiesService.getScriptProperties().deleteProperty(APP_UPDATE_NOTICE_PROPERTY);
+  clearAppUpdateNoticeCache_();
+
+  return {
+    ok: true,
+    message: "Update notice sudah dimatikan."
+  };
+}
+
+function getClaimDataVersion_() {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    let version = props.getProperty(CLAIM_DATA_VERSION_PROPERTY);
+
+    if (!version) {
+      version = String(Date.now());
+      props.setProperty(CLAIM_DATA_VERSION_PROPERTY, version);
+    }
+
+    return version;
+  } catch (err) {
+    return String(Date.now());
+  }
+}
+
+function bumpClaimDataVersion_(reason) {
+  try {
+    const version = Date.now() + ":" + Math.floor(Math.random() * 1000000);
+    PropertiesService.getScriptProperties().setProperty(CLAIM_DATA_VERSION_PROPERTY, version);
+    return version;
+  } catch (err) {
+    return String(Date.now());
+  }
+}
+
+function getSubmitDedupCacheKey_(email, requestId) {
+  requestId = String(requestId || "").trim();
+  if (!requestId) return "";
+  return makeShortCacheKey_("SUBMIT_DEDUP", [String(email || "").toLowerCase(), requestId]);
+}
+
+function getSubmitDedupResult_(email, requestId) {
+  const key = getSubmitDedupCacheKey_(email, requestId);
+  if (!key) return null;
+
+  const cached = getCachedJson_(key);
+  return cached.hit ? cached.value : null;
+}
+
+function putSubmitDedupResult_(email, requestId, result) {
+  const key = getSubmitDedupCacheKey_(email, requestId);
+  if (!key) return;
+
+  putCachedJson_(key, result, SUBMIT_DEDUP_TTL_SECONDS);
+}
+
+function getClaimHistoryReadWindow_(lastRow, filter, isAdmin) {
+  const totalRows = Math.max(0, Number(lastRow || 0) - 1);
+  if (totalRows <= 0) return { startRow: 2, rowCount: 0 };
+
+  const requested = filter && Number(filter.maxRows || 0);
+  const defaultRows = isAdmin ? CLAIM_HISTORY_ADMIN_DEFAULT_ROWS : CLAIM_HISTORY_USER_DEFAULT_ROWS;
+  const maxRows = Math.min(
+    CLAIM_HISTORY_MAX_ROWS,
+    Math.max(1, requested || defaultRows)
+  );
+  const rowCount = Math.min(totalRows, maxRows);
+
+  return {
+    startRow: Math.max(2, lastRow - rowCount + 1),
+    rowCount: rowCount
+  };
+}
+
+function getBonusCommentUnreadMapForRows_(rowNums, viewerRole) {
+  rowNums = Array.isArray(rowNums) ? rowNums : [];
+  const allowedRows = {};
+
+  rowNums.forEach(row => {
+    row = Number(row);
+    if (row) allowedRows[row] = true;
+  });
+
+  if (!Object.keys(allowedRows).length) return {};
+
+  const shComment = ensureBonusCommentsSheet_();
+  if (!shComment || shComment.getLastRow() < 2) return {};
+
+  const comments = shComment.getRange(2, 1, shComment.getLastRow() - 1, 13).getValues();
+  const map = {};
+  viewerRole = String(viewerRole || "User").trim();
+
+  comments.forEach(r => {
+    const claimRow = Number(r[1]);
+    if (!allowedRows[claimRow]) return;
+
+    const senderRole = String(r[3] || "").trim();
+    const readByUser = r[9];
+    const readByAdmin = r[10];
+
+    if (viewerRole === "User" && senderRole === "Admin" && !readByUser) {
+      map[claimRow] = (map[claimRow] || 0) + 1;
+    }
+
+    if (viewerRole === "Admin" && senderRole === "User" && !readByAdmin) {
+      map[claimRow] = (map[claimRow] || 0) + 1;
+    }
+  });
+
+  return map;
+}
+
 function getSubmitFingerprint_(data, email) {
   data = data || {};
   return [
@@ -282,29 +541,238 @@ function doGet(e) {
     .setTitle(page === "admin" ? "Admin Panel" : "Bonus Claim Dashboard");
 }
 
-function getCurrentUser() {
-  return getUserPortalAccessInfo();
+function isSpreadsheetPermissionError_(err) {
+  const msg = String((err && err.message) || err || "");
+  return /permission to access the requested document|access the requested document|do not have permission|Authorization is required|You do not have permission/i.test(msg);
+}
+
+function buildSpreadsheetPermissionSetupResponse_(panel, err) {
+  const email = Session.getActiveUser().getEmail();
+  const raw = String((err && err.message) || err || "");
+  const message = "Sistem belum bisa membaca database Google Sheet. Ini bukan status user/admin. Owner perlu cek deployment Web App: Execute as harus 'Me/Owner', dan akun owner/deployment harus punya akses ke file database/HQ. Detail: " + raw;
+
+  return {
+    ok: false,
+    email: String(email || "").trim(),
+    role: panel === "admin" ? "" : "User",
+    staffName: "",
+    adminCode: "",
+    active: false,
+    registered: false,
+    needsRegistration: false,
+    needsApproval: false,
+    accessDenied: panel === "admin",
+    viewerOnly: true,
+    systemSetupError: true,
+    accountStatus: "SETUP_PERMISSION_DENIED",
+    accessStatus: "SETUP_PERMISSION_DENIED",
+    message: message,
+    projectAccess: {
+      claimBonus: false,
+      bonusMingguan: false,
+      deviceReport: false,
+      project4: false,
+      project5: false
+    }
+  };
+}
+
+function verifyGoogleIdentityCredential_(credential) {
+  credential = String(credential || "").trim();
+  if (!credential) throw new Error("Google credential kosong. Silakan login ulang.");
+
+  const cacheKey = makeShortCacheKey_("GOOGLE_ID", [credential.slice(-80)]);
+  const cached = getCachedJson_(cacheKey);
+  if (cached.hit && cached.value && cached.value.email) return cached.value;
+
+  const response = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(credential), {
+    method: "get",
+    muteHttpExceptions: true
+  });
+
+  const code = response.getResponseCode();
+  const text = response.getContentText() || "";
+  if (code < 200 || code >= 300) {
+    throw new Error("Google login tidak valid / expired. Silakan login ulang.");
+  }
+
+  let payload = {};
+  try {
+    payload = JSON.parse(text || "{}");
+  } catch (err) {
+    throw new Error("Gagal membaca response Google login.");
+  }
+
+  if (String(payload.aud || "") !== GOOGLE_IDENTITY_CLIENT_ID) {
+    throw new Error("Google Client ID tidak cocok. Hubungi Owner.");
+  }
+
+  const iss = String(payload.iss || "");
+  if (iss !== "accounts.google.com" && iss !== "https://accounts.google.com") {
+    throw new Error("Issuer Google login tidak valid.");
+  }
+
+  if (String(payload.email_verified || "").toLowerCase() !== "true") {
+    throw new Error("Email Google belum verified.");
+  }
+
+  const email = String(payload.email || "").trim().toLowerCase();
+  if (!email) throw new Error("Email Google tidak terbaca dari token.");
+
+  const result = {
+    email: email,
+    name: String(payload.name || "").trim(),
+    picture: String(payload.picture || "").trim(),
+    sub: String(payload.sub || "").trim()
+  };
+
+  putCachedJson_(cacheKey, result, 300);
+  return result;
+}
+
+function createAppAuthSession_(googleUser, panel) {
+  googleUser = googleUser || {};
+  const email = String(googleUser.email || "").trim().toLowerCase();
+  if (!email) throw new Error("Email Google tidak valid.");
+
+  const token = Utilities.getUuid() + "." + Utilities.getUuid();
+  const now = Date.now();
+  const session = {
+    email: email,
+    name: String(googleUser.name || "").trim(),
+    picture: String(googleUser.picture || "").trim(),
+    panel: String(panel || "").trim(),
+    createdAt: now,
+    expiresAt: now + (APP_AUTH_SESSION_TTL_SECONDS * 1000)
+  };
+
+  putCachedJson_(makeShortCacheKey_("APP_AUTH_SESSION", [token]), session, APP_AUTH_SESSION_TTL_SECONDS);
+  return token;
+}
+
+function getAppAuthSession_(authToken) {
+  authToken = String(authToken || "").trim();
+  if (!authToken) return null;
+  const cached = getCachedJson_(makeShortCacheKey_("APP_AUTH_SESSION", [authToken]));
+  if (!cached.hit || !cached.value) return null;
+  const session = cached.value;
+  if (Number(session.expiresAt || 0) && Number(session.expiresAt || 0) < Date.now()) return null;
+  return session;
+}
+
+function resolveRequestEmail_(authToken) {
+  const session = getAppAuthSession_(authToken);
+  if (session && session.email) return String(session.email).trim().toLowerCase();
+
+  const email = Session.getActiveUser().getEmail();
+  return String(email || "").trim().toLowerCase();
+}
+
+function attachAuthToken_(payload, token) {
+  payload = payload || {};
+  if (token) payload.authToken = token;
+  return payload;
+}
+
+function loginWithGoogleCredential(credential, panel) {
+  const googleUser = verifyGoogleIdentityCredential_(credential);
+  const authToken = createAppAuthSession_(googleUser, panel || "user");
+  const info = panel === "admin"
+    ? getAdminPanelAccessInfoForEmail_(googleUser.email)
+    : getUserPortalAccessInfoForEmail_(googleUser.email);
+
+  info.authToken = authToken;
+  info.googleName = googleUser.name || "";
+  info.googlePicture = googleUser.picture || "";
+  return info;
+}
+
+function loginWithInviteEmail(email, panel) {
+  email = String(email || "").trim().toLowerCase();
+  panel = String(panel || "user").trim().toLowerCase();
+
+  if (!email || email.indexOf("@") < 1) {
+    throw new Error("Gmail wajib diisi dengan format email yang benar.");
+  }
+
+  if (panel === "admin") {
+    const invitedAdmin = getAdminAccessRecord_(email);
+    if (!invitedAdmin) {
+      return {
+        ok: false,
+        email: email,
+        accessDenied: true,
+        needsRegistration: false,
+        accountStatus: "NOT_INVITED",
+        message: "Gmail ini belum ada di USER_ACCESS. Minta Owner invite email dulu."
+      };
+    }
+
+    const authToken = createAppAuthSession_({ email: email, name: invitedAdmin.staffName || invitedAdmin.adminCode || "" }, "admin");
+    return attachAuthToken_(getAdminPanelAccessInfoForEmail_(email), authToken);
+  }
+
+  const invitedStaff = getUserStaffAccess_(email);
+  const invitedAdmin = getAdminAccessRecord_(email);
+  if (!invitedStaff && !invitedAdmin) {
+    return {
+      ok: false,
+      email: email,
+      role: "User",
+      accessDenied: true,
+      registered: false,
+      active: false,
+      accessStatus: "NOT_INVITED",
+      needsRegistration: false,
+      needsApproval: false,
+      message: "Gmail ini belum di-invite Owner di USER_STAFF_ACCESS."
+    };
+  }
+
+  const authToken = createAppAuthSession_({ email: email, name: invitedStaff ? invitedStaff.staffName : "" }, "user");
+  return attachAuthToken_(getUserPortalAccessInfoForEmail_(email), authToken);
+}
+
+function getCurrentUser(authToken) {
+  try {
+    const email = resolveRequestEmail_(authToken);
+    if (email) return attachAuthToken_(getUserPortalAccessInfoForEmail_(email), authToken);
+    return getUserPortalAccessInfo();
+  } catch (err) {
+    if (isSpreadsheetPermissionError_(err)) {
+      return buildSpreadsheetPermissionSetupResponse_("user", err);
+    }
+    throw err;
+  }
 }
 
 function getAdminAccessRecord_(email) {
+  email = String(email || "").trim().toLowerCase();
   if (!email) return null;
 
+  const cacheKey = makeShortCacheKey_("ADMIN_ACCESS", [email]);
+  const cached = getCachedJson_(cacheKey);
+  if (cached.hit) return cached.value;
+
   const sh = ensureAdminUserAccessSheet_();
-  if (!sh || sh.getLastRow() < 2) return null;
+  if (!sh || sh.getLastRow() < 2) {
+    putCachedJson_(cacheKey, null, ACCESS_CACHE_TTL_SECONDS);
+    return null;
+  }
 
   const data = sh.getRange(2, 1, sh.getLastRow() - 1, 10).getValues();
-  const targetEmail = String(email).trim().toLowerCase();
+  let result = null;
 
   for (let i = 0; i < data.length; i++) {
     const r = data[i];
-    if (String(r[0] || "").trim().toLowerCase() !== targetEmail) continue;
+    if (String(r[0] || "").trim().toLowerCase() !== email) continue;
 
     const role = String(r[1] || "").trim();
     const activeFlag = normalizeAdminActiveFlag_(r[4]);
     const accountStatus = normalizeOwnerAccountStatus_(r[9], activeFlag);
     const active = activeFlag && accountStatus === "ACTIVE";
 
-    return {
+    result = {
       row: i + 2,
       email: String(r[0] || "").trim(),
       role: role,
@@ -318,9 +786,11 @@ function getAdminAccessRecord_(email) {
       notes: String(r[8] || "").trim(),
       accountStatus: accountStatus
     };
+    break;
   }
 
-  return null;
+  putCachedJson_(cacheKey, result, ACCESS_CACHE_TTL_SECONDS);
+  return result;
 }
 
 function getUserAccess_(email) {
@@ -506,7 +976,7 @@ function migrateLegacyUserAccessToStaff_() {
       email,
       staffName,
       staffId,
-      ["IT", "MT", "BZ"].includes(String(role || "").trim().toUpperCase()) ? String(role).trim().toUpperCase() : "",
+      ["IT", "MT", "BZ", "TM", "ST"].includes(String(role || "").trim().toUpperCase()) ? String(role).trim().toUpperCase() : "",
       "",
       "ON",
       "APPROVED",
@@ -536,23 +1006,32 @@ function findUserStaffAccessRow_(email) {
   email = String(email || "").trim().toLowerCase();
   if (!email) return null;
 
+  const cacheKey = makeShortCacheKey_("STAFF_ACCESS", [email]);
+  const cached = getCachedJson_(cacheKey);
+  if (cached.hit) return cached.value;
+
   const sh = ensureUserStaffAccessSheet_();
   const lastRow = sh.getLastRow();
-  if (lastRow < 2) return null;
+  if (lastRow < 2) {
+    return null;
+  }
 
   const values = sh.getRange(2, 1, lastRow - 1, 16).getValues();
+  let result = null;
 
   for (let i = 0; i < values.length; i++) {
     const rowEmail = String(values[i][0] || "").trim().toLowerCase();
     if (rowEmail === email) {
-      return {
+      result = {
         row: i + 2,
         values: values[i]
       };
+      break;
     }
   }
 
-  return null;
+  if (result) putCachedJson_(cacheKey, result, ACCESS_CACHE_TTL_SECONDS);
+  return result;
 }
 
 function getUserStaffAccess_(email) {
@@ -590,39 +1069,38 @@ function getUserStaffAccess_(email) {
   };
 }
 
-function getUserPortalAccessInfo() {
-  const email = Session.getActiveUser().getEmail();
+function getUserPortalAccessInfoForEmail_(email) {
+  email = String(email || "").trim().toLowerCase();
 
   if (!email) {
-    throw new Error("Gmail tidak terbaca. Pastikan kamu login dengan akun Google.");
+    throw new Error("Gmail tidak terbaca. Isi Gmail invite terlebih dahulu.");
   }
 
+  const staff = getUserStaffAccess_(email);
   const adminUser = getUserAccess_(email);
 
-  // Admin panel roles can also open the user portal without separate USER_STAFF_ACCESS.
-  if (adminUser && isAdminPanelRole_(adminUser.role)) {
+  if (!staff && adminUser && isAdminPanelRole_(adminUser.role)) {
     return {
-      ok: true,
+      ok: false,
       email: String(adminUser.email || email).trim(),
       role: String(adminUser.role || "").trim(),
       staffName: String(adminUser.staffName || adminUser.adminCode || "").trim(),
       adminCode: String(adminUser.adminCode || "").trim(),
-      registered: true,
-      active: true,
-      accessStatus: "APPROVED",
-      needsRegistration: false,
+      registered: false,
+      active: false,
+      accessStatus: "NEED_USER_PROFILE",
+      needsRegistration: true,
       needsApproval: false,
+      message: "Admin juga perlu melengkapi data user di USER_STAFF_ACCESS supaya profile staff rapi.",
       projectAccess: {
-        claimBonus: true,
-        bonusMingguan: true,
-        deviceReport: true,
-        project4: true,
-        project5: true
+        claimBonus: false,
+        bonusMingguan: false,
+        deviceReport: false,
+        project4: false,
+        project5: false
       }
     };
   }
-
-  const staff = getUserStaffAccess_(email);
 
   if (!staff) {
     return {
@@ -633,15 +1111,43 @@ function getUserPortalAccessInfo() {
       adminCode: "",
       registered: false,
       active: false,
-      accessStatus: "UNREGISTERED",
-      needsRegistration: true,
+      accessStatus: "NOT_INVITED",
+      needsRegistration: false,
       needsApproval: false,
+      accessDenied: true,
+      message: "Gmail ini belum di-invite Owner di USER_STAFF_ACCESS.",
       projectAccess: {
         claimBonus: false,
         bonusMingguan: false,
         deviceReport: false,
         project4: false,
         project5: false
+      }
+    };
+  }
+
+  const profileComplete = !!(staff.staffName && staff.staffId && staff.posisi && staff.team);
+  if (!profileComplete) {
+    return {
+      ok: false,
+      email: staff.email || String(email).trim(),
+      role: "User",
+      staffName: staff.staffName || "",
+      adminCode: staff.staffId || "",
+      staffId: staff.staffId || "",
+      posisi: staff.posisi || "",
+      team: staff.team || "",
+      registered: false,
+      active: staff.active,
+      accessStatus: staff.accessStatus || "INVITED",
+      needsRegistration: true,
+      needsApproval: false,
+      projectAccess: {
+        claimBonus: !!staff.claimBonusAccess,
+        bonusMingguan: !!staff.bonusMingguanAccess,
+        deviceReport: !!staff.deviceReportAccess,
+        project4: !!staff.project4Access,
+        project5: !!staff.project5Access
       }
     };
   }
@@ -671,11 +1177,15 @@ function getUserPortalAccessInfo() {
   };
 }
 
+function getUserPortalAccessInfo() {
+  return getUserPortalAccessInfoForEmail_(Session.getActiveUser().getEmail());
+}
+
 function registerUserStaffAccess(profile) {
   profile = profile || {};
-  const email = Session.getActiveUser().getEmail();
+  const email = resolveRequestEmail_(profile.authToken) || String(profile.email || "").trim().toLowerCase();
 
-  if (!email) throw new Error("Gmail tidak terbaca. Pastikan login Google.");
+  if (!email) throw new Error("Gmail wajib diisi. Pastikan email sudah di-invite Owner.");
 
   const staffName = String(profile.staffName || "").trim();
   const staffId = String(profile.staffId || "").trim();
@@ -684,7 +1194,7 @@ function registerUserStaffAccess(profile) {
 
   if (!staffName) throw new Error("Staff Name wajib diisi.");
   if (!staffId) throw new Error("Staff ID wajib diisi.");
-  if (!["IT", "MT", "BZ"].includes(posisi)) throw new Error("Posisi user wajib pilih IT / MT / BZ.");
+  if (!["IT", "MT", "BZ", "TM", "ST"].includes(posisi)) throw new Error("Posisi user wajib pilih IT / MT / BZ / TM / ST.");
   if (!team) throw new Error("Team wajib diisi.");
 
   const lock = LockService.getDocumentLock() || LockService.getScriptLock();
@@ -695,46 +1205,84 @@ function registerUserStaffAccess(profile) {
     const found = findUserStaffAccessRow_(email);
     const now = new Date();
 
-    if (found) {
-      const currentStatus = String(found.values[6] || "").trim() || "PENDING";
-      const currentActive = normalizeAccessFlag_(found.values[5]);
+    if (!found) {
+      const invitedAdmin = getAdminAccessRecord_(email);
+      if (!invitedAdmin) {
+        throw new Error("Gmail ini belum di-invite Owner di USER_STAFF_ACCESS. Minta Owner isi email kamu di kolom A dulu.");
+      }
 
-      // Allow user to update pending profile data. Do not turn ON automatically.
-      sh.getRange(found.row, 2, 1, 4).setValues([[staffName, staffId, posisi, team]]);
-      sh.getRange(found.row, 14, 1, 3).setValues([[now, email, "Updated by user registration form"]]);
+      sh.appendRow([
+        String(email).trim(),
+        staffName,
+        staffId,
+        posisi,
+        team,
+        "ON",
+        "APPROVED",
+        "ON",
+        "ON",
+        "OFF",
+        "OFF",
+        "OFF",
+        now,
+        now,
+        email,
+        "Invited admin completed user profile; auto-approved by invite list"
+      ]);
+      invalidateAccessCache_(email);
 
       return {
         ok: true,
-        message: currentActive ? "Data kamu sudah aktif." : "Register sudah tersimpan. Tunggu Owner approve akses.",
-        accessStatus: currentStatus,
-        active: currentActive
+        message: "Profile user tersimpan dan akses aktif.",
+        accessStatus: "APPROVED",
+        active: true
       };
     }
 
-    sh.appendRow([
-      String(email).trim(),
+    const oldStaffName = String(found.values[1] || "").trim();
+    const oldStaffId = String(found.values[2] || "").trim();
+    const oldPosisi = String(found.values[3] || "").trim();
+    const oldTeam = String(found.values[4] || "").trim();
+    const wasProfileComplete = !!(oldStaffName && oldStaffId && oldPosisi && oldTeam);
+    const currentActiveRaw = String(found.values[5] == null ? "" : found.values[5]).trim();
+    const currentStatusRaw = String(found.values[6] || "").trim();
+    const protectedStatus = ["LOCKED", "REMOVED"].includes(currentStatusRaw.toUpperCase());
+    const shouldAutoApprove = !wasProfileComplete && !currentActiveRaw && !currentStatusRaw;
+    const currentActive = normalizeAccessFlag_(found.values[5]);
+    const finalActive = shouldAutoApprove ? true : (protectedStatus ? false : currentActive);
+    const finalStatus = shouldAutoApprove
+      ? "APPROVED"
+      : (finalActive ? (currentStatusRaw || "APPROVED") : (currentStatusRaw || "PENDING"));
+    const claimBonusAccess = String(found.values[7] || "").trim() || "ON";
+    const bonusMingguanAccess = String(found.values[8] || "").trim() || "ON";
+
+    // Invited Gmail-only rows are trusted Owner invites. First registration completes
+    // the profile and activates Claim Bonus + Bonus Mingguan by default. Existing
+    // LOCKED/REMOVED/OFF rows are respected and never auto-unlocked here.
+    sh.getRange(found.row, 2, 1, 15).setValues([[
       staffName,
       staffId,
       posisi,
       team,
-      "OFF",
-      "PENDING",
-      "OFF",
-      "OFF",
-      "OFF",
-      "OFF",
-      "OFF",
-      now,
+      finalActive ? "ON" : "OFF",
+      finalStatus,
+      claimBonusAccess,
+      bonusMingguanAccess,
+      String(found.values[9] || "").trim() || "OFF",
+      String(found.values[10] || "").trim() || "OFF",
+      String(found.values[11] || "").trim() || "OFF",
+      found.values[12] || now,
       now,
       email,
-      "Self registration"
-    ]);
+      shouldAutoApprove ? "Completed invited profile; auto-approved by invite list" : "Updated by invited user registration form"
+    ]]);
+    invalidateAccessCache_(email);
 
     return {
       ok: true,
-      message: "Register berhasil. Tunggu Owner approve akses.",
-      accessStatus: "PENDING",
-      active: false
+      message: finalActive ? "Data kamu sudah aktif." : "Register sudah tersimpan. Status akses kamu: " + finalStatus,
+      accessStatus: finalStatus,
+      active: finalActive
     };
 
   } finally {
@@ -754,8 +1302,8 @@ function projectKeyToStaffAccessProp_(projectKey) {
   return "";
 }
 
-function assertUserProjectAccess_(projectKey) {
-  const email = Session.getActiveUser().getEmail();
+function assertUserProjectAccess_(projectKey, authToken) {
+  const email = resolveRequestEmail_(authToken);
   const adminUser = getUserAccess_(email);
 
   if (adminUser && isAdminPanelRole_(adminUser.role)) {
@@ -818,32 +1366,44 @@ function findAdminAccessRequestRow_(email) {
   email = String(email || "").trim().toLowerCase();
   if (!email) return null;
 
+  const cacheKey = makeShortCacheKey_("ADMIN_REQUEST", [email]);
+  const cached = getCachedJson_(cacheKey);
+  if (cached.hit) return cached.value;
+
   const sh = ensureAdminAccessRequestsSheet_();
   const lastRow = sh.getLastRow();
-  if (lastRow < 2) return null;
+  if (lastRow < 2) {
+    return null;
+  }
 
   const values = sh.getRange(2, 1, lastRow - 1, 10).getValues();
+  let result = null;
 
   for (let i = values.length - 1; i >= 0; i--) {
     const rowEmail = String(values[i][1] || "").trim().toLowerCase();
     if (rowEmail === email) {
-      return {
+      result = {
         row: i + 2,
         values: values[i]
       };
+      break;
     }
   }
 
-  return null;
+  if (result) putCachedJson_(cacheKey, result, ACCESS_CACHE_TTL_SECONDS);
+  return result;
 }
 
 function registerAdminAccessRequest(profile) {
   profile = profile || {};
-  const email = Session.getActiveUser().getEmail();
+  const email = resolveRequestEmail_(profile.authToken) || String(profile.email || "").trim().toLowerCase();
 
-  if (!email) throw new Error("Gmail tidak terbaca. Pastikan login Google.");
+  if (!email) throw new Error("Gmail wajib diisi. Pastikan email sudah di-invite Owner.");
 
   const adminRecord = getAdminAccessRecord_(email);
+  if (!adminRecord) {
+    throw new Error("Gmail ini belum di-invite Owner di USER_ACCESS. Minta Owner isi email kamu di kolom A dulu.");
+  }
 
   if (adminRecord && isAdminPanelRole_(adminRecord.role)) {
     if (adminRecord.accountStatus === "LOCKED") {
@@ -911,19 +1471,19 @@ function registerAdminAccessRequest(profile) {
   }
 }
 
-function isOwner_() {
-  const email = Session.getActiveUser().getEmail();
+function isOwner_(authToken) {
+  const email = resolveRequestEmail_(authToken);
   const user = getUserAccess_(email);
   return user && String(user.role || "").trim() === "Owner";
 }
 
-function assertOwner_() {
-  if (!isOwner_()) throw new Error("Access denied. Hanya Owner yang boleh akses menu ini.");
+function assertOwner_(authToken) {
+  if (!isOwner_(authToken)) throw new Error("Access denied. Hanya Owner yang boleh akses menu ini.");
   return true;
 }
 
-function getOwnerAccessControlData() {
-  assertOwner_();
+function getOwnerAccessControlData(authToken) {
+  assertOwner_(authToken);
 
   try {
     migrateLegacyUserAccessToStaff_();
@@ -1011,8 +1571,8 @@ function getOwnerAccessControlData() {
 }
 
 
-function getOwnerAdminControlData() {
-  assertOwner_();
+function getOwnerAdminControlData(authToken) {
+  assertOwner_(authToken);
 
   const adminSheet = ensureAdminUserAccessSheet_();
   const reqSheet = ensureAdminAccessRequestsSheet_();
@@ -1068,8 +1628,8 @@ function getOwnerAdminControlData() {
   };
 }
 
-function getOwnerUserControlData() {
-  assertOwner_();
+function getOwnerUserControlData(authToken) {
+  assertOwner_(authToken);
 
   try {
     migrateLegacyUserAccessToStaff_();
@@ -1110,8 +1670,8 @@ function getOwnerUserControlData() {
 
 
 function ownerUpdateStaffAccess(payload) {
-  assertOwner_();
   payload = payload || {};
+  assertOwner_(payload.authToken);
 
   let email = String(payload.email || "").trim().toLowerCase();
   const row = Number(payload.row || 0);
@@ -1131,7 +1691,7 @@ function ownerUpdateStaffAccess(payload) {
   if (!found) throw new Error("User staff tidak ditemukan: " + email);
 
   const posisi = String(payload.posisi || "").trim().toUpperCase();
-  if (!["IT", "MT", "BZ"].includes(posisi)) throw new Error("Posisi user wajib IT / MT / BZ.");
+  if (!["IT", "MT", "BZ", "TM", "ST"].includes(posisi)) throw new Error("Posisi user wajib IT / MT / BZ / TM / ST.");
 
   const requestedStatus = String(payload.accountStatus || payload.accessStatus || "").trim().toUpperCase();
   let active = normalizeAccessFlag_(payload.active) ? "ON" : "OFF";
@@ -1149,12 +1709,9 @@ function ownerUpdateStaffAccess(payload) {
   }
 
   const now = new Date();
-  const by = Session.getActiveUser().getEmail();
+  const by = resolveRequestEmail_(payload.authToken);
 
-  const lock = LockService.getDocumentLock() || LockService.getScriptLock();
-  if (!lock.tryLock(8000)) {
-    throw new Error("Owner Control sedang dipakai. Coba lagi beberapa detik.");
-  }
+  const lock = acquireOwnerControlWriteLock_();
 
   try {
     sh.getRange(found.row, 2, 1, 15).setValues([[
@@ -1175,6 +1732,8 @@ function ownerUpdateStaffAccess(payload) {
       String(payload.notes || "").trim()
     ]]);
 
+    invalidateAccessCache_(email);
+
     return { ok: true, message: "User access " + status + ": " + email };
   } finally {
     releaseLockSafe_(lock);
@@ -1182,8 +1741,8 @@ function ownerUpdateStaffAccess(payload) {
 }
 
 function ownerApproveAdminAccessRequest(payload) {
-  assertOwner_();
   payload = payload || {};
+  assertOwner_(payload.authToken);
 
   const email = String(payload.email || "").trim().toLowerCase();
   const role = String(payload.role || payload.posisi || "").trim();
@@ -1215,7 +1774,7 @@ function ownerApproveAdminAccessRequest(payload) {
   }
 
   const now = new Date();
-  const by = Session.getActiveUser().getEmail();
+  const by = resolveRequestEmail_(payload.authToken);
   const team = String(payload.team || "").trim();
   const notes = String(payload.notes || "Approved by Owner").trim();
 
@@ -1235,16 +1794,18 @@ function ownerApproveAdminAccessRequest(payload) {
   const req = findAdminAccessRequestRow_(email);
   if (req) {
     const reqSheet = ensureAdminAccessRequestsSheet_();
-    reqSheet.getRange(req.row, 7, 1, 4).setValues([["APPROVED", new Date(), Session.getActiveUser().getEmail(), "Approved by Owner"]]);
+    reqSheet.getRange(req.row, 7, 1, 4).setValues([["APPROVED", new Date(), resolveRequestEmail_(payload.authToken), "Approved by Owner"]]);
   }
+
+  invalidateAccessCache_(email);
 
   return { ok: true, message: "Admin access approved: " + email };
 }
 
 
 function ownerUpdateAdminAccess(payload) {
-  assertOwner_();
   payload = payload || {};
+  assertOwner_(payload.authToken);
 
   const row = Number(payload.row || 0);
   const email = String(payload.email || "").trim().toLowerCase();
@@ -1265,7 +1826,7 @@ function ownerUpdateAdminAccess(payload) {
   if (!staffName) throw new Error("Staff Name wajib diisi.");
   if (!adminCode) throw new Error("Staff ID / Admin Code wajib diisi.");
 
-  const currentEmail = String(Session.getActiveUser().getEmail() || "").trim().toLowerCase();
+  const currentEmail = String(resolveRequestEmail_(payload.authToken) || "").trim().toLowerCase();
 
   // Prevent owner from accidentally locking/removing/demoting own active session.
   if (currentEmail && currentEmail === email) {
@@ -1273,10 +1834,7 @@ function ownerUpdateAdminAccess(payload) {
     if (role !== "Owner") throw new Error("Owner tidak boleh mengubah role sendiri dari Owner.");
   }
 
-  const lock = LockService.getDocumentLock() || LockService.getScriptLock();
-  if (!lock.tryLock(8000)) {
-    throw new Error("Owner Control sedang dipakai. Coba lagi beberapa detik.");
-  }
+  const lock = acquireOwnerControlWriteLock_();
 
   try {
     const sh = ensureAdminUserAccessSheet_();
@@ -1287,7 +1845,7 @@ function ownerUpdateAdminAccess(payload) {
     if (rowEmail !== email) throw new Error("Email row tidak cocok. Refresh Owner Control lalu coba lagi.");
 
     const now = new Date();
-    const by = Session.getActiveUser().getEmail();
+    const by = resolveRequestEmail_(payload.authToken);
 
     sh.getRange(row, 1, 1, 10).setValues([[
       email,
@@ -1302,20 +1860,22 @@ function ownerUpdateAdminAccess(payload) {
       accountStatus
     ]]);
 
+    invalidateAccessCache_(email);
+
     return { ok: true, message: "Admin access " + accountStatus + ": " + email };
   } finally {
     releaseLockSafe_(lock);
   }
 }
 
-function ownerRejectAdminAccessRequest(email) {
-  assertOwner_();
+function ownerRejectAdminAccessRequest(email, authToken) {
+  assertOwner_(authToken);
   email = String(email || "").trim().toLowerCase();
   const req = findAdminAccessRequestRow_(email);
   if (!req) throw new Error("Request tidak ditemukan.");
 
   const sh = ensureAdminAccessRequestsSheet_();
-  sh.getRange(req.row, 7, 1, 4).setValues([["REJECTED", new Date(), Session.getActiveUser().getEmail(), "Rejected by Owner"]]);
+  sh.getRange(req.row, 7, 1, 4).setValues([["REJECTED", new Date(), resolveRequestEmail_(authToken), "Rejected by Owner"]]);
 
   return { ok: true, message: "Admin request rejected: " + email };
 }
@@ -1323,11 +1883,11 @@ function ownerRejectAdminAccessRequest(email) {
 
 
 
-function getLoginUser_() {
-  const email = Session.getActiveUser().getEmail();
+function getLoginUser_(authToken) {
+  const email = resolveRequestEmail_(authToken);
 
   if (!email) {
-    throw new Error("Gmail tidak terbaca. Pastikan kamu login dengan akun Google.");
+    throw new Error("Gmail tidak terbaca. Silakan login Google dulu.");
   }
 
   const accessUser = getUserAccess_(email);
@@ -1361,8 +1921,8 @@ function getLoginUser_() {
   };
 }
 
-function isAdmin_() {
-  const email = Session.getActiveUser().getEmail();
+function isAdmin_(authToken) {
+  const email = resolveRequestEmail_(authToken);
   const user = getUserAccess_(email);
   return user && isFullAdminRole_(user.role);
 }
@@ -1382,11 +1942,11 @@ function isViewerOnlyRole_(role) {
   return role === "TL" || role === "FZR";
 }
 
-function getAdminPanelUser_() {
-  const email = Session.getActiveUser().getEmail();
+function getAdminPanelUser_(authToken, emailFallback) {
+  const email = resolveRequestEmail_(authToken) || String(emailFallback || "").trim().toLowerCase();
 
   if (!email) {
-    throw new Error("Gmail tidak terbaca. Pastikan login Google.");
+    throw new Error("Gmail tidak terbaca. Isi Gmail invite lalu klik Masuk / Register dulu.");
   }
 
   const user = getUserAccess_(email);
@@ -1404,6 +1964,37 @@ function getAdminPanelUser_() {
     viewerOnly: isViewerOnlyRole_(user.role)
   };
 }
+
+
+// ===============================
+// ADMIN ACTION IDENTITY FIX
+// Required by Codex-merged Admin action / HQ submit logic.
+// Keep small and server-side only; do not change claim/comment/SyncHQ logic.
+// ===============================
+function getAdminIdentityForAction_(authToken) {
+  const email = resolveRequestEmail_(authToken);
+
+  if (!email) {
+    throw new Error("Gmail admin tidak terbaca. Silakan login ulang Admin Panel.");
+  }
+
+  const admin = getUserAccess_(email);
+
+  if (!admin || !isFullAdminRole_(admin.role)) {
+    throw new Error("Access denied. Hanya Owner/Admin aktif yang boleh melakukan action.");
+  }
+
+  const code = String(admin.adminCode || admin.staffName || email || "").trim();
+
+  return {
+    email: String(email || "").trim().toLowerCase(),
+    admin: admin,
+    role: String(admin.role || "").trim(),
+    code: code,
+    processedBy: code
+  };
+}
+
 
 
 // ===============================
@@ -1509,11 +2100,11 @@ function getLastAdminLoginProfile_(email) {
   return null;
 }
 
-function getAdminPanelAccessInfo() {
-  const email = Session.getActiveUser().getEmail();
+function getAdminPanelAccessInfoForEmail_(email) {
+  email = String(email || "").trim().toLowerCase();
 
   if (!email) {
-    throw new Error("Gmail tidak terbaca. Pastikan login Google.");
+    throw new Error("Gmail tidak terbaca. Silakan login Google dulu.");
   }
 
   const record = getAdminAccessRecord_(email);
@@ -1576,11 +2167,25 @@ function getAdminPanelAccessInfo() {
   };
 }
 
+function getAdminPanelAccessInfo(authToken) {
+  try {
+    const email = resolveRequestEmail_(authToken);
+    if (email) return attachAuthToken_(getAdminPanelAccessInfoForEmail_(email), authToken);
+    return getAdminPanelAccessInfoForEmail_(Session.getActiveUser().getEmail());
+  } catch (err) {
+    if (isSpreadsheetPermissionError_(err)) {
+      return buildSpreadsheetPermissionSetupResponse_("admin", err);
+    }
+    throw err;
+  }
+}
+
 function adminPanelLogin(profile) {
+  profile = profile || {};
   const lock = acquireDocumentWriteLock_(5000, "Login admin sedang diproses oleh request lain. Coba lagi beberapa detik.");
 
   try {
-    const user = getAdminPanelUser_();
+    const user = getAdminPanelUser_(profile.authToken, profile.email);
     const saved = getLastAdminLoginProfile_(user.email);
     profile = profile || {};
 
@@ -1644,7 +2249,7 @@ function adminPanelLogin(profile) {
 }
 
 function adminPanelHeartbeat(sessionId, page) {
-  const user = getAdminPanelUser_();
+  const user = getAdminPanelUser_(authToken);
 
   sessionId = String(sessionId || "").trim();
   page = String(page || "").trim() || "Admin Panel";
@@ -1769,19 +2374,21 @@ function getActiveAdminSessions() {
 
 function submitBonus(data) {
   data = data || {};
-  const loginUser = getLoginUser_();
-  assertUserProjectAccess_("Claim Bonus");
+  const loginUser = getLoginUser_(data.authToken);
+  assertUserProjectAccess_("Claim Bonus", data.authToken);
 
-  // Reapply must be allowed. Do not block same Akun MB + same Tipe Bonus,
-  // because Promo Syukuran and several HQ workflows can be claimed repeatedly.
-  // Double-click protection is handled by the user panel button state; every
-  // server call that reaches here is treated as a valid new claim.
-  const lock = acquireDocumentWriteLock_(10000, "Sistem sedang memproses submit lain. Coba lagi beberapa detik.");
+  // Reapply tetap boleh. Duplicate dari retry/double-click ditahan via requestId cache.
+  // Lock sheet baru diambil tepat sebelum write supaya upload Drive tidak menahan antrean write.
+  let lock = null;
 
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sh = ss.getSheetByName(SHEET_BONUS_CLAIM);
     if (!sh) throw new Error("Sheet BONUS_CLAIM tidak ditemukan.");
+
+    const requestId = String(data.requestId || "").trim();
+    const duplicateResult = getSubmitDedupResult_(loginUser.email, requestId);
+    if (duplicateResult && duplicateResult.ok) return duplicateResult;
 
     const category = String(data.bonusCategory || "").trim();
     const tipeBonus = String(data.tipeBonus || "").trim();
@@ -1823,6 +2430,26 @@ function submitBonus(data) {
 
     if (category === "VVIP DEPO") {
       nominalBonus = VVIP_DEPO_NOMINAL_MAP[tipeBonus] || nominalBonus || "";
+    }
+
+    if (category === "VVIP TO Mingguan") {
+      const promoType = String(data.promoType || "").trim();
+      const effectiveBetting = String(data.nominalBetting || "").replace(/\D+/g, "");
+
+      if (!Object.prototype.hasOwnProperty.call(VVIP_TO_MINGGUAN_PROMO_MAP, promoType)) {
+        throw new Error("VVIP TO Mingguan wajib pilih Jenis Promo valid.");
+      }
+
+      if (!Object.prototype.hasOwnProperty.call(VVIP_TO_MINGGUAN_HQ_TIPE_MAP, tipeBonus)) {
+        throw new Error("VVIP TO Mingguan wajib pilih Tipe Bonus valid.");
+      }
+
+      if (!effectiveBetting) {
+        throw new Error("VVIP TO Mingguan wajib isi Taruhan Efektif angka saja.");
+      }
+
+      nominalBonus = VVIP_TO_MINGGUAN_NOMINAL_MAP[tipeBonus] || nominalBonus || "";
+      data.nominalBetting = effectiveBetting;
     }
 
     if (category === "VVIP Special Prize") {
@@ -1885,6 +2512,16 @@ function submitBonus(data) {
       ].filter(Boolean).join("\n");
     }
 
+    if (category === "VVIP TO Mingguan") {
+      const promoType = String(data.promoType || "").trim();
+      const userRemarks = String(data.remarks || "").trim();
+
+      finalRemarks = [
+        promoType ? "Jenis Promo: " + promoType : "",
+        userRemarks ? "Remarks: " + userRemarks : ""
+      ].filter(Boolean).join("\n");
+    }
+
     if (isHelloFriendsCategory_(category)) {
       const akunDiajak = String(data.akunDiajak || data.remarks || "").trim();
       const jumlahPengenalan = normalizeHelloFriendsJumlahPengenalan_(
@@ -1939,6 +2576,11 @@ function submitBonus(data) {
       ""
     ]];
 
+    lock = acquireDocumentWriteLock_(10000, "Sistem sedang memproses submit lain. Coba lagi beberapa detik.");
+
+    const duplicateAfterWait = getSubmitDedupResult_(loginUser.email, requestId);
+    if (duplicateAfterWait && duplicateAfterWait.ok) return duplicateAfterWait;
+
     const row = sh.getLastRow() + 1;
     sh.getRange(row, 1, 1, rowValues[0].length).setValues(rowValues);
 
@@ -1948,7 +2590,7 @@ function submitBonus(data) {
 
     SpreadsheetApp.flush();
 
-    return {
+    const result = {
       ok: true,
       message: "Submit berhasil",
       row: row,
@@ -1957,12 +2599,19 @@ function submitBonus(data) {
       tipeBonus: tipeBonus
     };
 
+    putSubmitDedupResult_(loginUser.email, requestId, result);
+    bumpClaimDataVersion_("submitBonus");
+
+    return result;
+
   } finally {
     releaseLockSafe_(lock);
   }
 }
 
 function getClaimHistory(filter) {
+  filter = filter || {};
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sh = ss.getSheetByName(SHEET_BONUS_CLAIM);
 
@@ -1973,19 +2622,25 @@ function getClaimHistory(filter) {
   const lastRow = sh.getLastRow();
   if (lastRow < 2) return [];
 
-  const claimColCount = 25;
-  const raw = sh.getRange(2, 1, lastRow - 1, claimColCount).getValues();
-  const display = sh.getRange(2, 1, lastRow - 1, claimColCount).getDisplayValues();
-  const formulas = sh.getRange(2, 1, lastRow - 1, claimColCount).getFormulas();
-  const rich = sh.getRange(2, 1, lastRow - 1, claimColCount).getRichTextValues();
-
   const tz = Session.getScriptTimeZone();
   const today = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd");
 
-  const activeUser = getLoginUser_();
-  const forceUserOnly = filter && filter.forceUserOnly === true;
+  const activeUser = getLoginUser_(filter.authToken);
+  const forceUserOnly = filter.forceUserOnly === true;
   const isAdmin = activeUser && isAdminPanelRole_(activeUser.role) && !forceUserOnly;
-  const commentUnreadMap = forceUserOnly ? getBonusCommentUnreadMapForUserPanel() : getBonusCommentUnreadMapSafe_();
+  const viewerRole = isAdmin && isFullAdminRole_(activeUser.role) ? "Admin" : "User";
+  const readWindow = getClaimHistoryReadWindow_(lastRow, filter, isAdmin);
+
+  if (readWindow.rowCount <= 0) return [];
+
+  const claimColCount = 25;
+  const raw = sh.getRange(readWindow.startRow, 1, readWindow.rowCount, claimColCount).getValues();
+  const display = sh.getRange(readWindow.startRow, 1, readWindow.rowCount, claimColCount).getDisplayValues();
+
+  // Admin perlu semua bukti/link langsung di tabel. User history sering hanya beberapa row miliknya,
+  // jadi rich text/formula link dibaca setelah filter agar refresh user tidak berat saat sheet ramai.
+  const formulas = isAdmin ? sh.getRange(readWindow.startRow, 13, readWindow.rowCount, 1).getFormulas() : null;
+  const rich = isAdmin ? sh.getRange(readWindow.startRow, 13, readWindow.rowCount, 1).getRichTextValues() : null;
 
   const cuSportSlipCount = {};
 
@@ -1998,7 +2653,7 @@ function getClaimHistory(filter) {
     }
   });
 
-  return raw
+  const rows = raw
     .map((r, i) => {
       const d = r[0] instanceof Date ? r[0] : new Date(r[0]);
       const dateKey = d instanceof Date && !isNaN(d)
@@ -2009,12 +2664,18 @@ function getClaimHistory(filter) {
       const category = String(show[4] || "").trim();
       const slipKey = normalizeSlip_(show[7]);
 
-      const driveLinks = getDriveLinksFromRichText_(rich[i][12]);
-      const fallbackLink = extractHyperlink_(formulas[i][12]) || show[12];
-      const finalLinks = driveLinks.length ? driveLinks : (fallbackLink ? [fallbackLink] : []);
+      let finalLinks = [];
+
+      if (isAdmin) {
+        const driveLinks = getDriveLinksFromRichText_(rich[i][0]);
+        const fallbackLink = extractHyperlink_(formulas[i][0]) || show[12];
+        finalLinks = driveLinks.length ? driveLinks : (fallbackLink ? [fallbackLink] : []);
+      } else if (show[12]) {
+        finalLinks = [show[12]];
+      }
 
       return {
-        row: i + 2,
+        row: readWindow.startRow + i,
         timestamp: show[0],
         email: show[1],
         staffName: show[2],
@@ -2042,7 +2703,7 @@ function getClaimHistory(filter) {
         thbHelperSyncStatus: show[23],
         thbHelperTglSnapshot: show[24],
         dateKey: dateKey,
-        commentUnread: Number(commentUnreadMap[i + 2] || 0),
+        commentUnread: 0,
         isDuplicateSlip: category === "CU Sport" && slipKey && cuSportSlipCount[slipKey] > 1
       };
     })
@@ -2051,8 +2712,6 @@ function getClaimHistory(filter) {
         if (!activeUser) return false;
         if (String(r.email).trim().toLowerCase() !== activeUser.email.toLowerCase()) return false;
       }
-
-      if (!filter) return true;
 
       if (filter.todayOnly === true) return r.dateKey === today;
       if (filter.dateFrom && r.dateKey < filter.dateFrom) return false;
@@ -2065,10 +2724,58 @@ function getClaimHistory(filter) {
       return true;
     })
     .reverse();
+
+  if (!isAdmin && rows.length) {
+    rows.forEach(r => {
+      try {
+        const linkCell = sh.getRange(Number(r.row), 13);
+        const driveLinks = getDriveLinksFromRichText_(linkCell.getRichTextValue());
+        const fallbackLink = extractHyperlink_(linkCell.getFormula()) || r.driveLink || "";
+        const finalLinks = driveLinks.length ? driveLinks : (fallbackLink ? [fallbackLink] : []);
+
+        r.driveLink = finalLinks[0] || "";
+        r.driveLinks = finalLinks;
+      } catch (err) {
+        r.driveLinks = r.driveLink ? [r.driveLink] : [];
+      }
+    });
+  }
+
+  const canReadUnread = !isAdmin || viewerRole === "Admin";
+  const commentUnreadMap = canReadUnread
+    ? getBonusCommentUnreadMapForRows_(rows.map(r => r.row), viewerRole)
+    : {};
+
+  rows.forEach(r => {
+    r.commentUnread = Number(commentUnreadMap[r.row] || 0);
+  });
+
+  return rows;
 }
 
-function updateClaimStatus(row, status, adminRemarks) {
-  if (!isAdmin_()) {
+function getClaimHistoryPayload(filter, lastKnownVersion) {
+  const currentVersion = getClaimDataVersion_();
+  lastKnownVersion = String(lastKnownVersion || "").trim();
+
+  if (lastKnownVersion && lastKnownVersion === currentVersion) {
+    return {
+      changed: false,
+      version: currentVersion,
+      rows: []
+    };
+  }
+
+  const rows = getClaimHistory(filter || {});
+
+  return {
+    changed: true,
+    version: getClaimDataVersion_(),
+    rows: rows
+  };
+}
+
+function updateClaimStatus(row, status, adminRemarks, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Kamu bukan admin.");
   }
 
@@ -2097,9 +2804,8 @@ function updateClaimStatus(row, status, adminRemarks) {
 
     const currentStatus = String(current[11] || "").trim();
     const currentProcessedBy = String(current[14] || "").trim();
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const processedBy = admin && admin.adminCode ? admin.adminCode : email;
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const processedBy = adminIdentity.admin && adminIdentity.admin.adminCode ? adminIdentity.admin.adminCode : adminIdentity.email;
 
     // 1) PROCESS LOCK:
     // Hanya claim Pending/kosong yang boleh diambil Process.
@@ -2149,6 +2855,7 @@ function updateClaimStatus(row, status, adminRemarks) {
     if (String(adminRemarks || "") !== "__KEEP__") sh.getRange(row, 14).setValue(adminRemarks || "");
     sh.getRange(row, 15).setValue(processedBy);
     SpreadsheetApp.flush();
+    bumpClaimDataVersion_("updateClaimStatus");
 
     return {
       ok: true,
@@ -2163,8 +2870,8 @@ function updateClaimStatus(row, status, adminRemarks) {
   }
 }
 
-function updateTiapHariVerifyStatus(row) {
-  if (!isAdmin_()) {
+function updateTiapHariVerifyStatus(row, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Kamu bukan admin.");
   }
 
@@ -2196,9 +2903,8 @@ function updateTiapHariVerifyStatus(row) {
       throw new Error("Claim harus di-Process / Locked dulu sebelum Verify.");
     }
 
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const processedBy = admin && admin.adminCode ? admin.adminCode : email;
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const processedBy = adminIdentity.admin && adminIdentity.admin.adminCode ? adminIdentity.admin.adminCode : adminIdentity.email;
 
     // Yang verify harus admin yang sedang lock/process claim ini.
     if (
@@ -2219,6 +2925,7 @@ function updateTiapHariVerifyStatus(row) {
 
     sh.getRange(row, 23).setValue("VERIFIED"); // BONUS_CLAIM W = THB Verify Status
     SpreadsheetApp.flush();
+    bumpClaimDataVersion_("updateTiapHariVerifyStatus");
 
     return {
       ok: true,
@@ -2232,8 +2939,8 @@ function updateTiapHariVerifyStatus(row) {
   }
 }
 
-function getThbHelperSyncData(rows) {
-  if (!isAdmin_()) {
+function getThbHelperSyncData(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Kamu bukan admin.");
   }
 
@@ -2401,12 +3108,13 @@ function getThbHelperSyncData(rows) {
 
 
 function updateClaimAdminFields(row, payload) {
-  if (!isAdmin_()) {
+  payload = payload || {};
+  const authToken = payload.authToken;
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Kamu bukan admin.");
   }
 
   row = Number(row);
-  payload = payload || {};
 
   if (!row || row < 2) {
     throw new Error("Row claim tidak valid.");
@@ -2456,6 +3164,7 @@ function updateClaimAdminFields(row, payload) {
     }
 
     SpreadsheetApp.flush();
+    bumpClaimDataVersion_("saveClaimAdminData");
 
     return {
       ok: true,
@@ -2470,8 +3179,8 @@ function updateClaimAdminFields(row, payload) {
 }
 
 
-function clearTestingDataBeforeUserTest() {
-  if (!isAdmin_()) {
+function clearTestingDataBeforeUserTest(authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya admin yang boleh clear data testing.");
   }
 
@@ -2564,14 +3273,14 @@ function getBonusCommentClaimObject_(row) {
   }
 
   const display = sh.getRange(row, 1, 1, 17).getDisplayValues()[0];
-  const formulas = sh.getRange(row, 1, 1, 17).getFormulas()[0];
-  const rich = sh.getRange(row, 1, 1, 17).getRichTextValues()[0];
+  const formula = sh.getRange(row, 13).getFormula();
+  const rich = sh.getRange(row, 13).getRichTextValue();
 
   let driveLinks = [];
 
   try {
     if (typeof getDriveLinksFromRichText_ === "function") {
-      driveLinks = getDriveLinksFromRichText_(rich[12]);
+      driveLinks = getDriveLinksFromRichText_(rich);
     }
   } catch (err) {
     driveLinks = [];
@@ -2581,7 +3290,7 @@ function getBonusCommentClaimObject_(row) {
 
   try {
     if (typeof extractHyperlink_ === "function") {
-      fallbackLink = extractHyperlink_(formulas[12]) || "";
+      fallbackLink = extractHyperlink_(formula) || "";
     }
   } catch (err) {
     fallbackLink = "";
@@ -2620,8 +3329,8 @@ function getBonusCommentClaimObject_(row) {
   };
 }
 
-function getBonusCommentAccess_(row) {
-  const user = getLoginUser_();
+function getBonusCommentAccess_(row, authToken) {
+  const user = getLoginUser_(authToken);
   const claim = getBonusCommentClaimObject_(row);
 
   if (!claim) {
@@ -2648,9 +3357,9 @@ function getBonusCommentAccess_(row) {
   };
 }
 
-function getCommentReaderName_(viewerRole) {
+function getCommentReaderName_(viewerRole, authToken) {
   try {
-    const user = getLoginUser_();
+    const user = getLoginUser_(authToken);
     const email = String(user.email || "").trim();
     const adminCode = String(user.adminCode || "").trim();
     const staffName = String(user.staffName || "").trim();
@@ -2665,7 +3374,7 @@ function getCommentReaderName_(viewerRole) {
   }
 }
 
-function markBonusCommentsRead_(row, viewerRole) {
+function markBonusCommentsRead_(row, viewerRole, authToken) {
   const sh = ensureBonusCommentsSheet_();
 
   if (sh.getLastRow() < 2) return 0;
@@ -2677,7 +3386,7 @@ function markBonusCommentsRead_(row, viewerRole) {
 
   const values = sh.getRange(2, 1, sh.getLastRow() - 1, 13).getValues();
   const now = new Date();
-  const readerName = getCommentReaderName_(viewerRole);
+  const readerName = getCommentReaderName_(viewerRole, authToken);
   const readRanges = [];
   const nameRanges = [];
 
@@ -2711,18 +3420,26 @@ function markBonusCommentsRead_(row, viewerRole) {
 }
 
 function getBonusCommentsByRow_(row) {
+  return getBonusCommentsCaseData_(row, "").comments;
+}
+
+function getBonusCommentsCaseData_(row, viewerRole) {
   row = Number(row);
+  viewerRole = String(viewerRole || "").trim();
 
   const sh = ensureBonusCommentsSheet_();
 
   if (sh.getLastRow() < 2) {
-    return [];
+    return { comments: [], readCount: 0 };
   }
 
   const lastRow = sh.getLastRow();
-  const lastCol = Math.max(sh.getLastColumn(), 13);
-  const display = sh.getRange(2, 1, lastRow - 1, lastCol).getDisplayValues();
+  const display = sh.getRange(2, 1, lastRow - 1, 13).getDisplayValues();
   const comments = [];
+  const readRanges = [];
+  const nameRanges = [];
+  const now = new Date();
+  const readerName = viewerRole ? getCommentReaderName_(viewerRole) : "";
 
   display.forEach((r, i) => {
     const claimRow = Number(r[1]);
@@ -2730,6 +3447,7 @@ function getBonusCommentsByRow_(row) {
     if (claimRow !== row) return;
 
     const sheetRow = i + 2;
+    const senderRole = String(r[3] || "").trim();
     let links = [];
 
     // RichText hanya dibaca untuk row comment yang match saja, supaya open comment lebih ringan.
@@ -2748,6 +3466,16 @@ function getBonusCommentsByRow_(row) {
         .filter(Boolean);
     }
 
+    if (viewerRole === "User" && senderRole === "Admin" && !r[9]) {
+      readRanges.push("J" + sheetRow);
+      nameRanges.push("L" + sheetRow);
+    }
+
+    if (viewerRole === "Admin" && senderRole === "User" && !r[10]) {
+      readRanges.push("K" + sheetRow);
+      nameRanges.push("M" + sheetRow);
+    }
+
     comments.push({
       timestamp: r[0],
       claimRow: claimRow,
@@ -2758,28 +3486,33 @@ function getBonusCommentsByRow_(row) {
       message: r[6],
       attachmentLinks: links,
       statusSnapshot: r[8],
-      readByUser: r[9],
-      readByAdmin: r[10],
-      readByUserName: r[11],
-      readByAdminName: r[12]
+      readByUser: viewerRole === "User" && senderRole === "Admin" && !r[9] ? now : r[9],
+      readByAdmin: viewerRole === "Admin" && senderRole === "User" && !r[10] ? now : r[10],
+      readByUserName: viewerRole === "User" && senderRole === "Admin" && !r[11] ? readerName : r[11],
+      readByAdminName: viewerRole === "Admin" && senderRole === "User" && !r[12] ? readerName : r[12]
     });
   });
 
-  return comments;
+  if (readRanges.length) {
+    sh.getRangeList(readRanges).setValue(now);
+    sh.getRangeList(nameRanges).setValue(readerName);
+  }
+
+  return { comments: comments, readCount: readRanges.length };
 }
 
-function getBonusCommentCase(row) {
+function getBonusCommentCase(row, authToken) {
   row = Number(row);
 
   ensureBonusCommentsSheet_();
 
-  const access = getBonusCommentAccess_(row);
+  const access = getBonusCommentAccess_(row, authToken);
 
   if (!access.allowed) {
     throw new Error("Access denied.");
   }
 
-  markBonusCommentsRead_(row, access.viewerRole);
+  const commentData = getBonusCommentsCaseData_(row, access.viewerRole);
 
   const claim = getBonusCommentClaimObject_(row);
   const status = String(claim.status || "").trim();
@@ -2788,7 +3521,7 @@ function getBonusCommentCase(row) {
 
   return {
     claim: claim,
-    comments: getBonusCommentsByRow_(row),
+    comments: commentData.comments,
     viewerRole: access.viewerRole,
     unreadCount: 0,
     canAddComment: canAddComment,
@@ -2797,7 +3530,7 @@ function getBonusCommentCase(row) {
 }
 
 function addBonusComment(payload) {
-  const lock = acquireDocumentWriteLock_(10000, "Sistem sedang menyimpan comment lain. Coba lagi beberapa detik.");
+  let lock = null;
 
   try {
 
@@ -2809,7 +3542,7 @@ function addBonusComment(payload) {
     if (!row) throw new Error("Case ID tidak valid.");
     if (!message && uploadFiles.length === 0) throw new Error("Isi comment atau upload attachment terlebih dahulu.");
 
-    const access = getBonusCommentAccess_(row);
+    const access = getBonusCommentAccess_(row, payload.authToken);
     if (!access.allowed) throw new Error("Access denied.");
 
     const claim = access.claim;
@@ -2819,9 +3552,6 @@ function addBonusComment(payload) {
     if (access.viewerRole !== "Admin" && isClosed) {
       throw new Error("Case sudah " + status + ". Comment untuk user sudah ditutup.");
     }
-
-    // Tandai comment lawan bicara yang sudah terbaca sebelum mengirim balasan.
-    markBonusCommentsRead_(row, access.viewerRole);
 
     let uploadedLinks = [];
 
@@ -2835,13 +3565,17 @@ function addBonusComment(payload) {
       });
     }
 
+    lock = acquireDocumentWriteLock_(10000, "Sistem sedang menyimpan comment lain. Coba lagi beberapa detik.");
+    // Tandai comment lawan bicara yang sudah terbaca sebelum mengirim balasan.
+    markBonusCommentsRead_(row, access.viewerRole, payload.authToken);
+
     const sh = ensureBonusCommentsSheet_();
     const now = new Date();
 
     const readByUser = access.viewerRole === "User" ? now : "";
     const readByAdmin = access.viewerRole === "Admin" ? now : "";
-    const readByUserName = access.viewerRole === "User" ? getCommentReaderName_("User") : "";
-    const readByAdminName = access.viewerRole === "Admin" ? getCommentReaderName_("Admin") : "";
+    const readByUserName = access.viewerRole === "User" ? getCommentReaderName_("User", payload.authToken) : "";
+    const readByAdminName = access.viewerRole === "Admin" ? getCommentReaderName_("Admin", payload.authToken) : "";
 
     sh.appendRow([
       now,
@@ -2869,6 +3603,8 @@ function addBonusComment(payload) {
       }
     }
 
+    bumpClaimDataVersion_("addBonusComment");
+
     return "Comment berhasil dikirim.";
 
   } finally {
@@ -2876,8 +3612,8 @@ function addBonusComment(payload) {
   }
 }
 
-function getBonusCommentUnreadMap() {
-  const user = getLoginUser_();
+function getBonusCommentUnreadMap(authToken) {
+  const user = getLoginUser_(authToken);
   const viewerRole = isFullAdminRole_(user.role) ? "Admin" : "User";
   const viewerEmail = String(user.email || "").trim().toLowerCase();
 
@@ -2921,8 +3657,8 @@ function getBonusCommentUnreadMap() {
   return map;
 }
 
-function getBonusCommentUnreadMapForUserPanel() {
-  const user = getLoginUser_();
+function getBonusCommentUnreadMapForUserPanel(authToken) {
+  const user = getLoginUser_(authToken);
   const viewerEmail = String(user.email || "").trim().toLowerCase();
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -2972,16 +3708,16 @@ function getBonusCommentUnreadMapSafe_() {
 // SYNC HQ / HEALTH
 // ===============================
 
-function syncBonusReceivedToday() {
-  if (!isAdmin_()) {
+function syncBonusReceivedToday(authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Kamu bukan admin.");
   }
 
   return syncBonusReceivedCore_({ email: "", adminMode: true });
 }
 
-function syncBonusReceivedForCurrentUser() {
-  const user = getLoginUser_();
+function syncBonusReceivedForCurrentUser(authToken) {
+  const user = getLoginUser_(authToken);
   const email = user.email;
 
   const cache = CacheService.getScriptCache();
@@ -3053,8 +3789,8 @@ function recordAutoSyncHQStatus_(status, result, err) {
   props.setProperty("AUTO_SYNC_HQ_LAST_ERROR", String(err || ""));
 }
 
-function getAutoSyncHQHealth() {
-  if (!isAdmin_()) {
+function getAutoSyncHQHealth(authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Kamu bukan admin.");
   }
 
@@ -3078,8 +3814,8 @@ function getAutoSyncHQHealth() {
   };
 }
 
-function repairAutoSyncHQTrigger() {
-  if (!isAdmin_()) {
+function repairAutoSyncHQTrigger(authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Kamu bukan admin.");
   }
 
@@ -3125,6 +3861,15 @@ function getFastSyncHQConfig_(category) {
       categoryKey: "VVIP DEPO",
       sheetName: SOURCE_VVIP_DEPO_SHEET,
       statusColumn: 8 // VVIP-當日存款!H = StatusHQ
+    };
+  }
+
+  if (category === "VVIP TO Mingguan") {
+    return {
+      categoryKey: "VVIP TO Mingguan",
+      spreadsheetId: SOURCE_VVIP_TO_MINGGUAN_SPREADSHEET_ID,
+      sheetName: SOURCE_VVIP_TO_MINGGUAN_SHEET,
+      statusColumn: 7 // VVIP-每周流水!G = StatusHQ
     };
   }
 
@@ -3307,7 +4052,7 @@ function syncBonusReceivedCore_(opt) {
       // that target row is the pending-sync memory. Keep checking it every minute
       // until StatusHQ is filled. Do not skip middle gaps like H40839/H40840.
       if (fastCfg && hqSubmitStatus && hqTargetRow >= 2) {
-        const groupKey = [fastCfg.categoryKey, fastCfg.sheetName, fastCfg.statusColumn].join("|");
+        const groupKey = [fastCfg.spreadsheetId || SOURCE_SPREADSHEET_ID, fastCfg.categoryKey, fastCfg.sheetName, fastCfg.statusColumn].join("|");
         if (!fastGroups[groupKey]) {
           fastGroups[groupKey] = {
             cfg: fastCfg,
@@ -3371,7 +4116,10 @@ function syncBonusReceivedCore_(opt) {
 
     fastGroupKeys.forEach(groupKey => {
       const group = fastGroups[groupKey];
-      const statusMap = readHQStatusByTargetRows_(ssSource, group.cfg, group.targetRows);
+      const groupSource = group.cfg.spreadsheetId
+        ? SpreadsheetApp.openById(group.cfg.spreadsheetId)
+        : ssSource;
+      const statusMap = readHQStatusByTargetRows_(groupSource, group.cfg, group.targetRows);
 
       group.items.forEach(item => {
         fastChecked++;
@@ -4027,8 +4775,8 @@ function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-function testUploadAccess() {
-  const user = getLoginUser_();
+function testUploadAccess(authToken) {
+  const user = getLoginUser_(authToken);
   const folder = DriveApp.getFolderById(UPLOAD_FOLDER_ID);
   const ts = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyyMMdd_HHmmss");
   const fileName = "UPLOAD_ACCESS_TEST_" + sanitizeFileName_(user.email) + "_" + ts + ".txt";
@@ -4236,11 +4984,11 @@ function getClaimObjectByRow_(row) {
   if (!sh || row < 2 || row > sh.getLastRow()) return null;
 
   const display = sh.getRange(row, 1, 1, 17).getDisplayValues()[0];
-  const formulas = sh.getRange(row, 1, 1, 17).getFormulas()[0];
-  const rich = sh.getRange(row, 1, 1, 17).getRichTextValues()[0];
+  const formula = sh.getRange(row, 13).getFormula();
+  const rich = sh.getRange(row, 13).getRichTextValue();
 
-  const driveLinks = getDriveLinksFromRichText_(rich[12]);
-  const fallbackLink = extractHyperlink_(formulas[12]) || display[12];
+  const driveLinks = getDriveLinksFromRichText_(rich);
+  const fallbackLink = extractHyperlink_(formula) || display[12];
   const finalLinks = driveLinks.length ? driveLinks : (fallbackLink ? [fallbackLink] : []);
 
   return {
@@ -4383,8 +5131,8 @@ function ensureChatLogSheet_() {
 // - Read badge user/admin tetap benar.
 // =========================================================
 
-function getCurrentUser() {
-  const user = getLoginUser_();
+function getCurrentUserForUserPanelIdentity_(authToken) {
+  const user = getLoginUser_(authToken);
 
   return {
     email: user.email,
@@ -4395,8 +5143,8 @@ function getCurrentUser() {
   };
 }
 
-function getBonusCommentAccessForUserPanel_(row) {
-  const user = getLoginUser_();
+function getBonusCommentAccessForUserPanel_(row, authToken) {
+  const user = getLoginUser_(authToken);
   const claim = getBonusCommentClaimObject_(row);
 
   if (!claim) return { allowed: false };
@@ -4417,18 +5165,18 @@ function getBonusCommentAccessForUserPanel_(row) {
   };
 }
 
-function getBonusCommentCaseForUserPanel(row) {
+function getBonusCommentCaseForUserPanel(row, authToken) {
   row = Number(row);
 
   ensureBonusCommentsSheet_();
 
-  const access = getBonusCommentAccessForUserPanel_(row);
+  const access = getBonusCommentAccessForUserPanel_(row, authToken);
 
   if (!access.allowed) {
     throw new Error("Access denied.");
   }
 
-  markBonusCommentsRead_(row, "User");
+  const commentData = getBonusCommentsCaseData_(row, "User");
 
   const claim = getBonusCommentClaimObject_(row);
   const status = String(claim.status || "").trim();
@@ -4437,7 +5185,7 @@ function getBonusCommentCaseForUserPanel(row) {
 
   return {
     claim: claim,
-    comments: getBonusCommentsByRow_(row),
+    comments: commentData.comments,
     viewerRole: "User",
     unreadCount: 0,
     canAddComment: canAddComment,
@@ -4446,7 +5194,7 @@ function getBonusCommentCaseForUserPanel(row) {
 }
 
 function addBonusCommentForUserPanel(payload) {
-  const lock = acquireDocumentWriteLock_(10000, "Sistem sedang menyimpan comment lain. Coba lagi beberapa detik.");
+  let lock = null;
 
   try {
 
@@ -4458,7 +5206,7 @@ function addBonusCommentForUserPanel(payload) {
     if (!row) throw new Error("Case ID tidak valid.");
     if (!message && uploadFiles.length === 0) throw new Error("Isi comment atau upload attachment terlebih dahulu.");
 
-    const access = getBonusCommentAccessForUserPanel_(row);
+    const access = getBonusCommentAccessForUserPanel_(row, payload.authToken);
     if (!access.allowed) throw new Error("Access denied.");
 
     const claim = access.claim;
@@ -4468,9 +5216,6 @@ function addBonusCommentForUserPanel(payload) {
     if (isClosed) {
       throw new Error("Case sudah " + status + ". Comment untuk user sudah ditutup.");
     }
-
-    // Tandai comment admin yang sudah terbaca sebelum user mengirim balasan.
-    markBonusCommentsRead_(row, "User");
 
     let uploadedLinks = [];
 
@@ -4483,6 +5228,10 @@ function addBonusCommentForUserPanel(payload) {
         staffName: access.senderName || ""
       });
     }
+
+    lock = acquireDocumentWriteLock_(10000, "Sistem sedang menyimpan comment lain. Coba lagi beberapa detik.");
+    // Tandai comment admin yang sudah terbaca sebelum user mengirim balasan.
+    markBonusCommentsRead_(row, "User");
 
     const sh = ensureBonusCommentsSheet_();
     const now = new Date();
@@ -4513,6 +5262,8 @@ function addBonusCommentForUserPanel(payload) {
         sh.getRange(commentRow, 8).setValue(uploadedLinks.join(", "));
       }
     }
+
+    bumpClaimDataVersion_("addBonusCommentForUserPanel");
 
     return "Comment berhasil dikirim.";
 
@@ -4689,102 +5440,397 @@ function getWelcomeAgenStatus_(kodeAgen) {
   return WELCOME_AGEN_STATUS_MAP[code] || "";
 }
 
-function submitTransferAgenToHQ(row) {
-  if (!isAdmin_()) {
+function buildVvipToMingguanHQSubmitItem_(claim, claimDisplay, row, authToken) {
+  const category = String(claimDisplay[4] || "").trim();
+  const status = String(claimDisplay[11] || "").trim();
+  const statusHQ = String(claimDisplay[15] || "").trim();
+  const hqSubmitStatus = String(claimDisplay[17] || "").trim();
+  const hqSubmitCount = Number(claim[21] || 0);
+
+  if (category !== "VVIP TO Mingguan") {
+    throw new Error("Row " + row + " bukan VVIP TO Mingguan.");
+  }
+
+  if (status === "Rejected") {
+    throw new Error("Row " + row + " sudah Rejected.");
+  }
+
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
+
+  if (isHQOkStatus_(statusHQ)) {
+    throw new Error("Row " + row + " StatusHQ sudah OK.");
+  }
+
+  if (hqSubmitStatus && !statusHQ) {
+    throw new Error("Row " + row + " sudah dikirim ke HQ dan masih menunggu StatusHQ.");
+  }
+
+  const tipeBonusRaw = String(claimDisplay[5] || "").trim();
+  const tipeBonusHQ = VVIP_TO_MINGGUAN_HQ_TIPE_MAP[tipeBonusRaw] || tipeBonusRaw;
+  const nominalBonus = VVIP_TO_MINGGUAN_NOMINAL_MAP[tipeBonusRaw] || String(claimDisplay[6] || "").trim();
+  const akunMember = String(claimDisplay[3] || "").trim().toUpperCase();
+  const applyDate = formatVvipDepoHQSubmitDate_(claim[0]);
+  const submitOrderDate = claim[0] instanceof Date ? claim[0] : new Date(claim[0]);
+  const submitOrderMs = submitOrderDate instanceof Date && !isNaN(submitOrderDate) ? submitOrderDate.getTime() : 0;
+  const isResubmit = !!(hqSubmitStatus && statusHQ && !isHQOkStatus_(statusHQ));
+
+  if (!akunMember) throw new Error("Row " + row + " Akun Member kosong.");
+  if (!tipeBonusRaw) throw new Error("Row " + row + " Tipe Bonus kosong.");
+  if (!Object.prototype.hasOwnProperty.call(VVIP_TO_MINGGUAN_HQ_TIPE_MAP, tipeBonusRaw)) {
+    throw new Error("Row " + row + " Tipe Bonus VVIP TO Mingguan belum sesuai: " + tipeBonusRaw);
+  }
+  if (nominalBonus === "") throw new Error("Row " + row + " Nominal Bonus kosong.");
+
+  return {
+    row: row,
+    submitOrderMs: submitOrderMs,
+    applyDate: applyDate,
+    akunMember: akunMember,
+    tipeBonusHQ: tipeBonusHQ,
+    nominalBonus: nominalBonus,
+    isResubmit: isResubmit,
+    hqSubmitCount: hqSubmitCount
+  };
+}
+
+function submitVvipToMingguanBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
   }
 
-  const lock = acquireHQWriteLock_(15000, "Submit HQ Transfer Agen sedang berjalan. Coba lagi beberapa detik.");
+  if (!Array.isArray(rows)) rows = [rows];
+
+  rows = rows
+    .map(r => Number(r))
+    .filter(r => r && r >= 2)
+    .filter((r, i, arr) => arr.indexOf(r) === i);
+
+  if (!rows.length) throw new Error("Pilih minimal 1 claim VVIP TO Mingguan untuk Submit HQ.");
+
+  const lock = acquireHQWriteLock_(15000, "Submit HQ VVIP TO Mingguan sedang berjalan. Coba lagi beberapa detik, atau gunakan Submit Selected HQ untuk batch.");
 
   try {
-
-    row = Number(row);
-    if (!row || row < 2) throw new Error("Row claim tidak valid.");
-
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
     const shClaim = ensureBonusClaimHQSubmitColumns_();
     if (!shClaim) throw new Error("Sheet BONUS_CLAIM tidak ditemukan.");
-    if (row > shClaim.getLastRow()) throw new Error("Claim tidak ditemukan. Silakan refresh data.");
 
-    const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
-    const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
+    const valid = [];
+    const skipped = [];
 
-    const category = String(claimDisplay[4] || "").trim();
-    const status = String(claimDisplay[11] || "").trim();
-    const statusHQ = String(claimDisplay[15] || "").trim();
-    const hqSubmitStatus = String(claimDisplay[17] || "").trim();
-    const hqSubmitCount = Number(claim[21] || 0);
+    rows.forEach(row => {
+      try {
+        if (row > shClaim.getLastRow()) throw new Error("Row " + row + " tidak ditemukan.");
 
-    if (category !== "Transfer Agen") {
-      throw new Error("Submit HQ pilot ini hanya untuk bonus Transfer Agen.");
+        const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
+        const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
+        valid.push(buildVvipToMingguanHQSubmitItem_(claim, claimDisplay, row, authToken));
+      } catch (err) {
+        skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
+      }
+    });
+
+    if (!valid.length) {
+      const msg = skipped.length ? skipped.map(x => x.message).join("\n") : "Tidak ada data valid untuk Submit HQ.";
+      throw new Error(msg);
     }
 
-    if (status === "Rejected") {
-      throw new Error("Claim sudah Rejected, tidak perlu dikirim ke HQ.");
-    }
+    valid.sort((a, b) => {
+      const am = Number(a.submitOrderMs || 0);
+      const bm = Number(b.submitOrderMs || 0);
+      if (am !== bm) return am - bm;
+      return Number(a.row || 0) - Number(b.row || 0);
+    });
 
-    assertClaimLockedForHQSubmit_(status, row);
+    const ssSource = SpreadsheetApp.openById(SOURCE_VVIP_TO_MINGGUAN_SPREADSHEET_ID);
+    const shHQ = ssSource.getSheetByName(SOURCE_VVIP_TO_MINGGUAN_SHEET);
+    if (!shHQ) throw new Error("Sheet HQ " + SOURCE_VVIP_TO_MINGGUAN_SHEET + " tidak ditemukan.");
 
-    if (isHQOkStatus_(statusHQ)) {
-      throw new Error("StatusHQ sudah OK. Tidak perlu Submit HQ lagi.");
-    }
+    const block = allocateHQAppendBlockFromPointer_(shHQ, {
+      category: "VVIP TO Mingguan",
+      sheetName: SOURCE_VVIP_TO_MINGGUAN_SHEET,
+      keyColumn: 4,
+      startRow: 2,
+      count: valid.length
+    });
 
-    if (hqSubmitStatus && !statusHQ) {
-      throw new Error("Claim ini sudah dikirim ke HQ dan masih menunggu StatusHQ.");
-    }
+    // HQ VVIP-每周流水 mapping: A=tanggal, D=akun MB, E=tipe bonus, F=nominal bonus.
+    const dateValues = valid.map(item => [item.applyDate]);
+    const mainValues = valid.map(item => [item.akunMember, item.tipeBonusHQ, item.nominalBonus]);
+    shHQ.getRange(block.startRow, 1, valid.length, 1).setValues(dateValues);
+    shHQ.getRange(block.startRow, 4, valid.length, 3).setValues(mainValues);
 
-    // If HQ has answered non-OK, resubmit is allowed.
-    const isResubmit = !!(hqSubmitStatus && statusHQ && !isHQOkStatus_(statusHQ));
-
-    const applyDate = formatHQSubmitDate_(claim[0]);
-    const akunMember = String(claimDisplay[3] || "").trim().toUpperCase();
-    const kodeAgen = String(claimDisplay[9] || "").trim().toUpperCase();
-
-    if (!akunMember) throw new Error("Akun Member kosong, tidak bisa Submit HQ.");
-    if (!kodeAgen) throw new Error("Kode Agen kosong, tidak bisa Submit HQ.");
-
-    const ssSource = SpreadsheetApp.openById(SOURCE_SPREADSHEET_ID);
-    const shHQ = ssSource.getSheetByName(SOURCE_TRANSFER_AGEN_SHEET);
-    if (!shHQ) throw new Error("Sheet HQ " + SOURCE_TRANSFER_AGEN_SHEET + " tidak ditemukan.");
-
-    const lastDataRow = findLastDataRowByColumns_(shHQ, [1, 2, 3]);
-    const nextRow = Math.max(2, lastDataRow + 1);
-
-    // HQ Transfer Agen mapping:
-    // A = tanggal apply user, B = Akun MB, C = Kode Agen, D = StatusHQ remains empty.
-    shHQ.getRange(nextRow, 1, 1, 3).setValues([[applyDate, akunMember, kodeAgen]]);
-
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const submitBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
     const now = new Date();
+    const results = [];
 
-    shClaim.getRange(row, 18, 1, 5).setValues([[
-      isResubmit ? "Resubmitted" : "Submitted",
-      now,
-      submitBy,
-      nextRow,
-      hqSubmitCount + 1
-    ]]);
+    valid.forEach((item, i) => {
+      const hqRow = block.startRow + i;
+      const submitStatus = item.isResubmit ? "Resubmitted" : "Submitted";
+      const nextCount = item.hqSubmitCount + 1;
+
+      shClaim.getRange(item.row, 18, 1, 5).setValues([[
+        submitStatus,
+        now,
+        submitBy,
+        hqRow,
+        nextCount
+      ]]);
+
+      results.push({
+        ok: true,
+        claimRow: item.row,
+        hqRow: hqRow,
+        hqSubmitStatus: submitStatus,
+        hqSubmitBy: submitBy,
+        hqSubmitCount: nextCount,
+        data: {
+          tanggal: item.applyDate,
+          akunMember: item.akunMember,
+          tipeBonus: item.tipeBonusHQ,
+          nominalBonus: item.nominalBonus
+        }
+      });
+    });
+
+    setStoredHQWritePointerRow_(
+      "VVIP TO Mingguan",
+      SOURCE_VVIP_TO_MINGGUAN_SHEET,
+      4,
+      block.endRow,
+      "Batch Submit HQ VVIP TO Mingguan: " + valid.length + " claim" + (block.refreshed ? " | pointer refreshed" : "")
+    );
+
+    const rowText = valid.length === 1 ? String(block.startRow) : (block.startRow + "-" + block.endRow);
+    const message = "Submit HQ VVIP TO Mingguan berhasil: " + valid.length + " claim ke row " + rowText + (skipped.length ? " | Skip: " + skipped.length : "");
 
     return {
       ok: true,
-      message: (isResubmit ? "Resubmit HQ berhasil" : "Submit HQ berhasil") + " ke row " + nextRow,
-      claimRow: row,
-      hqRow: nextRow,
-      hqSubmitStatus: isResubmit ? "Resubmitted" : "Submitted",
-      hqSubmitBy: submitBy,
-      hqSubmitCount: hqSubmitCount + 1,
-      data: {
-        tanggal: applyDate,
-        akunMember: akunMember,
-        kodeAgen: kodeAgen
-      }
+      message: message,
+      count: valid.length,
+      skippedCount: skipped.length,
+      rows: rows,
+      startRow: block.startRow,
+      endRow: block.endRow,
+      pointerRefreshed: block.refreshed,
+      results: results,
+      skipped: skipped
     };
 
   } finally {
     releaseLockSafe_(lock);
   }
+}
+
+function submitVvipToMingguanToHQ(row, authToken) {
+  const result = submitVvipToMingguanBatchToHQ([row], authToken);
+  const first = result && result.results && result.results[0];
+
+  if (!first) {
+    const skipped = result && result.skipped && result.skipped[0];
+    throw new Error(skipped && skipped.message ? skipped.message : "Submit HQ VVIP TO Mingguan gagal.");
+  }
+
+  return {
+    ok: true,
+    message: (first.hqSubmitStatus === "Resubmitted" ? "Resubmit HQ VVIP TO Mingguan berhasil" : "Submit HQ VVIP TO Mingguan berhasil") + " ke row " + first.hqRow,
+    claimRow: first.claimRow,
+    hqRow: first.hqRow,
+    hqSubmitStatus: first.hqSubmitStatus,
+    hqSubmitBy: first.hqSubmitBy,
+    hqSubmitCount: first.hqSubmitCount,
+    data: first.data
+  };
+}
+
+function buildTransferAgenHQSubmitItem_(claim, claimDisplay, row, authToken) {
+  const category = String(claimDisplay[4] || "").trim();
+  const status = String(claimDisplay[11] || "").trim();
+  const statusHQ = String(claimDisplay[15] || "").trim();
+  const hqSubmitStatus = String(claimDisplay[17] || "").trim();
+  const hqSubmitCount = Number(claim[21] || 0);
+
+  if (category !== "Transfer Agen") {
+    throw new Error("Row " + row + " bukan Transfer Agen.");
+  }
+
+  if (status === "Rejected") {
+    throw new Error("Row " + row + " sudah Rejected.");
+  }
+
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
+
+  if (isHQOkStatus_(statusHQ)) {
+    throw new Error("Row " + row + " StatusHQ sudah OK.");
+  }
+
+  if (hqSubmitStatus && !statusHQ) {
+    throw new Error("Row " + row + " sudah dikirim ke HQ dan masih menunggu StatusHQ.");
+  }
+
+  const isResubmit = !!(hqSubmitStatus && statusHQ && !isHQOkStatus_(statusHQ));
+  const applyDate = formatHQSubmitDate_(claim[0]);
+  const submitOrderDate = claim[0] instanceof Date ? claim[0] : new Date(claim[0]);
+  const submitOrderMs = submitOrderDate instanceof Date && !isNaN(submitOrderDate) ? submitOrderDate.getTime() : 0;
+  const akunMember = String(claimDisplay[3] || "").trim().toUpperCase();
+  const kodeAgen = String(claimDisplay[9] || "").trim().toUpperCase();
+
+  if (!akunMember) throw new Error("Row " + row + " Akun Member kosong.");
+  if (!kodeAgen) throw new Error("Row " + row + " Kode Agen kosong.");
+
+  return {
+    row: row,
+    submitOrderMs: submitOrderMs,
+    applyDate: applyDate,
+    akunMember: akunMember,
+    kodeAgen: kodeAgen,
+    isResubmit: isResubmit,
+    hqSubmitCount: hqSubmitCount
+  };
+}
+
+function submitTransferAgenBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
+    throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
+  }
+
+  if (!Array.isArray(rows)) rows = [rows];
+
+  rows = rows
+    .map(r => Number(r))
+    .filter(r => r && r >= 2)
+    .filter((r, i, arr) => arr.indexOf(r) === i);
+
+  if (!rows.length) throw new Error("Pilih minimal 1 claim Transfer Agen untuk Submit HQ.");
+
+  const lock = acquireHQWriteLock_(15000, "Submit HQ Transfer Agen sedang berjalan. Coba lagi beberapa detik, atau gunakan Submit Selected HQ untuk batch.");
+
+  try {
+    const shClaim = ensureBonusClaimHQSubmitColumns_();
+    if (!shClaim) throw new Error("Sheet BONUS_CLAIM tidak ditemukan.");
+
+    const valid = [];
+    const skipped = [];
+
+    rows.forEach(row => {
+      try {
+        if (row > shClaim.getLastRow()) throw new Error("Row " + row + " tidak ditemukan.");
+
+        const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
+        const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
+        valid.push(buildTransferAgenHQSubmitItem_(claim, claimDisplay, row, authToken));
+      } catch (err) {
+        skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
+      }
+    });
+
+    if (!valid.length) {
+      const msg = skipped.length ? skipped.map(x => x.message).join("\n") : "Tidak ada data valid untuk Submit HQ.";
+      throw new Error(msg);
+    }
+
+    valid.sort((a, b) => {
+      const am = Number(a.submitOrderMs || 0);
+      const bm = Number(b.submitOrderMs || 0);
+      if (am !== bm) return am - bm;
+      return Number(a.row || 0) - Number(b.row || 0);
+    });
+
+    const ssSource = SpreadsheetApp.openById(SOURCE_SPREADSHEET_ID);
+    const shHQ = ssSource.getSheetByName(SOURCE_TRANSFER_AGEN_SHEET);
+    if (!shHQ) throw new Error("Sheet HQ " + SOURCE_TRANSFER_AGEN_SHEET + " tidak ditemukan.");
+
+    const block = allocateHQAppendBlockFromPointer_(shHQ, {
+      category: "Transfer Agen",
+      sheetName: SOURCE_TRANSFER_AGEN_SHEET,
+      keyColumn: 2,
+      startRow: 2,
+      count: valid.length
+    });
+
+    const mainValues = valid.map(item => [item.applyDate, item.akunMember, item.kodeAgen]);
+    shHQ.getRange(block.startRow, 1, valid.length, 3).setValues(mainValues);
+
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
+    const now = new Date();
+    const results = [];
+
+    valid.forEach((item, i) => {
+      const hqRow = block.startRow + i;
+      const submitStatus = item.isResubmit ? "Resubmitted" : "Submitted";
+      const nextCount = item.hqSubmitCount + 1;
+
+      shClaim.getRange(item.row, 18, 1, 5).setValues([[
+        submitStatus,
+        now,
+        submitBy,
+        hqRow,
+        nextCount
+      ]]);
+
+      results.push({
+        ok: true,
+        claimRow: item.row,
+        hqRow: hqRow,
+        hqSubmitStatus: submitStatus,
+        hqSubmitBy: submitBy,
+        hqSubmitCount: nextCount,
+        data: {
+          tanggal: item.applyDate,
+          akunMember: item.akunMember,
+          kodeAgen: item.kodeAgen
+        }
+      });
+    });
+
+    setStoredHQWritePointerRow_(
+      "Transfer Agen",
+      SOURCE_TRANSFER_AGEN_SHEET,
+      2,
+      block.endRow,
+      "Batch Submit HQ Transfer Agen: " + valid.length + " claim" + (block.refreshed ? " | pointer refreshed" : "")
+    );
+
+    const rowText = valid.length === 1 ? String(block.startRow) : (block.startRow + "-" + block.endRow);
+    const message = "Submit HQ Transfer Agen berhasil: " + valid.length + " claim ke row " + rowText + (skipped.length ? " | Skip: " + skipped.length : "");
+
+    return {
+      ok: true,
+      message: message,
+      count: valid.length,
+      skippedCount: skipped.length,
+      rows: rows,
+      startRow: block.startRow,
+      endRow: block.endRow,
+      pointerRefreshed: block.refreshed,
+      results: results,
+      skipped: skipped
+    };
+
+  } finally {
+    releaseLockSafe_(lock);
+  }
+}
+
+function submitTransferAgenToHQ(row, authToken) {
+  const result = submitTransferAgenBatchToHQ([row], authToken);
+  const first = result && result.results && result.results[0];
+
+  if (!first) {
+    const skipped = result && result.skipped && result.skipped[0];
+    throw new Error(skipped && skipped.message ? skipped.message : "Submit HQ Transfer Agen gagal.");
+  }
+
+  return {
+    ok: true,
+    message: (first.hqSubmitStatus === "Resubmitted" ? "Resubmit HQ berhasil" : "Submit HQ berhasil") + " ke row " + first.hqRow,
+    claimRow: first.claimRow,
+    hqRow: first.hqRow,
+    hqSubmitStatus: first.hqSubmitStatus,
+    hqSubmitBy: first.hqSubmitBy,
+    hqSubmitCount: first.hqSubmitCount,
+    data: first.data
+  };
 }
 
 function columnNumberToLetter_(column) {
@@ -4894,9 +5940,8 @@ function updateHQWritePointerRecord_(category, sheetName, keyColumn, lastRow, no
   const matches = findHQWritePointerRows_(category, sheetName, keyColumn);
   let targetRow = matches.length ? matches[0] : last + 1;
 
-  const email = Session.getActiveUser().getEmail();
-  const admin = getUserAccess_(email);
-  const updatedBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+  const adminIdentity = getAdminIdentityForAction_(authToken);
+  const updatedBy = adminIdentity.code;
 
   sh.getRange(targetRow, 1, 1, 8).setValues([[
     key,
@@ -5012,9 +6057,10 @@ function setStoredHQWritePointerRow_(category, sheetName, keyColumn, lastRow, no
   const key = getHQWritePointerKey_(category, sheetName, keyColumn);
   props.setProperty(key, String(Number(lastRow || 0)));
   updateHQWritePointerRecord_(category, sheetName, keyColumn, Number(lastRow || 0), note || "");
+  bumpClaimDataVersion_("setStoredHQWritePointerRow");
 }
-function initializeHQWritePointerByNextRow(category, nextWriteRow) {
-  if (!isAdmin_()) {
+function initializeHQWritePointerByNextRow(category, nextWriteRow, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya admin yang boleh initialize HQ pointer.");
   }
 
@@ -5039,8 +6085,8 @@ function initializeHQWritePointerByNextRow(category, nextWriteRow) {
   };
 }
 
-function reloadHQWritePointersFromSheet() {
-  if (!isAdmin_()) {
+function reloadHQWritePointersFromSheet(authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya admin yang boleh reload HQ pointer.");
   }
 
@@ -5050,9 +6096,8 @@ function reloadHQWritePointersFromSheet() {
 
   const values = sh.getRange(2, 1, lastRow - 1, 8).getDisplayValues();
   const props = PropertiesService.getScriptProperties();
-  const email = Session.getActiveUser().getEmail();
-  const admin = getUserAccess_(email);
-  const updatedBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+  const adminIdentity = getAdminIdentityForAction_(authToken);
+  const updatedBy = adminIdentity.code;
   const map = {};
 
   values.forEach(r => {
@@ -5140,8 +6185,8 @@ function ensureHQPointerSetupSheet_() {
   return sh;
 }
 
-function initializeHQPointersFromSetup() {
-  if (!isAdmin_()) {
+function initializeHQPointersFromSetup(authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya admin yang boleh initialize HQ pointer.");
   }
 
@@ -5255,6 +6300,35 @@ function ensureRowsAvailable_(sh, lastNeededRow) {
   if (lastNeededRow > maxRows) sh.insertRowsAfter(maxRows, lastNeededRow - maxRows);
 }
 
+function findLastContiguousFilledRowInColumn_(sh, column, startRow) {
+  column = Number(column);
+  startRow = Number(startRow || 2);
+  if (!column || column < 1) return startRow - 1;
+
+  const maxRows = sh.getMaxRows();
+  if (startRow > maxRows) return startRow - 1;
+
+  const chunkSize = 500;
+  let cursor = startRow;
+  let lastFilled = startRow - 1;
+
+  while (cursor <= maxRows) {
+    const height = Math.min(chunkSize, maxRows - cursor + 1);
+    const values = sh.getRange(cursor, column, height, 1).getDisplayValues();
+
+    for (let i = 0; i < values.length; i++) {
+      if (String(values[i][0] || "").trim() === "") {
+        return lastFilled;
+      }
+      lastFilled = cursor + i;
+    }
+
+    cursor += height;
+  }
+
+  return lastFilled;
+}
+
 function allocateHQAppendBlockFromPointer_(sh, opt) {
   opt = opt || {};
 
@@ -5297,9 +6371,13 @@ function allocateHQAppendBlockFromPointer_(sh, opt) {
     ensureRowsAvailable_(sh, startTargetRow + count - 1);
   }
 
-  // Safety: if HQ team manually added rows after our pointer, refresh once.
+  // Safety: if HQ team manually added rows after our pointer, advance only through
+  // contiguous filled rows from the pointer. This prevents one accidental typo far
+  // below the table (example B76=".") from forcing the next submit to jump from
+  // B52 to B77. If the typo is inside the block we are about to write, the final
+  // conflict check below still stops the submit instead of overwriting it.
   if (blockHasConflict_(startTargetRow)) {
-    storedLastRow = findLastFilledRowInColumnFast_(sh, keyColumn, startRow);
+    storedLastRow = findLastContiguousFilledRowInColumn_(sh, keyColumn, startTargetRow);
     startTargetRow = Math.max(startRow, storedLastRow + 1);
     refreshed = true;
     ensureRowsAvailable_(sh, startTargetRow + count - 1);
@@ -5317,13 +6395,33 @@ function allocateHQAppendBlockFromPointer_(sh, opt) {
   };
 }
 
-function assertClaimLockedForHQSubmit_(status, row) {
+function assertClaimLockedForHQSubmit_(status, row, processedBy, authToken) {
   if (String(status || "").trim() !== "On Process") {
     throw new Error("Row " + row + " harus di-Lock / On Process dulu sebelum Submit HQ.");
   }
+
+  const ident = getAdminIdentityForAction_(authToken);
+  const role = ident.admin && ident.admin.role ? String(ident.admin.role).trim() : "";
+  if (role === "Owner") return true;
+
+  const currentProcessedBy = String(processedBy || "").trim();
+  const submitBy = ident.admin && ident.admin.adminCode ? ident.admin.adminCode : ident.email;
+
+  if (!currentProcessedBy) {
+    throw new Error("Row " + row + " sudah On Process tapi Processed By kosong. Lock ulang claim dulu sebelum Submit HQ.");
+  }
+
+  if (normalizeText_(currentProcessedBy) !== normalizeText_(submitBy)) {
+    throw new Error(
+      "Row " + row + " sedang di-Lock / Process oleh " + currentProcessedBy +
+      ". Hanya admin tersebut yang boleh Submit HQ. Owner boleh override."
+    );
+  }
+
+  return true;
 }
 
-function buildWelcomeHQSubmitItem_(claim, claimDisplay, row) {
+function buildWelcomeHQSubmitItem_(claim, claimDisplay, row, authToken) {
   const category = String(claimDisplay[4] || "").trim();
   const status = String(claimDisplay[11] || "").trim();
   const statusHQ = String(claimDisplay[15] || "").trim();
@@ -5338,7 +6436,7 @@ function buildWelcomeHQSubmitItem_(claim, claimDisplay, row) {
     throw new Error("Row " + row + " sudah Rejected.");
   }
 
-  assertClaimLockedForHQSubmit_(status, row);
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
 
   if (isHQOkStatus_(statusHQ)) {
     throw new Error("Row " + row + " StatusHQ sudah OK.");
@@ -5381,7 +6479,7 @@ function buildWelcomeHQSubmitItem_(claim, claimDisplay, row) {
   };
 }
 
-function buildPromoSyukuranHQSubmitItem_(claim, claimDisplay, row) {
+function buildPromoSyukuranHQSubmitItem_(claim, claimDisplay, row, authToken) {
   const category = String(claimDisplay[4] || "").trim();
   const status = String(claimDisplay[11] || "").trim();
   const statusHQ = String(claimDisplay[15] || "").trim();
@@ -5396,7 +6494,7 @@ function buildPromoSyukuranHQSubmitItem_(claim, claimDisplay, row) {
     throw new Error("Row " + row + " sudah Rejected.");
   }
 
-  assertClaimLockedForHQSubmit_(status, row);
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
 
   if (isHQOkStatus_(statusHQ)) {
     throw new Error("Row " + row + " StatusHQ sudah OK.");
@@ -5432,7 +6530,7 @@ function buildPromoSyukuranHQSubmitItem_(claim, claimDisplay, row) {
   };
 }
 
-function buildVvipDepoHQSubmitItem_(claim, claimDisplay, row) {
+function buildVvipDepoHQSubmitItem_(claim, claimDisplay, row, authToken) {
   const category = String(claimDisplay[4] || "").trim();
   const status = String(claimDisplay[11] || "").trim();
   const statusHQ = String(claimDisplay[15] || "").trim();
@@ -5447,7 +6545,7 @@ function buildVvipDepoHQSubmitItem_(claim, claimDisplay, row) {
     throw new Error("Row " + row + " sudah Rejected.");
   }
 
-  assertClaimLockedForHQSubmit_(status, row);
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
 
   if (isHQOkStatus_(statusHQ)) {
     throw new Error("Row " + row + " StatusHQ sudah OK.");
@@ -5490,8 +6588,8 @@ function buildVvipDepoHQSubmitItem_(claim, claimDisplay, row) {
   };
 }
 
-function submitVvipDepoBatchToHQ(rows) {
-  if (!isAdmin_()) {
+function submitVvipDepoBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
   }
 
@@ -5519,7 +6617,7 @@ function submitVvipDepoBatchToHQ(rows) {
 
         const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
         const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
-        valid.push(buildVvipDepoHQSubmitItem_(claim, claimDisplay, row));
+        valid.push(buildVvipDepoHQSubmitItem_(claim, claimDisplay, row, authToken));
       } catch (err) {
         skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
       }
@@ -5558,9 +6656,8 @@ function submitVvipDepoBatchToHQ(rows) {
     shHQ.getRange(block.startRow, 1, valid.length, 1).setValues(dateValues);
     shHQ.getRange(block.startRow, 4, valid.length, 4).setValues(mainValues);
 
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const submitBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
     const now = new Date();
     const results = [];
 
@@ -5631,8 +6728,8 @@ function submitVvipDepoBatchToHQ(rows) {
   }
 }
 
-function submitVvipDepoToHQ(row) {
-  const result = submitVvipDepoBatchToHQ([row]);
+function submitVvipDepoToHQ(row, authToken) {
+  const result = submitVvipDepoBatchToHQ([row], authToken);
   const first = result && result.results && result.results[0];
 
   if (!first) {
@@ -5675,7 +6772,7 @@ function parseCuSportParlayForHQ_(remarks) {
   return "";
 }
 
-function buildCuSportHQSubmitItem_(claim, claimDisplay, row) {
+function buildCuSportHQSubmitItem_(claim, claimDisplay, row, authToken) {
   const category = String(claimDisplay[4] || "").trim();
   const status = String(claimDisplay[11] || "").trim();
   const statusHQ = String(claimDisplay[15] || "").trim();
@@ -5690,7 +6787,7 @@ function buildCuSportHQSubmitItem_(claim, claimDisplay, row) {
     throw new Error("Row " + row + " sudah Rejected.");
   }
 
-  assertClaimLockedForHQSubmit_(status, row);
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
 
   if (isHQOkStatus_(statusHQ)) {
     throw new Error("Row " + row + " StatusHQ sudah OK.");
@@ -5736,8 +6833,8 @@ function buildCuSportHQSubmitItem_(claim, claimDisplay, row) {
   };
 }
 
-function submitCuSportBatchToHQ(rows) {
-  if (!isAdmin_()) {
+function submitCuSportBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
   }
 
@@ -5765,7 +6862,7 @@ function submitCuSportBatchToHQ(rows) {
 
         const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
         const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
-        valid.push(buildCuSportHQSubmitItem_(claim, claimDisplay, row));
+        valid.push(buildCuSportHQSubmitItem_(claim, claimDisplay, row, authToken));
       } catch (err) {
         skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
       }
@@ -5804,9 +6901,8 @@ function submitCuSportBatchToHQ(rows) {
     shHQ.getRange(block.startRow, 1, valid.length, 1).setValues(dateValues);
     shHQ.getRange(block.startRow, 4, valid.length, 5).setValues(mainValues);
 
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const submitBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
     const now = new Date();
     const results = [];
 
@@ -5872,8 +6968,8 @@ function submitCuSportBatchToHQ(rows) {
   }
 }
 
-function submitCuSportToHQ(row) {
-  const result = submitCuSportBatchToHQ([row]);
+function submitCuSportToHQ(row, authToken) {
+  const result = submitCuSportBatchToHQ([row], authToken);
   const first = result && result.results && result.results[0];
 
   if (!first) {
@@ -5913,7 +7009,7 @@ function parseVvipSpecialGameForHQ_(remarks) {
   return "";
 }
 
-function buildVvipSpecialHQSubmitItem_(claim, claimDisplay, row) {
+function buildVvipSpecialHQSubmitItem_(claim, claimDisplay, row, authToken) {
   const category = String(claimDisplay[4] || "").trim();
   const status = String(claimDisplay[11] || "").trim();
   const statusHQ = String(claimDisplay[15] || "").trim();
@@ -5928,7 +7024,7 @@ function buildVvipSpecialHQSubmitItem_(claim, claimDisplay, row) {
     throw new Error("Row " + row + " sudah Rejected.");
   }
 
-  assertClaimLockedForHQSubmit_(status, row);
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
 
   if (isHQOkStatus_(statusHQ)) {
     throw new Error("Row " + row + " StatusHQ sudah OK.");
@@ -5971,8 +7067,8 @@ function buildVvipSpecialHQSubmitItem_(claim, claimDisplay, row) {
   };
 }
 
-function submitVvipSpecialBatchToHQ(rows) {
-  if (!isAdmin_()) {
+function submitVvipSpecialBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
   }
 
@@ -6000,7 +7096,7 @@ function submitVvipSpecialBatchToHQ(rows) {
 
         const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
         const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
-        valid.push(buildVvipSpecialHQSubmitItem_(claim, claimDisplay, row));
+        valid.push(buildVvipSpecialHQSubmitItem_(claim, claimDisplay, row, authToken));
       } catch (err) {
         skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
       }
@@ -6039,9 +7135,8 @@ function submitVvipSpecialBatchToHQ(rows) {
     shHQ.getRange(block.startRow, 1, valid.length, 1).setValues(dateValues);
     shHQ.getRange(block.startRow, 4, valid.length, 4).setValues(mainValues);
 
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const submitBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
     const now = new Date();
     const results = [];
 
@@ -6106,8 +7201,8 @@ function submitVvipSpecialBatchToHQ(rows) {
   }
 }
 
-function submitVvipSpecialToHQ(row) {
-  const result = submitVvipSpecialBatchToHQ([row]);
+function submitVvipSpecialToHQ(row, authToken) {
+  const result = submitVvipSpecialBatchToHQ([row], authToken);
   const first = result && result.results && result.results[0];
 
   if (!first) {
@@ -6128,7 +7223,7 @@ function submitVvipSpecialToHQ(row) {
 }
 
 
-function buildLuckyMoneyHQSubmitItem_(claim, claimDisplay, row) {
+function buildLuckyMoneyHQSubmitItem_(claim, claimDisplay, row, authToken) {
   const category = String(claimDisplay[4] || "").trim();
   const status = String(claimDisplay[11] || "").trim();
   const statusHQ = String(claimDisplay[15] || "").trim();
@@ -6143,7 +7238,7 @@ function buildLuckyMoneyHQSubmitItem_(claim, claimDisplay, row) {
     throw new Error("Row " + row + " sudah Rejected.");
   }
 
-  assertClaimLockedForHQSubmit_(status, row);
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
 
   if (isHQOkStatus_(statusHQ)) {
     throw new Error("Row " + row + " StatusHQ sudah OK.");
@@ -6236,7 +7331,7 @@ function formatTiapHariHQSubmitDate_(value) {
   return text;
 }
 
-function buildTiapHariBonusBesarHQSubmitItem_(claim, claimDisplay, row, helperMap) {
+function buildTiapHariBonusBesarHQSubmitItem_(claim, claimDisplay, row, helperMap, authToken) {
   const category = String(claimDisplay[4] || "").trim();
   const status = String(claimDisplay[11] || "").trim();
   const statusHQ = String(claimDisplay[15] || "").trim();
@@ -6252,7 +7347,7 @@ function buildTiapHariBonusBesarHQSubmitItem_(claim, claimDisplay, row, helperMa
     throw new Error("Row " + row + " sudah Rejected.");
   }
 
-  assertClaimLockedForHQSubmit_(status, row);
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
 
   if (verifyStatus !== "VERIFIED") {
     throw new Error("Row " + row + " belum VERIFIED.");
@@ -6305,8 +7400,8 @@ function buildTiapHariBonusBesarHQSubmitItem_(claim, claimDisplay, row, helperMa
   };
 }
 
-function submitTiapHariBonusBesarBatchToHQ(rows) {
-  if (!isAdmin_()) {
+function submitTiapHariBonusBesarBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
   }
 
@@ -6335,7 +7430,7 @@ function submitTiapHariBonusBesarBatchToHQ(rows) {
 
         const claim = shClaim.getRange(row, 1, 1, 25).getValues()[0];
         const claimDisplay = shClaim.getRange(row, 1, 1, 25).getDisplayValues()[0];
-        valid.push(buildTiapHariBonusBesarHQSubmitItem_(claim, claimDisplay, row, helperMap));
+        valid.push(buildTiapHariBonusBesarHQSubmitItem_(claim, claimDisplay, row, helperMap, authToken));
       } catch (err) {
         skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
       }
@@ -6381,9 +7476,8 @@ function submitTiapHariBonusBesarBatchToHQ(rows) {
       item.tipeBonus
     ]));
 
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const submitBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
     const now = new Date();
     const results = [];
 
@@ -6449,8 +7543,8 @@ function submitTiapHariBonusBesarBatchToHQ(rows) {
   }
 }
 
-function submitLuckyMoneyBatchToHQ(rows) {
-  if (!isAdmin_()) {
+function submitLuckyMoneyBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
   }
 
@@ -6478,7 +7572,7 @@ function submitLuckyMoneyBatchToHQ(rows) {
 
         const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
         const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
-        valid.push(buildLuckyMoneyHQSubmitItem_(claim, claimDisplay, row));
+        valid.push(buildLuckyMoneyHQSubmitItem_(claim, claimDisplay, row, authToken));
       } catch (err) {
         skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
       }
@@ -6515,9 +7609,8 @@ function submitLuckyMoneyBatchToHQ(rows) {
     // A = tanggal apply yyyy/MM/dd; B = Akun MB; C = Tipe Bonus.
     shHQ.getRange(block.startRow, 1, valid.length, 3).setValues(mainValues);
 
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const submitBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
     const now = new Date();
     const results = [];
 
@@ -6580,8 +7673,8 @@ function submitLuckyMoneyBatchToHQ(rows) {
   }
 }
 
-function submitLuckyMoneyToHQ(row) {
-  const result = submitLuckyMoneyBatchToHQ([row]);
+function submitLuckyMoneyToHQ(row, authToken) {
+  const result = submitLuckyMoneyBatchToHQ([row], authToken);
   const first = result && result.results && result.results[0];
 
   if (!first) {
@@ -6601,8 +7694,8 @@ function submitLuckyMoneyToHQ(row) {
   };
 }
 
-function submitPromoSyukuranBatchToHQ(rows) {
-  if (!isAdmin_()) {
+function submitPromoSyukuranBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
   }
 
@@ -6630,7 +7723,7 @@ function submitPromoSyukuranBatchToHQ(rows) {
 
         const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
         const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
-        valid.push(buildPromoSyukuranHQSubmitItem_(claim, claimDisplay, row));
+        valid.push(buildPromoSyukuranHQSubmitItem_(claim, claimDisplay, row, authToken));
       } catch (err) {
         skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
       }
@@ -6666,9 +7759,8 @@ function submitPromoSyukuranBatchToHQ(rows) {
     // Batch write: A = tanggal apply user, B = Akun MB, C = Tipe Bonus exact validation HQ.
     shHQ.getRange(block.startRow, 1, valid.length, 3).setValues(mainValues);
 
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const submitBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
     const now = new Date();
     const results = [];
 
@@ -6729,8 +7821,8 @@ function submitPromoSyukuranBatchToHQ(rows) {
   }
 }
 
-function submitPromoSyukuranToHQ(row) {
-  const result = submitPromoSyukuranBatchToHQ([row]);
+function submitPromoSyukuranToHQ(row, authToken) {
+  const result = submitPromoSyukuranBatchToHQ([row], authToken);
   const first = result && result.results && result.results[0];
 
   if (!first) {
@@ -6750,8 +7842,8 @@ function submitPromoSyukuranToHQ(row) {
   };
 }
 
-function submitWelcomeBonusBatchToHQ(rows) {
-  if (!isAdmin_()) {
+function submitWelcomeBonusBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
   }
 
@@ -6779,7 +7871,7 @@ function submitWelcomeBonusBatchToHQ(rows) {
 
         const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
         const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
-        valid.push(buildWelcomeHQSubmitItem_(claim, claimDisplay, row));
+        valid.push(buildWelcomeHQSubmitItem_(claim, claimDisplay, row, authToken));
       } catch (err) {
         skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
       }
@@ -6820,9 +7912,8 @@ function submitWelcomeBonusBatchToHQ(rows) {
     shHQ.getRange(block.startRow, 1, valid.length, 1).setValues(dateValues);
     shHQ.getRange(block.startRow, 5, valid.length, 3).setValues(mainValues);
 
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const submitBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
     const now = new Date();
     const results = [];
 
@@ -6884,8 +7975,8 @@ function submitWelcomeBonusBatchToHQ(rows) {
   }
 }
 
-function submitWelcomeBonusToHQ(row) {
-  const result = submitWelcomeBonusBatchToHQ([row]);
+function submitWelcomeBonusToHQ(row, authToken) {
+  const result = submitWelcomeBonusBatchToHQ([row], authToken);
   const first = result && result.results && result.results[0];
 
   if (!first) {
@@ -6905,7 +7996,7 @@ function submitWelcomeBonusToHQ(row) {
   };
 }
 
-function buildHelloFriendsHQSubmitItem_(claim, claimDisplay, row) {
+function buildHelloFriendsHQSubmitItem_(claim, claimDisplay, row, authToken) {
   const category = String(claimDisplay[4] || "").trim();
   const status = String(claimDisplay[11] || "").trim();
   const statusHQ = String(claimDisplay[15] || "").trim();
@@ -6920,7 +8011,7 @@ function buildHelloFriendsHQSubmitItem_(claim, claimDisplay, row) {
     throw new Error("Row " + row + " sudah Rejected.");
   }
 
-  assertClaimLockedForHQSubmit_(status, row);
+  assertClaimLockedForHQSubmit_(status, row, claimDisplay[14], authToken);
 
   if (isHQOkStatus_(statusHQ)) {
     throw new Error("Row " + row + " StatusHQ sudah OK.");
@@ -6970,8 +8061,8 @@ function buildHelloFriendsHQSubmitItem_(claim, claimDisplay, row) {
   };
 }
 
-function submitHelloFriendsBatchToHQ(rows) {
-  if (!isAdmin_()) {
+function submitHelloFriendsBatchToHQ(rows, authToken) {
+  if (!isAdmin_(authToken)) {
     throw new Error("Access denied. Hanya Owner/Admin yang bisa Submit HQ.");
   }
 
@@ -6999,7 +8090,7 @@ function submitHelloFriendsBatchToHQ(rows) {
 
         const claim = shClaim.getRange(row, 1, 1, 22).getValues()[0];
         const claimDisplay = shClaim.getRange(row, 1, 1, 22).getDisplayValues()[0];
-        valid.push(buildHelloFriendsHQSubmitItem_(claim, claimDisplay, row));
+        valid.push(buildHelloFriendsHQSubmitItem_(claim, claimDisplay, row, authToken));
       } catch (err) {
         skipped.push({ row: row, ok: false, message: err && err.message ? err.message : String(err) });
       }
@@ -7047,9 +8138,8 @@ function submitHelloFriendsBatchToHQ(rows) {
     shHQ.getRange(block.startRow, 1, valid.length, 1).setValues(dateValues);
     shHQ.getRange(block.startRow, 4, valid.length, 6).setValues(mainValues);
 
-    const email = Session.getActiveUser().getEmail();
-    const admin = getUserAccess_(email);
-    const submitBy = admin && admin.adminCode ? admin.adminCode : (admin && admin.staffName ? admin.staffName : email);
+    const adminIdentity = getAdminIdentityForAction_(authToken);
+    const submitBy = adminIdentity.code;
     const now = new Date();
     const results = [];
 
@@ -7116,8 +8206,8 @@ function submitHelloFriendsBatchToHQ(rows) {
   }
 }
 
-function submitHelloFriendsToHQ(row) {
-  const result = submitHelloFriendsBatchToHQ([row]);
+function submitHelloFriendsToHQ(row, authToken) {
+  const result = submitHelloFriendsBatchToHQ([row], authToken);
   const first = result && result.results && result.results[0];
 
   if (!first) {
