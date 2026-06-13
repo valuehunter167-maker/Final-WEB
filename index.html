@@ -135,6 +135,9 @@
     .user-lang-box{margin-top:14px;padding:12px;border-radius:16px;background:rgba(255,255,255,.50);border:1px solid rgba(148,163,184,.22)}
     .user-lang-label{font-size:11px;font-weight:900;color:#64748b;margin-bottom:8px;letter-spacing:.6px}
     #userLangSelect{width:100%;padding:9px 10px;border-radius:12px;font-weight:900;color:#1e3a8a}
+    .login-lang-box{margin-top:14px;text-align:left;background:rgba(248,250,252,.9);border:1px solid #dbeafe;border-radius:14px;padding:10px 12px}
+    .login-lang-box label{display:block;font-size:11px;font-weight:1000;color:#1e3a8a;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+    .login-lang-box select{width:100%;padding:9px 10px;border-radius:12px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-weight:900}
 
     /* ===== USER CLAIM HISTORY COMPACT TABLE + PAGINATION ===== */
     .history-table-wrap{width:100%;overflow-x:hidden;border-radius:18px;border:1px solid rgba(148,163,184,.20);background:rgba(255,255,255,.42)}
@@ -1759,6 +1762,234 @@ body.bonus-mode .history-bonus-nav{
   margin:0;
 }
 
+
+
+/* ===== LIGHTWEIGHT 3D POLISH (CSS ONLY, NO WEBGL) ===== */
+.panel,.wrapper,.history-table-wrap,.history-pagination{
+  box-shadow:0 18px 45px rgba(15,23,42,.10),0 2px 8px rgba(59,130,246,.06)!important;
+}
+.panel{
+  position:relative;
+  overflow:hidden;
+  transform:translateZ(0);
+}
+.panel::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto 0;
+  height:3px;
+  background:linear-gradient(90deg,#38bdf8,#6366f1,#22c55e);
+  opacity:.78;
+  pointer-events:none;
+}
+.sidebar{
+  box-shadow:12px 0 32px rgba(15,23,42,.10)!important;
+}
+button,.refresh-btn,.history-page-btn,.case-btn{
+  transform:translateZ(0);
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease!important;
+}
+button:hover,.refresh-btn:hover,.history-page-btn:hover,.case-btn:hover{
+  transform:translateY(-1px)!important;
+  filter:saturate(1.05);
+}
+@media (prefers-reduced-motion:reduce){
+  button,.refresh-btn,.history-page-btn,.case-btn{transition:none!important}
+  button:hover,.refresh-btn:hover,.history-page-btn:hover,.case-btn:hover{transform:none!important}
+}
+
+</style>
+
+<style id="ix-user-ui-polish-stage-css">
+  :root{--ix-user-border:rgba(148,163,184,.22);--ix-user-shadow:0 24px 70px rgba(15,23,42,.12);}
+  .panel,.history-card,.project-card,.note-box{border:1px solid var(--ix-user-border)!important;box-shadow:var(--ix-user-shadow)!important;}
+  .panel{border-radius:26px!important;background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(248,250,252,.94))!important;}
+  .form-layout{gap:22px!important;}
+  #historyPage .panel,.history-shell,.history-table-wrap{max-width:min(1480px,calc(100vw - 36px))!important;width:100%!important;}
+  #historyPage{padding-left:18px!important;padding-right:18px!important;}
+  table{border-collapse:separate!important;border-spacing:0!important;}
+  th{letter-spacing:.045em!important;}
+  input,select,textarea{border-radius:14px!important;}
+  button,.refresh-btn,.case-btn,.history-page-btn{border-radius:14px!important;}
+  .menu{border-radius:16px!important;}
+  .note-box{border-radius:22px!important;background:linear-gradient(180deg,rgba(239,246,255,.96),rgba(255,255,255,.94))!important;}
+  @media(max-width:900px){#historyPage{padding-left:10px!important;padding-right:10px!important}.form-layout{gap:14px!important}}
+
+
+/* =========================================================
+   USER RESPONSIVE SIDEBAR SAFETY V1
+   Scope: visual-only user portal safety for different monitor sizes.
+   Goal: prevent sidebar bottom tools/profile/language/view mode from overlapping
+   menus and function buttons on small/short screens.
+   ========================================================= */
+@media(min-width:901px){
+  .sidebar{
+    height:100vh!important;
+    max-height:100vh!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    padding-bottom:18px!important;
+  }
+
+  .sidebar-bottom-tools,
+  .sidebar .profile{
+    position:relative!important;
+    left:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    top:auto!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:10px 0 0!important;
+    z-index:auto!important;
+  }
+
+  .sidebar-bottom-tools{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:7px!important;
+  }
+
+  .sidebar-bottom-tools .user-lang-box,
+  .sidebar-bottom-tools .user-view-box{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+  }
+
+  #userLangSelect,
+  #userViewSelect,
+  .sidebar-bottom-tools select{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+  }
+
+  .content{
+    min-width:0!important;
+  }
+
+  .wrapper,
+  .panel,
+  .form-layout{
+    min-width:0!important;
+  }
+}
+
+@media(min-width:901px) and (max-height:820px){
+  .sidebar{
+    padding-top:12px!important;
+    padding-bottom:12px!important;
+  }
+
+  .logo{
+    font-size:22px!important;
+  }
+
+  .sublogo{
+    margin-bottom:10px!important;
+  }
+
+  .menu{
+    min-height:0!important;
+    padding-top:7px!important;
+    padding-bottom:7px!important;
+    margin-bottom:5px!important;
+    font-size:11px!important;
+  }
+}
+
+@media(max-width:900px){
+  .layout{
+    display:block!important;
+  }
+
+  .sidebar{
+    position:relative!important;
+    width:100%!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding:16px!important;
+  }
+
+  .content{
+    margin-left:0!important;
+    width:100%!important;
+    padding:14px!important;
+  }
+
+  .sidebar-bottom-tools,
+  .sidebar .profile{
+    position:relative!important;
+    left:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:10px 0 0!important;
+  }
+
+  .sidebar-bottom-tools{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+
+  .form-layout,
+  .grid,
+  .upload-grid,
+  .bc-info,
+  .bc-form{
+    grid-template-columns:1fr!important;
+  }
+
+  .full{
+    grid-column:1!important;
+  }
+}
+
+@media(max-width:680px){
+  .login-card,
+  .panel,
+  .side-card,
+  .bc-modal{
+    border-radius:18px!important;
+    padding:18px!important;
+  }
+
+  h2{
+    font-size:24px!important;
+  }
+
+  input,
+  select,
+  textarea,
+  button{
+    font-size:13px!important;
+  }
+
+  .history-top,
+  .filters,
+  .history-pagination,
+  .history-pagination-controls{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+
+  .filter-btn,
+  .sync-btn,
+  .history-page-btn,
+  .history-page-size,
+  .search{
+    width:100%!important;
+    min-width:0!important;
+  }
+}
+
 </style>
 </head>
 
@@ -1766,36 +1997,49 @@ body.bonus-mode .history-bonus-nav{
 <div id="loginPage" class="login-page">
   <div class="login-card">
     <div class="login-logo">IX TEAM</div>
-    <div class="login-sub">Staff Bonus Claim Access</div>
-    <button id="loginBtn" type="button">🔐 Login with Google</button>
+    <div class="login-sub" id="loginSubText">Staff Bonus Claim Access</div>
+    <div class="login-lang-box">
+      <label id="loginLangLabel">Language</label>
+      <select id="loginUserLangSelect">
+        <option value="id">Indonesia</option>
+        <option value="zh">繁體中文</option>
+      </select>
+    </div>
+    <div style="margin-top:14px;text-align:left;">
+      <label id="loginEmailLabel" style="font-weight:900;color:#475569;font-size:12px;letter-spacing:.08em;text-transform:uppercase;">Gmail Invite</label>
+      <input id="loginEmail" type="email" autocomplete="email" placeholder="nama@gmail.com" style="width:100%;margin-top:8px;padding:13px 14px;border:1px solid #dbe3ef;border-radius:14px;font-weight:800;color:#0f172a;background:#fff;box-sizing:border-box;">
+    </div>
+    <button id="loginBtn" type="button">🔐 Masuk / Register</button>
     <div id="loginStatus"></div>
 
     <div id="registerCard" class="register-card">
-      <div style="font-weight:1000;color:#0f172a;font-size:18px;">Register User Access</div>
-      <div class="register-note">
+      <div id="registerTitle" style="font-weight:1000;color:#0f172a;font-size:18px;">Register User Access</div>
+      <div class="register-note" id="registerNote">
         Gmail kamu belum aktif. Isi data berikut, lalu tunggu Owner approve akses.
       </div>
       <div class="register-grid">
         <div>
-          <label>Staff Name</label>
+          <label id="regStaffNameLabel">Staff Name</label>
           <input id="regStaffName" placeholder="Contoh: LEO">
         </div>
         <div>
-          <label>Staff ID</label>
+          <label id="regStaffIdLabel">Staff ID</label>
           <input id="regStaffId" placeholder="Contoh: IX001">
         </div>
         <div>
-          <label>Posisi</label>
+          <label id="regPosisiLabel">Posisi</label>
           <select id="regPosisi">
-            <option value="">Pilih Posisi</option>
+            <option id="regPosisiOptEmpty" value="">Pilih Posisi</option>
             <option value="IT">IT</option>
             <option value="MT">MT</option>
             <option value="BZ">BZ</option>
+            <option value="TM">TM</option>
+            <option value="ST">ST</option>
           </select>
         </div>
         <div>
-          <label>Team</label>
-          <input id="regTeam" placeholder="Contoh: L1 / B2 / MT-A">
+          <label id="regTeamLabel">Team</label>
+          <input id="regTeam" placeholder="Contoh: L1 / B2 / MT-A / TM-A / ST-A">
         </div>
       </div>
       <button id="registerUserBtn" type="button" onclick="submitUserRegistration()">Submit Register</button>
@@ -1830,6 +2074,7 @@ body.bonus-mode .history-bonus-nav{
     <div class="menu bonus-nav daily-bonus-nav" data-category="Direct Agent">🤝 Direct Agent</div>
 
     <div class="menu-subgroup-label bonus-nav weekly-nav-title" id="bonusWeeklyGroupLabel">BONUS MINGGUAN</div>
+    <div class="menu bonus-nav weekly-bonus-nav" data-category="VVIP TO Mingguan">💎 VVIP TO Mingguan</div>
     <div class="menu bonus-nav weekly-bonus-nav" data-category="Tiap Hari Bonus Besar">🎯 Tiap Hari Bonus Besar</div>
 
     <div class="menu-subgroup-label bonus-nav history-nav-title" id="bonusHistoryGroupLabel">HISTORY</div>
@@ -1935,6 +2180,11 @@ body.bonus-mode .history-bonus-nav{
               <div id="tipeBonusBox" class="full">
                 <label id="lblTipeBonus">Tipe Bonus</label>
                 <select id="tipeBonus"></select>
+              </div>
+
+              <div id="promoTypeBox" class="full" style="display:none;">
+                <label id="lblPromoType">Jenis Promo</label>
+                <select id="promoType"></select>
               </div>
 
               <div id="parlayBox" style="display:none;">
@@ -2069,11 +2319,12 @@ body.bonus-mode .history-bonus-nav{
           <div class="history-top">
             <div>
               <h2 id="historyTitle">CLAIM HISTORY</h2>
-              <div class="subtitle" id="historySubtitle" style="margin-bottom:0;">Default tampil hari ini. Semua bonus bisa pakai Comment.</div>
+              <div class="subtitle" id="historySubtitle" style="margin-bottom:0;">Default tampil hari ini + kemarin. Semua bonus bisa pakai Comment.</div>
             </div>
 
             <div class="filters">
               <select id="historyMode">
+                <option value="todayYesterday" id="historyOptTodayYesterday">Today + Yesterday</option>
                 <option value="today" id="historyOptToday">Today</option>
                 <option value="yesterday" id="historyOptYesterday">Yesterday</option>
                 <option value="all" id="historyOptAll">All History</option>
@@ -2180,16 +2431,29 @@ let bonusCommentSendToken = 0;
 let bonusCommentLocalReadRows = {};
 const BONUS_COMMENT_LOCAL_READ_TTL_MS = 15000;
 let userLang = localStorage.getItem("ixUserLang") || "id";
+let registerPreviewMode = false;
 let userViewMode = localStorage.getItem("ixUserViewMode") || "comfortable";
 let historyCurrentPage = 1;
 let historyPageSize = 10;
 let historyFilteredData = [];
 
+let userAuthToken = localStorage.getItem("ixUserAuthToken") || "";
+
 let userAutoRefreshTimer = null;
+let userAccessWatchTimer = null;
+let userAccessWatchInFlight = false;
 let lastUserUnreadTotal = 0;
 let lastUserHistorySnapshot = {};
 let userHistoryInitialized = false;
 let manualHistoryRefreshActive = false;
+let userHistoryRequestInFlight = false;
+let lastUserHistoryRequestAt = 0;
+let lastUserClaimVersion = "";
+let lastUserClaimFilterKey = "";
+const USER_HISTORY_AUTO_REFRESH_MS = 20000;
+const USER_HISTORY_MIN_REQUEST_GAP_MS = 5000;
+const USER_HISTORY_DEFAULT_ROWS = 3000;
+const USER_HISTORY_ALL_ROWS = 15000;
 
 let notifyAudioCtx = null;
 let notifySoundUnlocked = false;
@@ -2339,6 +2603,20 @@ const VVIP_DEPO_OPTIONS = [
   ["VVIP-BONUS-777", 777]
 ];
 
+const VVIP_TO_MINGGUAN_PROMO_OPTIONS = [
+  "優惠3-流水-Promo TO",
+  "優惠1-存款-Promo DEPO",
+  "優惠2-投注5000- Promo BET5000"
+];
+
+const VVIP_TO_MINGGUAN_OPTIONS = [
+  ["VVIP BONUS-77", 77],
+  ["VVIP BONUS-177", 177],
+  ["VVIP BONUS-277", 277],
+  ["VVIP BONUS-477", 477],
+  ["VVIP BONUS-1077", 1077]
+];
+
 const VVIP_SPECIAL_OPTIONS = [
   ["VVIP BONUS-77", 77],
   ["SUPER VIP SPECIAL 1688", 1688],
@@ -2437,13 +2715,14 @@ const USER_I18N = {
     uploadHint:"File akan otomatis tersimpan ke folder AI TAMPUNG FOTO.", driveBackup:"Google Drive Link Backup", remarks:"Remarks",
     submitClaim:"Submit Claim", internalNotes:"⚡ Internal Notes",
     internalContent:"• Pastikan data claim valid<br>• Status claim mengikuti admin<br>• StatusHQ akan ikut data dari file sumber<br>• Jika ada revisi, gunakan tombol Comment di Claim History",
-    historyTitle:"CLAIM HISTORY", historySubtitle:"Default tampil hari ini. Semua bonus bisa pakai Comment.",
-    today:"Today", yesterday:"Yesterday", allHistory:"All History", customDate:"Custom Date", filter:"Refresh Status", refreshing:"Refreshing...", refreshStatusInfo:"Checking latest StatusHQ...", updatedAt:"Updated", refreshFailed:"Refresh failed", searchPlaceholder:"Cari slip / member / status...",
+    historyTitle:"CLAIM HISTORY", historySubtitle:"Default tampil hari ini + kemarin. Semua bonus bisa pakai Comment.",
+    todayYesterday:"Today + Yesterday", today:"Today", yesterday:"Yesterday", allHistory:"All History", customDate:"Custom Date", filter:"Refresh Status", refreshing:"Refreshing...", refreshStatusInfo:"Checking latest StatusHQ...", updatedAt:"Updated", refreshFailed:"Refresh failed", searchPlaceholder:"Cari slip / member / status...",
     timestamp:"Timestamp", category:"Category", staff:"Staff", member:"Member", bonus:"Bonus", nominal:"Nominal", slip:"Slip", status:"Status", drive:"Drive", userRemarks:"User Remarks", adminRemarks:"Admin Remarks", comment:"Comment",
     showing:"Showing", of:"of", previous:"Previous", next:"Next", page:"page", pageLabel:"Page", noData:"Tidak ada data",
     bonusComment:"Bonus Comment", close:"Close", commentPlaceholder:"Tulis comment tambahan...", uploadOptional:"📎 Upload Optional", sendComment:"Send Comment", chooseBonus:"Pilih Bonus",
     uploadAccessTitle:"🔐 Cek Akses Upload", uploadAccessDesc:"Klik test sebelum submit bonus yang memakai foto.", checkUploadAccess:"Cek Akses Upload", checkingUploadAccess:"Checking upload access...", uploadAccessReady:"Upload access ready.", uploadAccessFail:"Upload access belum siap",
-    formSubtitle:"Isi data {category} lalu submit ke database."
+    formSubtitle:"Isi data {category} lalu submit ke database.",
+    loginSub:"Staff Bonus Claim Access", loginGoogle:"🔐 Masuk / Register", checkingGoogle:"Checking...", validatingGoogle:"Mengecek email invite...", checkAgain:"🔐 Check Again", unregistered:"Gmail sudah di-invite. Lengkapi register dulu.", inactiveAccess:"Akses kamu belum aktif.", pendingAccessPrefix:"Status akses: ", pendingAccessSuffix:"<br>Silakan tunggu Owner approve / ON-kan akses kamu.", registerTitle:"Register User Access", registerNote:"Gmail kamu belum aktif. Isi data berikut, lalu tunggu Owner approve akses.", registerStaffName:"Staff Name", registerStaffNamePh:"Contoh: LEO", registerStaffId:"Staff ID", registerStaffIdPh:"Contoh: IX001", registerPosisi:"Posisi", registerChoosePosisi:"Pilih Posisi", registerTeam:"Team", registerTeamPh:"Contoh: L1 / B2 / MT-A / TM-A / ST-A", submitRegister:"Submit Register", submittingRegister:"Submitting...", savingRegister:"Menyimpan register...", registerRequired:"Staff Name, Staff ID, Posisi, dan Team wajib diisi.", registerSuccess:"Register berhasil. Jika Gmail kamu sudah di-invite Owner, akses langsung aktif.", registerPreviewStatus:"Preview tampilan register user baru. Ini hanya simulasi; data tidak akan disubmit.", registerPreviewButton:"Preview Only - Submit Disabled"
   },
   zh:{
     language:"語言", viewMode:"顯示模式", viewCompact:"緊湊", viewComfortable:"舒適", viewLarge:"大字", internalSystem:"內部系統", home:"首頁", bonusGroup:"禮金申請", claimHistory:"申請紀錄", homeKicker:"IX TEAM 用戶入口", homeTitle:"選擇項目", homeSubtitle:"請選擇要使用的功能。", projectBonusTitle:"禮金申請", projectBonusDesc:"提交禮金、查看狀態，並與管理員溝通。", projectBonusBtn:"進入禮金申請", projectWeeklyTitle:"每週禮金", projectWeeklyDesc:"每週禮金首頁已啟用，表單細節之後設定。", projectWeeklyBtn:"進入每週禮金", projectDeviceTitle:"設備回報", projectDeviceDesc:"設備相關項目之後會再加入。", project4Title:"項目 4", project4Desc:"其他項目仍在準備中。", project5Title:"項目 5", project5Desc:"下一個項目仍在準備中。", weeklyHomeTitle:"每週禮金", weeklyHomeSub:"每週禮金首頁已啟用。<br>表單、分類與紀錄之後再設定。", comingSoon:"即將開放",
@@ -2453,13 +2732,14 @@ const USER_I18N = {
     uploadHint:"檔案會自動儲存至 AI TAMPUNG FOTO 資料夾。", driveBackup:"Google Drive 備用連結", remarks:"備註",
     submitClaim:"提交申請", internalNotes:"⚡ 內部提醒",
     internalContent:"• 請確認申請資料正確<br>• 申請狀態以管理員處理為準<br>• StatusHQ 會同步來源檔案資料<br>• 如需補充或修改，請使用申請紀錄中的留言功能",
-    historyTitle:"申請紀錄", historySubtitle:"預設顯示今日資料，所有禮金都可以使用留言功能。",
-    today:"今天", yesterday:"昨天", allHistory:"全部紀錄", customDate:"自訂日期", filter:"刷新狀態", refreshing:"刷新中...", refreshStatusInfo:"正在檢查最新 StatusHQ...", updatedAt:"已更新", refreshFailed:"刷新失敗", searchPlaceholder:"搜尋注單 / 會員 / 狀態...",
+    historyTitle:"申請紀錄", historySubtitle:"預設顯示今天 + 昨天資料，所有禮金都可以使用留言功能。",
+    todayYesterday:"今天 + 昨天", today:"今天", yesterday:"昨天", allHistory:"全部紀錄", customDate:"自訂日期", filter:"刷新狀態", refreshing:"刷新中...", refreshStatusInfo:"正在檢查最新 StatusHQ...", updatedAt:"已更新", refreshFailed:"刷新失敗", searchPlaceholder:"搜尋注單 / 會員 / 狀態...",
     timestamp:"時間", category:"類型", staff:"人員", member:"會員賬號", bonus:"禮金", nominal:"金額", slip:"注單號", status:"狀態", drive:"附件", userRemarks:"用戶備註", adminRemarks:"管理備註", comment:"留言",
     showing:"顯示", of:"共", previous:"上一頁", next:"下一頁", page:"每頁", pageLabel:"頁數", noData:"沒有資料",
     bonusComment:"禮金留言", close:"關閉", commentPlaceholder:"輸入補充留言...", uploadOptional:"📎 選擇上傳附件", sendComment:"送出留言", chooseBonus:"選擇禮金",
     uploadAccessTitle:"🔐 檢查上傳權限", uploadAccessDesc:"提交需要照片的禮金前，請先點擊測試。", checkUploadAccess:"檢查上傳權限", checkingUploadAccess:"正在檢查上傳權限...", uploadAccessReady:"上傳權限正常。", uploadAccessFail:"上傳權限尚未正常",
-    formSubtitle:"填寫 {category} 申請資料並提交。"
+    formSubtitle:"填寫 {category} 申請資料並提交。",
+    loginSub:"員工禮金申請入口", loginGoogle:"🔐 使用 Google 登入", checkingGoogle:"檢查中...", validatingGoogle:"正在驗證 Google 帳號...", checkAgain:"🔐 重新檢查", unregistered:"Gmail 尚未登記，請先提交註冊資料。", inactiveAccess:"你的權限尚未啟用。", pendingAccessPrefix:"權限狀態：", pendingAccessSuffix:"<br>請等待 Owner 審核 / 開啟權限。", registerTitle:"註冊用戶權限", registerNote:"你的 Gmail 尚未啟用。請填寫以下資料，並等待 Owner 審核權限。", registerStaffName:"員工名稱", registerStaffNamePh:"例：LEO", registerStaffId:"員工 ID", registerStaffIdPh:"例：IX001", registerPosisi:"職位", registerChoosePosisi:"選擇職位", registerTeam:"Team / 組別", registerTeamPh:"例：L1 / B2 / MT-A / TM-A / ST-A", submitRegister:"提交註冊", submittingRegister:"提交中...", savingRegister:"正在儲存註冊資料...", registerRequired:"員工名稱、員工 ID、職位、Team / 組別皆為必填。", registerSuccess:"註冊成功。如果 Gmail 已由 Owner 邀請，權限會立即啟用。", registerPreviewStatus:"新用戶註冊畫面預覽。這只是模擬，不會送出資料。", registerPreviewButton:"預覽模式 - 禁止提交"
   }
 };
 
@@ -2494,6 +2774,7 @@ function getUserCategoryIcon(category){
     "Promo Syukuran":"🎉",
     "Transfer Agen":"🔁",
     "VVIP DEPO":"💎",
+    "VVIP TO Mingguan":"💎",
     "VVIP Special Prize":"🏅",
     "Lucky Money 88":"🍀",
     "Tiap Hari Bonus Besar":"🎯",
@@ -2510,6 +2791,7 @@ function getUserCategoryLabel(category){
     "Promo Syukuran":"Promo Syukuran",
     "Transfer Agen":"Transfer Agen",
     "VVIP DEPO":"VVIP DEPO",
+    "VVIP TO Mingguan":"VVIP TO Mingguan",
     "VVIP Special Prize":"VVIP Special Prize",
     "Lucky Money 88":"Lucky Money 88",
     "Tiap Hari Bonus Besar":"Tiap Hari Bonus Besar",
@@ -2523,6 +2805,7 @@ function getUserCategoryLabel(category){
     "Promo Syukuran":"感恩禮金",
     "Transfer Agen":"轉線- Transfer Agen",
     "VVIP DEPO":"VVIP-當日存款",
+    "VVIP TO Mingguan":"VVIP-每周流水",
     "VVIP Special Prize":"VVIP-特別獎",
     "Lucky Money 88":"新升銅禮金Lucky money",
     "Tiap Hari Bonus Besar":"(新)天天拿大獎",
@@ -2581,7 +2864,27 @@ function setUserViewMode(mode){
 function applyUserLanguage(){
   const select = document.getElementById("userLangSelect");
   if(select) select.value = userLang;
+  const loginSelect = document.getElementById("loginUserLangSelect");
+  if(loginSelect) loginSelect.value = userLang;
 
+
+  setText("loginSubText", u("loginSub"));
+  setText("loginLangLabel", u("language"));
+  const loginBtnEl = document.getElementById("loginBtn");
+  if(loginBtnEl && !loginBtnEl.disabled) loginBtnEl.innerHTML = u("loginGoogle");
+  setText("registerTitle", u("registerTitle"));
+  setText("registerNote", u("registerNote"));
+  setText("regStaffNameLabel", u("registerStaffName"));
+  setPlaceholder("regStaffName", u("registerStaffNamePh"));
+  setText("regStaffIdLabel", u("registerStaffId"));
+  setPlaceholder("regStaffId", u("registerStaffIdPh"));
+  setText("regPosisiLabel", u("registerPosisi"));
+  setText("regPosisiOptEmpty", u("registerChoosePosisi"));
+  setText("regTeamLabel", u("registerTeam"));
+  setPlaceholder("regTeam", u("registerTeamPh"));
+  const registerBtnEl = document.getElementById("registerUserBtn");
+  if(registerBtnEl && !registerBtnEl.disabled) registerBtnEl.innerHTML = u("submitRegister");
+  applyRegisterPreviewUi_();
 
   setText("menuHomeText", u("home"));
   setText("bonusGroupLabel", u("bonusGroup"));
@@ -2628,6 +2931,7 @@ function applyUserLanguage(){
   setText("lblJumlahPengenalan", userLang === "zh" ? "介紹人數" : "Jumlah Pengenalan");
   setText("jumlahPengenalanHint", userLang === "zh" ? "必選，會寫入 HQ 介紹人數欄位。" : "Wajib dipilih, akan dikirim ke HQ kolom Jumlah Pengenalan.");
   setText("lblTipeBonus", u("tipeBonus"));
+  setText("lblPromoType", userLang === "zh" ? "優惠類型" : "Jenis Promo");
   setText("lblParlay", userLang === "zh" ? "串關" : "Parlay");
   setText("lblNominalBonus", u("nominalBonus"));
   setText("lblNominalIn", userLang === "zh" ? "總 IN" : "TOTAL IN");
@@ -2649,6 +2953,7 @@ function applyUserLanguage(){
 
   setText("historyTitle", u("historyTitle"));
   setText("historySubtitle", u("historySubtitle"));
+  setText("historyOptTodayYesterday", u("todayYesterday"));
   setText("historyOptToday", u("today"));
   setText("historyOptYesterday", u("yesterday"));
   setText("historyOptAll", u("allHistory"));
@@ -2822,6 +3127,7 @@ window.addEventListener("load", function(){
   document.getElementById("historyFrom").value = today;
   document.getElementById("historyTo").value = today;
 
+  restoreUserInviteEmail_();
   document.getElementById("loginBtn").addEventListener("click", loginWithGoogle);
   document.getElementById("submitBtn").addEventListener("click", submitData);
   document.getElementById("uploadAccessBtn").addEventListener("click", checkUploadAccess);
@@ -2834,6 +3140,8 @@ window.addEventListener("load", function(){
   document.getElementById("bcCloseBtn").addEventListener("click", closeBonusCommentModal);
   document.getElementById("bcFile").addEventListener("change", showBonusCommentFileName);
   document.getElementById("bcSendBtn").addEventListener("click", sendBonusComment);
+  const loginLangSelect = document.getElementById("loginUserLangSelect");
+  if(loginLangSelect) loginLangSelect.addEventListener("change", function(){ setUserLang(this.value); });
   document.getElementById("userLangSelect").addEventListener("change", function(){ setUserLang(this.value); });
   document.getElementById("userViewSelect").addEventListener("change", function(){ setUserViewMode(this.value); });
   document.getElementById("historyPrevBtn").addEventListener("click", function(){ changeHistoryPage(-1); });
@@ -2872,6 +3180,7 @@ window.addEventListener("load", function(){
 
   enterHomePortalMode();
   applyUserLanguage();
+  initRegisterPreviewMode_();
   renderBonusForm();
   initUppercaseFields_();
   initKodeAgenAutocomplete_();
@@ -2879,6 +3188,92 @@ window.addEventListener("load", function(){
   updateNotifySoundStatus();
 });
 
+
+
+function getUserAuthToken_(){
+  return String(userAuthToken || localStorage.getItem("ixUserAuthToken") || "").trim();
+}
+
+function setUserAuthToken_(token){
+  userAuthToken = String(token || "").trim();
+  if(userAuthToken) localStorage.setItem("ixUserAuthToken", userAuthToken);
+}
+
+function clearUserAuthToken_(){
+  userAuthToken = "";
+  localStorage.removeItem("ixUserAuthToken");
+}
+
+function getUserInviteEmail_(){
+  const el = document.getElementById("loginEmail");
+  return String((el && el.value) || localStorage.getItem("ixUserInviteEmail") || "").trim().toLowerCase();
+}
+
+function restoreUserInviteEmail_(){
+  const el = document.getElementById("loginEmail");
+  if(el && !el.value) el.value = localStorage.getItem("ixUserInviteEmail") || "";
+}
+
+function initUserGoogleIdentity_(){
+  return false;
+}
+
+function runUserAccessResponse_(user){
+  const btn = document.getElementById("loginBtn");
+  const status = document.getElementById("loginStatus");
+  const registerCard = document.getElementById("registerCard");
+  const pendingBox = document.getElementById("accessPendingBox");
+
+  user = user || {};
+  currentUser = user;
+  if(user.authToken) setUserAuthToken_(user.authToken);
+
+  if(user.systemSetupError){
+    status.style.color = "#dc2626";
+    status.innerHTML = esc(user.message || "Sistem belum bisa membaca database. Hubungi Owner untuk cek deployment dan akses file.");
+    btn.disabled = false;
+    btn.innerHTML = u("checkAgain");
+    return;
+  }
+
+  if(user.accessDenied){
+    status.style.color = "#dc2626";
+    status.innerHTML = esc(user.message || "Gmail ini belum di-invite Owner.");
+    btn.disabled = false;
+    btn.innerHTML = u("checkAgain");
+    return;
+  }
+
+  if(user.needsRegistration){
+    status.style.color = "#d97706";
+    status.innerHTML = u("unregistered");
+    if(registerCard) registerCard.style.display = "block";
+    btn.disabled = false;
+    btn.innerHTML = u("checkAgain");
+    return;
+  }
+
+  if(user.needsApproval || user.ok === false || user.active === false){
+    status.style.color = "#d97706";
+    status.innerHTML = u("inactiveAccess");
+    if(pendingBox){
+      pendingBox.style.display = "block";
+      pendingBox.innerHTML = u("pendingAccessPrefix") + esc(user.accessStatus || "PENDING") + u("pendingAccessSuffix");
+    }
+    btn.disabled = false;
+    btn.innerHTML = u("checkAgain");
+    return;
+  }
+
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("appLayout").style.display = "flex";
+  document.getElementById("profileName").innerHTML = esc(user.staffName || user.googleName || "Staff");
+  document.getElementById("profileEmail").innerHTML = esc(user.email);
+
+  loadHistory(false);
+  startUserAutoRefresh();
+  startUserAccessWatcher_();
+}
 
 
 function enterHomePortalMode(){
@@ -2893,6 +3288,58 @@ function showProjectComingSoon(){
   alert(userLang === "zh" ? "此項目尚未開放。" : "Project ini belum bisa diakses.");
 }
 
+function applyRegisterPreviewUi_(){
+  if(!registerPreviewMode) return;
+  const registerCard = document.getElementById("registerCard");
+  const status = document.getElementById("loginStatus");
+  const btn = document.getElementById("registerUserBtn");
+
+  if(registerCard) registerCard.style.display = "block";
+  if(status){
+    status.style.color = "#2563eb";
+    status.innerHTML = u("registerPreviewStatus");
+  }
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = u("registerPreviewButton");
+    btn.title = u("registerPreviewStatus");
+  }
+}
+
+function enableRegisterPreviewMode_(){
+  registerPreviewMode = true;
+  const loginPage = document.getElementById("loginPage");
+  const appLayout = document.getElementById("appLayout");
+  const pendingBox = document.getElementById("accessPendingBox");
+
+  if(loginPage) loginPage.style.display = "flex";
+  if(appLayout) appLayout.style.display = "none";
+  if(pendingBox) pendingBox.style.display = "none";
+
+  applyRegisterPreviewUi_();
+}
+
+function initRegisterPreviewMode_(){
+  function maybeEnable_(params){
+    params = params || {};
+    const value = String(params.registerPreview || params.previewRegister || params.showRegister || "").toLowerCase();
+    if(value === "1" || value === "true" || value === "yes") enableRegisterPreviewMode_();
+  }
+
+  try{
+    const params = new URLSearchParams(window.location.search || "");
+    maybeEnable_(Object.fromEntries(params.entries()));
+  }catch(e){}
+
+  if(window.google && google.script && google.script.url){
+    try{
+      google.script.url.getLocation(function(location){
+        maybeEnable_((location && location.parameter) || {});
+      });
+    }catch(e){}
+  }
+}
+
 function loginWithGoogle(){
   const btn = document.getElementById("loginBtn");
   const status = document.getElementById("loginStatus");
@@ -2903,54 +3350,50 @@ function loginWithGoogle(){
   if(pendingBox) pendingBox.style.display = "none";
 
   btn.disabled = true;
-  btn.innerHTML = "Checking...";
+  btn.innerHTML = u("checkingGoogle");
   status.style.color = "#2563eb";
-  status.innerHTML = "Validating Google account...";
+  status.innerHTML = u("validatingGoogle");
 
+  const existingToken = getUserAuthToken_();
+  if(existingToken){
+    google.script.run
+      .withSuccessHandler(runUserAccessResponse_)
+      .withFailureHandler(function(){
+        clearUserAuthToken_();
+        loginWithGoogle();
+      })
+      .getCurrentUser(existingToken);
+    return;
+  }
+
+  const email = getUserInviteEmail_();
+  if(!email || email.indexOf("@") < 1){
+    status.style.color = "#dc2626";
+    status.innerHTML = "Isi Gmail yang sudah di-invite Owner dulu.";
+    btn.disabled = false;
+    btn.innerHTML = u("loginGoogle");
+    return;
+  }
+
+  localStorage.setItem("ixUserInviteEmail", email);
   google.script.run
-    .withSuccessHandler(function(user){
-      user = user || {};
-      currentUser = user;
-
-      if(user.needsRegistration){
-        status.style.color = "#d97706";
-        status.innerHTML = "Gmail belum terdaftar. Silakan register dulu.";
-        if(registerCard) registerCard.style.display = "block";
-        btn.disabled = false;
-        btn.innerHTML = "🔐 Check Again";
-        return;
-      }
-
-      if(user.needsApproval || user.ok === false || user.active === false){
-        status.style.color = "#d97706";
-        status.innerHTML = "Akses kamu belum aktif.";
-        if(pendingBox){
-          pendingBox.style.display = "block";
-          pendingBox.innerHTML = "Status akses: " + esc(user.accessStatus || "PENDING") + "<br>Silakan tunggu Owner approve / ON-kan akses kamu.";
-        }
-        btn.disabled = false;
-        btn.innerHTML = "🔐 Check Again";
-        return;
-      }
-
-      document.getElementById("loginPage").style.display = "none";
-      document.getElementById("appLayout").style.display = "flex";
-      document.getElementById("profileName").innerHTML = esc(user.staffName || "Staff");
-      document.getElementById("profileEmail").innerHTML = esc(user.email);
-
-      loadHistory(false);
-      startUserAutoRefresh();
-    })
+    .withSuccessHandler(runUserAccessResponse_)
     .withFailureHandler(function(err){
+      clearUserAuthToken_();
       status.style.color = "#dc2626";
-      status.innerHTML = "Error: " + esc(err.message);
+      status.innerHTML = "Error: " + esc(getFriendlyUserError_(err));
       btn.disabled = false;
-      btn.innerHTML = "🔐 Login with Google";
+      btn.innerHTML = u("loginGoogle");
     })
-    .getCurrentUser();
+    .loginWithInviteEmail(email, "user");
 }
 
 function submitUserRegistration(){
+  if(registerPreviewMode){
+    applyRegisterPreviewUi_();
+    return;
+  }
+
   const btn = document.getElementById("registerUserBtn");
   const st = document.getElementById("registerStatus");
 
@@ -2958,34 +3401,36 @@ function submitUserRegistration(){
     staffName: (document.getElementById("regStaffName") || {}).value || "",
     staffId: (document.getElementById("regStaffId") || {}).value || "",
     posisi: (document.getElementById("regPosisi") || {}).value || "",
-    team: (document.getElementById("regTeam") || {}).value || ""
+    team: (document.getElementById("regTeam") || {}).value || "",
+    email: getUserInviteEmail_(),
+    authToken: getUserAuthToken_()
   };
 
   if(!payload.staffName || !payload.staffId || !payload.posisi || !payload.team){
     st.style.color = "#dc2626";
-    st.innerHTML = "Staff Name, Staff ID, Posisi, dan Team wajib diisi.";
+    st.innerHTML = u("registerRequired");
     return;
   }
 
   btn.disabled = true;
-  btn.innerHTML = "Submitting...";
+  btn.innerHTML = u("submittingRegister");
   st.style.color = "#2563eb";
-  st.innerHTML = "Menyimpan register...";
+  st.innerHTML = u("savingRegister");
 
   google.script.run
     .withSuccessHandler(function(res){
       res = res || {};
       st.style.color = "#16a34a";
-      st.innerHTML = esc(res.message || "Register berhasil. Tunggu Owner approve.");
+      st.innerHTML = esc(userLang === "zh" ? u("registerSuccess") : (res.message || u("registerSuccess")));
       btn.disabled = false;
-      btn.innerHTML = "Submit Register";
+      btn.innerHTML = u("submitRegister");
       loginWithGoogle();
     })
     .withFailureHandler(function(err){
       st.style.color = "#dc2626";
       st.innerHTML = "Error: " + esc(err && err.message ? err.message : err);
       btn.disabled = false;
-      btn.innerHTML = "Submit Register";
+      btn.innerHTML = u("submitRegister");
     })
     .registerUserStaffAccess(payload);
 }
@@ -3036,6 +3481,7 @@ function renderBonusForm(){
   if(currentCategory === "Welcome Bonus") options = WELCOME_OPTIONS;
   if(currentCategory === "Promo Syukuran") options = PROMO_SYUKURAN_OPTIONS;
   if(currentCategory === "VVIP DEPO") options = VVIP_DEPO_OPTIONS;
+  if(currentCategory === "VVIP TO Mingguan") options = VVIP_TO_MINGGUAN_OPTIONS;
   if(currentCategory === "VVIP Special Prize") options = VVIP_SPECIAL_OPTIONS;
   if(currentCategory === "Lucky Money 88") options = LUCKY_MONEY_OPTIONS;
   if(currentCategory === "Tiap Hari Bonus Besar") options = TIAP_HARI_OPTIONS;
@@ -3049,7 +3495,7 @@ function renderBonusForm(){
     select.appendChild(opt);
   });
 
-  ["nominalBonus","nominalIn","nomorSlip","nominalBetting","kodeAgen","driveLink","remarks","tanggalIn","nicknameMb","akunDiajak","jumlahPengenalan","helloFixedType","parlay"].forEach(id=>{
+  ["nominalBonus","nominalIn","nomorSlip","nominalBetting","kodeAgen","driveLink","remarks","tanggalIn","nicknameMb","akunDiajak","jumlahPengenalan","helloFixedType","parlay","promoType"].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value = "";
   });
@@ -3060,7 +3506,7 @@ function renderBonusForm(){
 
   document.getElementById("status").innerHTML = "";
 
-  ["nicknameBox","tipeBonusBox","parlayBox","nominalBonusBox","nominalInBox","nominalBettingBox","slipBox","tipeGameBox","kodeAgenBox","tipeBonusUtamaBox","helloFixedTypeBox","akunDiajakBox","jumlahPengenalanBox","tanggalInBox","uploadBox","driveBox","remarksBox"].forEach(id=>{
+  ["nicknameBox","tipeBonusBox","promoTypeBox","parlayBox","nominalBonusBox","nominalInBox","nominalBettingBox","slipBox","tipeGameBox","kodeAgenBox","tipeBonusUtamaBox","helloFixedTypeBox","akunDiajakBox","jumlahPengenalanBox","tanggalInBox","uploadBox","driveBox","remarksBox"].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.style.display = "none";
   });
@@ -3187,6 +3633,31 @@ function renderBonusForm(){
     `;
   }
 
+  if(currentCategory === "VVIP TO Mingguan"){
+    document.getElementById("formTitle").innerHTML = "VVIP TO MINGGUAN CLAIM";
+    document.getElementById("formSubtitle").innerHTML = "Bonus Mingguan • Isi data VVIP TO Mingguan lalu submit ke database.";
+    document.getElementById("promoTypeBox").style.display = "block";
+    document.getElementById("nominalBettingBox").style.display = "block";
+    document.getElementById("remarksBox").style.display = "none";
+
+    const promoSelect = document.getElementById("promoType");
+    promoSelect.innerHTML = `<option value="">${esc(userLang === "zh" ? "選擇優惠類型" : "Pilih Jenis Promo")}</option>`;
+    VVIP_TO_MINGGUAN_PROMO_OPTIONS.forEach(function(item){
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      promoSelect.appendChild(opt);
+    });
+
+    document.getElementById("noteTitle").innerHTML = "💎 VVIP TO Mingguan";
+    document.getElementById("noteContent").innerHTML = `
+      <div class="note-row">Pilih Jenis Promo dan Tipe Bonus VVIP.</div>
+      <div class="note-row">Taruhan Efektif wajib diisi manual oleh user.</div>
+      <div class="note-row">Nominal Bonus otomatis mengikuti angka belakang tipe bonus: 77 / 177 / 277 / 477 / 1077.</div>
+      <div class="note-row">Admin dapat Submit HQ ke sheet VVIP-每周流水.</div>
+    `;
+  }
+
   if(currentCategory === "Tiap Hari Bonus Besar"){
     document.getElementById("formTitle").innerHTML = "TIAP HARI BONUS BESAR";
     document.getElementById("formSubtitle").innerHTML = "Bonus Mingguan • Isi data Tiap Hari Bonus Besar lalu submit ke database.";
@@ -3261,6 +3732,12 @@ function renderBonusForm(){
   updateKodeAgenAutocompleteMode_();
   document.getElementById("formSubtitle").innerHTML = esc(u("formSubtitle").replace("{category}", getUserCategoryLabel(currentCategory)));
   applyUserLanguage();
+
+  if(currentCategory === "VVIP TO Mingguan"){
+    setText("lblPromoType", userLang === "zh" ? "優惠類型" : "Jenis Promo");
+    setText("lblNominalBetting", userLang === "zh" ? "有效投注" : "Taruhan Efektif");
+    setPlaceholder("nominalBetting", userLang === "zh" ? "例如：5000" : "Contoh: 5000");
+  }
 
   if(currentCategory === "Hello Friends"){
     setText("lblAkunMember", userLang === "zh" ? "介紹人會員賬號" : "Akun MB Pengenal");
@@ -3393,7 +3870,7 @@ function checkUploadAccess(){
       btn.disabled = false;
       btn.innerHTML = esc(u("checkUploadAccess"));
     })
-    .testUploadAccess();
+    .testUploadAccess(getUserAuthToken_());
 }
 
 function renderCuSportParlayOptions_(){
@@ -3539,6 +4016,16 @@ function initUppercaseFields_(){
   bindDigitsOnlyInput_("nominalIn");
 }
 
+function createClientRequestId_(){
+  try{
+    const arr = new Uint32Array(4);
+    window.crypto.getRandomValues(arr);
+    return Array.from(arr).map(x => x.toString(16)).join("") + "-" + Date.now();
+  }catch(e){
+    return String(Date.now()) + "-" + Math.random().toString(16).slice(2);
+  }
+}
+
 function applyUppercaseBeforeSubmit_(){
   ["akunMember", "kodeAgen", "nomorSlip", "akunDiajak"].forEach(function(id){
     const el = document.getElementById(id);
@@ -3582,6 +4069,7 @@ async function submitData(){
     bonusCategory: finalBonusCategory,
     akunMember: normalizeUpperText_(document.getElementById("akunMember").value),
     tipeBonus: document.getElementById("tipeBonus").value,
+    promoType: document.getElementById("promoType") ? document.getElementById("promoType").value : "",
     parlay: document.getElementById("parlay") ? document.getElementById("parlay").value : "",
     nominalBonus: document.getElementById("nominalBonus").value,
     nominalIn: document.getElementById("nominalIn") ? onlyDigits_(document.getElementById("nominalIn").value) : "",
@@ -3596,7 +4084,8 @@ async function submitData(){
     extraRemarks: helloExtraRemarks,
     remarks: remarksValue,
     driveLink: document.getElementById("driveLink").value.trim(),
-    uploadFiles: []
+    uploadFiles: [],
+    requestId: createClientRequestId_()
   };
 
   if(currentCategory === "VVIP Special Prize"){
@@ -3622,6 +4111,18 @@ async function submitData(){
   if(currentCategory !== "Transfer Agen" && currentCategory !== "VVIP Special Prize" && currentCategory !== "Direct Agent" && !data.tipeBonus){
     status.style.color = "#dc2626";
     status.innerHTML = "Mohon pilih Tipe Bonus.";
+    return;
+  }
+
+  if(currentCategory === "VVIP TO Mingguan" && !data.promoType){
+    status.style.color = "#dc2626";
+    status.innerHTML = "VVIP TO Mingguan wajib pilih Jenis Promo.";
+    return;
+  }
+
+  if(currentCategory === "VVIP TO Mingguan" && !String(data.nominalBetting || "").replace(/\D+/g, "")){
+    status.style.color = "#dc2626";
+    status.innerHTML = "VVIP TO Mingguan wajib isi Taruhan Efektif angka saja.";
     return;
   }
 
@@ -3746,12 +4247,13 @@ async function submitData(){
     return;
   }
 
+  data.authToken = getUserAuthToken_();
   status.innerHTML = "Saving data...";
 
   google.script.run
     .withSuccessHandler(function(res){
       status.style.color = "#16a34a";
-      status.innerHTML = "✅ " + esc(res);
+      status.innerHTML = "✅ " + esc((res && res.message) ? res.message : res);
 
       if(!document.getElementById("lockStaff").checked) document.getElementById("staffName").value = "";
       if(!document.getElementById("lockMember").checked) document.getElementById("akunMember").value = "";
@@ -3767,7 +4269,7 @@ async function submitData(){
     })
     .withFailureHandler(function(err){
       status.style.color = "#dc2626";
-      status.innerHTML = "Error: " + esc(err.message);
+      status.innerHTML = "Error: " + esc(getFriendlyUserError_(err));
       isSubmitting = false;
       setButtonError_(btn, "Error", 1400);
     })
@@ -3780,6 +4282,11 @@ function changeHistoryMode(){
 
   document.getElementById("historyFrom").style.display = mode === "custom" ? "block" : "none";
   document.getElementById("historyTo").style.display = mode === "custom" ? "block" : "none";
+
+  if(mode === "todayYesterday"){
+    document.getElementById("historyFrom").value = getDateByOffset(-1);
+    document.getElementById("historyTo").value = getDateByOffset(0);
+  }
 
   if(mode === "today"){
     document.getElementById("historyFrom").value = getDateByOffset(0);
@@ -3831,8 +4338,32 @@ function refreshHistoryManual(){
 function loadHistory(isAuto){
   if(!currentUser) return;
 
+  const now = Date.now();
+  if(userHistoryRequestInFlight){
+    if(manualHistoryRefreshActive){
+      setHistoryRefreshLoading(false, userLang === "zh" ? "正在更新，請稍候..." : "Refresh sedang berjalan, tunggu sebentar...", "ok");
+      manualHistoryRefreshActive = false;
+    }
+    return;
+  }
+
+  if(isAuto === true && now - lastUserHistoryRequestAt < USER_HISTORY_MIN_REQUEST_GAP_MS){
+    return;
+  }
+
   const mode = document.getElementById("historyMode").value;
-  const filter = { loginEmail: currentUser.email, todayOnly: mode === "today", forceUserOnly: true };
+  const filter = {
+    loginEmail: currentUser.email,
+    todayOnly: mode === "today",
+    forceUserOnly: true,
+    maxRows: (mode === "todayYesterday" || mode === "today" || mode === "yesterday") ? USER_HISTORY_DEFAULT_ROWS : USER_HISTORY_ALL_ROWS
+  };
+
+  if(mode === "todayYesterday"){
+    filter.todayOnly = false;
+    filter.dateFrom = getDateByOffset(-1);
+    filter.dateTo = getDateByOffset(0);
+  }
 
   if(mode === "yesterday"){
     filter.todayOnly = false;
@@ -3850,33 +4381,62 @@ function loadHistory(isAuto){
     filter.todayOnly = false;
   }
 
-  google.script.run
-    .withSuccessHandler(function(unreadMap){
-      const prevUnread = lastUserUnreadTotal;
+  userHistoryRequestInFlight = true;
+  lastUserHistoryRequestAt = now;
+  loadHistoryData_(filter, isAuto);
+}
 
-      bonusCommentUnreadMap = applyBonusCommentLocalReadFilter_(unreadMap || {});
-      lastUserUnreadTotal = getTotalUnread_(bonusCommentUnreadMap);
-      updateUserSidebarUnreadBadge_(lastUserUnreadTotal);
+function getFriendlyUserError_(err){
+  const msg = err && err.message ? String(err.message) : String(err || "");
+  if(/Too many simultaneous invocations|Service invoked too many times|Spreadsheets/i.test(msg)){
+    return userLang === "zh"
+      ? "伺服器正在忙，請幾秒後再試。"
+      : "Server sedang ramai. Coba refresh lagi beberapa detik.";
+  }
+  return msg;
+}
 
-      if(userHistoryInitialized && isAuto === true && lastUserUnreadTotal > prevUnread){
-        showUserToast(userLang === "zh" ? "有新的管理員留言。" : "Ada comment baru dari admin.");
-      }
+function updateUserUnreadFromHistory_(data, isAuto){
+  const prevUnread = lastUserUnreadTotal;
+  const map = {};
 
-      loadHistoryData_(filter, isAuto);
-    })
-    .withFailureHandler(function(){
-      bonusCommentUnreadMap = {};
-      updateUserSidebarUnreadBadge_(0);
-      loadHistoryData_(filter, isAuto);
-    })
-    .getBonusCommentUnreadMapForUserPanel();
+  (data || []).forEach(function(r){
+    const count = Number(r.commentUnread || 0);
+    if(count > 0) map[r.row] = count;
+  });
+
+  bonusCommentUnreadMap = applyBonusCommentLocalReadFilter_(map);
+  lastUserUnreadTotal = getTotalUnread_(bonusCommentUnreadMap);
+  updateUserSidebarUnreadBadge_(lastUserUnreadTotal);
+
+  if(userHistoryInitialized && isAuto === true && lastUserUnreadTotal > prevUnread){
+    showUserToast(userLang === "zh" ? "有新的管理員留言。" : "Ada comment baru dari admin.");
+  }
 }
 
 function loadHistoryData_(filter, isAuto){
+  const filterKey = JSON.stringify(filter || {});
+  const versionForRequest = (isAuto === true && filterKey === lastUserClaimFilterKey) ? lastUserClaimVersion : "";
+  const requestFilter = Object.assign({}, filter || {}, { authToken: getUserAuthToken_() });
+
   google.script.run
-    .withSuccessHandler(function(data){
+    .withSuccessHandler(function(payload){
+      userHistoryRequestInFlight = false;
+
+      lastUserClaimFilterKey = filterKey;
+      if(payload && payload.version) lastUserClaimVersion = payload.version;
+      if(payload && payload.changed === false){
+        if(manualHistoryRefreshActive){
+          manualHistoryRefreshActive = false;
+          setHistoryRefreshLoading(false, u("updatedAt") + ": " + getNowTimeText(), "ok");
+        }
+        return;
+      }
+
+      const data = payload && Array.isArray(payload.rows) ? payload.rows : (Array.isArray(payload) ? payload : []);
       const hasUpdate = detectUserHistoryUpdate_(data);
 
+      updateUserUnreadFromHistory_(data, isAuto);
       historyData = data;
       renderHistory(data, isAuto === true);
 
@@ -3893,12 +4453,83 @@ function loadHistoryData_(filter, isAuto){
       }
     })
     .withFailureHandler(function(err){
+      userHistoryRequestInFlight = false;
       if(manualHistoryRefreshActive){
         manualHistoryRefreshActive = false;
-        setHistoryRefreshLoading(false, u("refreshFailed") + ": " + (err && err.message ? err.message : ""), "err");
+        setHistoryRefreshLoading(false, u("refreshFailed") + ": " + getFriendlyUserError_(err), "err");
       }
     })
-    .getClaimHistory(filter);
+    .getClaimHistoryPayload(requestFilter, versionForRequest);
+}
+
+
+function stopUserAutoRefresh_(){
+  if(userAutoRefreshTimer){
+    clearInterval(userAutoRefreshTimer);
+    userAutoRefreshTimer = null;
+  }
+}
+
+function stopUserAccessWatcher_(){
+  if(userAccessWatchTimer){
+    clearInterval(userAccessWatchTimer);
+    userAccessWatchTimer = null;
+  }
+  userAccessWatchInFlight = false;
+}
+
+function forceUserAccessExit_(info){
+  info = info || {};
+  currentUser = null;
+  stopUserAutoRefresh_();
+  stopUserAccessWatcher_();
+  clearUserAuthToken_();
+
+  const app = document.getElementById("appLayout");
+  const login = document.getElementById("loginPage");
+  const status = document.getElementById("loginStatus");
+  const pendingBox = document.getElementById("pendingBox");
+  const btn = document.getElementById("loginGoogleBtn");
+
+  if(app) app.style.display = "none";
+  if(login) login.style.display = "flex";
+  if(status){
+    status.style.color = "#dc2626";
+    status.innerHTML = esc(info.message || "Akses kamu sudah berubah. Silakan cek ulang / hubungi Owner.");
+  }
+  if(pendingBox){
+    pendingBox.style.display = "block";
+    pendingBox.innerHTML = u("pendingAccessPrefix") + esc(info.accessStatus || info.accountStatus || "LOCKED") + u("pendingAccessSuffix");
+  }
+  if(btn){
+    btn.disabled = false;
+    btn.innerHTML = u("checkAgain");
+  }
+}
+
+function checkUserAccessStillActive_(){
+  const token = getUserAuthToken_();
+  if(!token || !currentUser || userAccessWatchInFlight) return;
+  if(document.hidden) return;
+
+  userAccessWatchInFlight = true;
+  google.script.run
+    .withSuccessHandler(function(info){
+      userAccessWatchInFlight = false;
+      info = info || {};
+      if(info.accessDenied || info.needsRegistration || info.needsApproval || info.ok === false || info.active === false){
+        forceUserAccessExit_(info);
+      }
+    })
+    .withFailureHandler(function(){
+      userAccessWatchInFlight = false;
+    })
+    .getCurrentUser(token);
+}
+
+function startUserAccessWatcher_(){
+  if(userAccessWatchTimer) return;
+  userAccessWatchTimer = setInterval(checkUserAccessStillActive_, 45000);
 }
 
 function startUserAutoRefresh(){
@@ -3906,15 +4537,22 @@ function startUserAutoRefresh(){
 
   userAutoRefreshTimer = setInterval(function(){
     if(!currentUser) return;
+    if(document.hidden) return;
 
     loadHistory(true);
 
     if(activeBonusCommentRow){
       refreshOpenBonusComment();
     }
-  }, 8000);
+  }, USER_HISTORY_AUTO_REFRESH_MS);
 }
 
+
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden && currentUser){
+    loadHistory(true);
+  }
+});
 
 function updateUserSidebarUnreadBadge_(total){
   total = Number(total || 0);
@@ -4206,7 +4844,7 @@ function syncHQ(){
       btn.disabled = false;
       btn.innerHTML = "SyncHQ";
     })
-    .syncBonusReceivedForCurrentUser();
+    .syncBonusReceivedForCurrentUser(getUserAuthToken_());
 }
 
 function renderDriveLinks(r){
@@ -4255,11 +4893,7 @@ function openBonusComment(row, clickedBtn){
       // Simpan local-read supaya badge tidak muncul balik dari response auto-refresh lama.
       markBonusCommentRowReadLocally_(requestedRow);
 
-      setTimeout(function(){
-        if(Number(activeBonusCommentRow) === requestedRow){
-          loadHistory(false);
-        }
-      }, 500);
+      // Hindari reload full history di sini; row sudah ditandai read secara lokal.
     })
     .withFailureHandler(function(err){
       if(requestToken !== bonusCommentRequestToken || Number(activeBonusCommentRow) !== requestedRow) return;
@@ -4267,7 +4901,7 @@ function openBonusComment(row, clickedBtn){
       sub.innerHTML = "";
       list.innerHTML = `<div style="text-align:center;color:#dc2626;font-weight:900;">${esc(err.message)}</div>`;
     })
-    .getBonusCommentCaseForUserPanel(requestedRow);
+    .getBonusCommentCaseForUserPanel(requestedRow, getUserAuthToken_());
 }
 
 function refreshOpenBonusComment(){
@@ -4287,7 +4921,7 @@ function refreshOpenBonusComment(){
       renderBonusCommentModal(data);
       markBonusCommentRowReadLocally_(requestedRow);
     })
-    .getBonusCommentCaseForUserPanel(requestedRow);
+    .getBonusCommentCaseForUserPanel(requestedRow, getUserAuthToken_());
 }
 
 function renderBonusCommentModal(data){
@@ -4484,9 +5118,6 @@ async function sendBonusComment(){
         if(Number(activeBonusCommentRow) === rowToSend){
           btn.disabled = false;
           refreshOpenBonusComment();
-          if(typeof loadHistory === "function"){
-            loadHistory(false);
-          }
         }
       }, 250);
     })
@@ -4500,7 +5131,8 @@ async function sendBonusComment(){
     .addBonusCommentForUserPanel({
       row: rowToSend,
       message: message,
-      uploadFiles: uploadFiles
+      uploadFiles: uploadFiles,
+      authToken: getUserAuthToken_()
     });
 }
 
@@ -4510,6 +5142,178 @@ function closeBonusCommentModal(){
   document.getElementById("bonusCommentOverlay").style.display = "none";
   activeBonusCommentRow = null;
 }
+
+
+/* ===== OWNER RELEASE UPDATE NOTICE ===== */
+(function(){
+  const APP_UPDATE_POLL_MS = 30000;
+  const APP_UPDATE_ACCEPT_KEY = "ixAppUpdateAcceptedVersion";
+  const APP_UPDATE_PENDING_ACCEPT_KEY = "ixAppUpdatePendingAcceptedVersion";
+  const APP_UPDATE_BANNER_ID = "appUpdateNoticeBanner";
+  let appUpdateNoticeStarted_ = false;
+  let appUpdateNotice_ = null;
+  let appUpdateDeadlineMs_ = 0;
+  let appUpdateCountdownTimer_ = null;
+  let appUpdatePollTimer_ = null;
+  let appUpdateActionLocked_ = false;
+
+  function ensureAppUpdateStyles_(){
+    if(document.getElementById("appUpdateNoticeStyle")) return;
+    const style = document.createElement("style");
+    style.id = "appUpdateNoticeStyle";
+    style.textContent = `
+      .app-update-notice{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;width:min(760px,calc(100vw - 28px));background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,64,175,.95));color:#fff;border:1px solid rgba(255,255,255,.24);border-radius:20px;box-shadow:0 24px 70px rgba(15,23,42,.38);padding:14px 16px;display:none;align-items:center;justify-content:space-between;gap:14px;font-family:Inter,Arial,sans-serif;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+      .app-update-notice.show{display:flex;animation:appUpdateRise_.24s ease-out}
+      .app-update-copy{display:flex;flex-direction:column;gap:3px;min-width:0}.app-update-title{font-weight:950;font-size:14px;letter-spacing:.02em}.app-update-msg{font-size:12px;font-weight:700;line-height:1.35;color:rgba(255,255,255,.88)}
+      .app-update-count{font-size:12px;font-weight:950;color:#fde68a;white-space:normal}.app-update-refresh-btn{border:0;border-radius:14px;padding:10px 14px;background:linear-gradient(90deg,#22c55e,#06b6d4);color:#fff;font-weight:950;cursor:pointer;box-shadow:0 12px 26px rgba(6,182,212,.26);white-space:nowrap}.app-update-refresh-btn:hover{transform:translateY(-1px)}
+      body.app-update-action-locked button:not(.app-update-refresh-btn),body.app-update-action-locked input[type="submit"]{filter:grayscale(.8);cursor:not-allowed!important}
+      @keyframes appUpdateRise_{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+      @media(max-width:640px){.app-update-notice{bottom:max(10px,env(safe-area-inset-bottom));align-items:flex-start;flex-direction:column}.app-update-refresh-btn{width:100%}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function ensureAppUpdateBanner_(){
+    ensureAppUpdateStyles_();
+    let banner = document.getElementById(APP_UPDATE_BANNER_ID);
+    if(banner) return banner;
+    banner = document.createElement("div");
+    banner.id = APP_UPDATE_BANNER_ID;
+    banner.className = "app-update-notice";
+    banner.innerHTML = `
+      <div class="app-update-copy">
+        <div class="app-update-title">🚀 Update panel tersedia</div>
+        <div class="app-update-msg" id="appUpdateNoticeMessage">Selesaikan pekerjaan yang sedang berjalan lalu klik Update.</div>
+        <div class="app-update-count" id="appUpdateNoticeCountdown">Menyiapkan update...</div>
+      </div>
+      <button type="button" class="app-update-refresh-btn" id="appUpdateRefreshBtn">Panduan Refresh</button>
+    `;
+    document.body.appendChild(banner);
+    document.getElementById("appUpdateRefreshBtn").addEventListener("click", acceptAndReloadAppUpdate_);
+    return banner;
+  }
+
+  function isAppUpdateAccepted_(notice){
+    return !!(notice && notice.version && localStorage.getItem(APP_UPDATE_ACCEPT_KEY) === String(notice.version));
+  }
+
+  function setAppUpdateActionLocked_(locked){
+    appUpdateActionLocked_ = !!locked;
+    document.body.classList.toggle("app-update-action-locked", appUpdateActionLocked_);
+  }
+
+  function showAppUpdateToast_(message){
+    if(typeof showUserToast === "function") showUserToast(message);
+  }
+
+  function acceptAndReloadAppUpdate_(){
+    const version = appUpdateNotice_ && appUpdateNotice_.version ? String(appUpdateNotice_.version) : "";
+    if(version){
+      try{ sessionStorage.setItem(APP_UPDATE_PENDING_ACCEPT_KEY, version); }catch(e){}
+    }
+
+    const btn = document.getElementById("appUpdateRefreshBtn");
+    if(btn){
+      btn.textContent = "Tekan F5 / Refresh Tab";
+      btn.title = "Setelah klik ini, tekan F5 atau tombol refresh browser supaya panel memuat versi terbaru.";
+    }
+
+    const counter = document.getElementById("appUpdateNoticeCountdown");
+    if(counter){
+      counter.textContent = "Silakan tekan F5 / tombol refresh browser sekarang. Setelah reload, banner ini tidak muncul lagi untuk versi update ini.";
+    }
+
+    showAppUpdateToast_("Tekan F5 atau tombol refresh Chrome/browser untuk memuat update terbaru.");
+  }
+
+  function markPendingAppUpdateAccepted_(){
+    try{
+      const version = sessionStorage.getItem(APP_UPDATE_PENDING_ACCEPT_KEY);
+      if(version){
+        localStorage.setItem(APP_UPDATE_ACCEPT_KEY, version);
+        sessionStorage.removeItem(APP_UPDATE_PENDING_ACCEPT_KEY);
+      }
+    }catch(e){}
+  }
+
+  function hideAppUpdateNotice_(){
+    const banner = document.getElementById(APP_UPDATE_BANNER_ID);
+    if(banner) banner.classList.remove("show");
+    setAppUpdateActionLocked_(false);
+    appUpdateNotice_ = null;
+    appUpdateDeadlineMs_ = 0;
+    if(appUpdateCountdownTimer_) clearInterval(appUpdateCountdownTimer_);
+    appUpdateCountdownTimer_ = null;
+  }
+
+  function renderAppUpdateCountdown_(){
+    if(!appUpdateNotice_) return;
+    const remaining = Math.max(0, Math.ceil((appUpdateDeadlineMs_ - Date.now()) / 1000));
+    const lockSeconds = Number(appUpdateNotice_.lockSeconds || 15);
+    const counter = document.getElementById("appUpdateNoticeCountdown");
+    if(counter){
+      counter.textContent = remaining > lockSeconds
+        ? "Action akan dikunci dalam " + (remaining - lockSeconds) + " detik. Mohon stop submit/action dulu."
+        : "Action dikunci sementara. Klik tombol panduan, lalu refresh tab browser / tekan F5.";
+    }
+    setAppUpdateActionLocked_(remaining <= lockSeconds);
+  }
+
+  function handleAppUpdateNotice_(notice){
+    if(!notice || !notice.active || !notice.version || isAppUpdateAccepted_(notice)){
+      hideAppUpdateNotice_();
+      return;
+    }
+    appUpdateNotice_ = notice;
+    const serverRemaining = Math.max(0, Math.ceil((Number(notice.releaseAt || 0) + Number(notice.countdownSeconds || 45) * 1000 - Number(notice.serverNow || Date.now())) / 1000));
+    appUpdateDeadlineMs_ = Date.now() + serverRemaining * 1000;
+    const banner = ensureAppUpdateBanner_();
+    const msg = document.getElementById("appUpdateNoticeMessage");
+    if(msg) msg.textContent = notice.message || "Update terbaru sudah tersedia. Klik tombol panduan, lalu refresh tab browser / tekan F5.";
+    banner.classList.add("show");
+    renderAppUpdateCountdown_();
+    if(appUpdateCountdownTimer_) clearInterval(appUpdateCountdownTimer_);
+    appUpdateCountdownTimer_ = setInterval(renderAppUpdateCountdown_, 1000);
+  }
+
+  function checkAppUpdateNotice_(){
+    if(!window.google || !google.script || !google.script.run) return;
+    google.script.run
+      .withSuccessHandler(handleAppUpdateNotice_)
+      .withFailureHandler(function(){})
+      .getAppUpdateNotice();
+  }
+
+  function initAppUpdateNotice_(){
+    if(appUpdateNoticeStarted_) return;
+    markPendingAppUpdateAccepted_();
+    appUpdateNoticeStarted_ = true;
+    ensureAppUpdateStyles_();
+    checkAppUpdateNotice_();
+    appUpdatePollTimer_ = setInterval(checkAppUpdateNotice_, APP_UPDATE_POLL_MS);
+  }
+
+  document.addEventListener("click", function(evt){
+    if(!appUpdateActionLocked_) return;
+    if(evt.target.closest(".app-update-refresh-btn")) return;
+    const actionEl = evt.target.closest("button,input[type='submit'],.btn,.refresh-btn,.case-btn,.history-page-btn");
+    if(!actionEl) return;
+    evt.preventDefault();
+    evt.stopPropagation();
+    showAppUpdateToast_("Update panel tersedia. Klik tombol panduan, lalu tekan F5 / refresh tab browser sebelum lanjut action.");
+  }, true);
+
+  document.addEventListener("submit", function(evt){
+    if(!appUpdateActionLocked_) return;
+    evt.preventDefault();
+    evt.stopPropagation();
+    showAppUpdateToast_("Update panel tersedia. Klik tombol panduan, lalu tekan F5 / refresh tab browser sebelum submit.");
+  }, true);
+
+  document.addEventListener("DOMContentLoaded", initAppUpdateNotice_);
+  setTimeout(initAppUpdateNotice_, 1200);
+})();
+
 </script>
 </body>
 </html>
