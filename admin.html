@@ -891,6 +891,38 @@
       font-weight:800;
       line-height:1.55;
     }
+    .profile-register-lang-box{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:0 0 16px;
+      padding:10px 12px;
+      border-radius:18px;
+      background:linear-gradient(135deg,rgba(239,246,255,.88),rgba(248,250,252,.92));
+      border:1px solid rgba(148,163,184,.24);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.80);
+    }
+    .profile-register-lang-box label{
+      margin:0;
+      font-size:11px;
+      font-weight:1000;
+      letter-spacing:.04em;
+      color:#334155;
+      text-transform:uppercase;
+    }
+    .profile-register-lang-box select{
+      min-width:170px;
+      border:1px solid rgba(148,163,184,.36);
+      border-radius:999px;
+      padding:8px 12px;
+      background:#fff!important;
+      color:#0f172a!important;
+      font-size:12px;
+      font-weight:900;
+      outline:none;
+      box-shadow:0 8px 18px rgba(15,23,42,.06);
+    }
     .profile-register-grid{
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -1682,6 +1714,18 @@
       cursor:not-allowed!important;
       box-shadow:none!important;
     }
+    .btn-hq-submit.hq-ok:disabled{
+      background:linear-gradient(135deg,#22c55e,#16a34a)!important;
+      color:#f0fdf4!important;
+      border:1px solid rgba(21,128,61,.42)!important;
+      box-shadow:0 0 0 2px rgba(34,197,94,.18),0 10px 24px rgba(22,163,74,.22)!important;
+      opacity:1!important;
+    }
+    .btn-hq-submit.hq-sent:disabled{
+      background:linear-gradient(135deg,#0ea5e9,#2563eb)!important;
+      color:#eff6ff!important;
+      opacity:1!important;
+    }
     .hq-submit-mini{
       display:block;
       margin-top:4px;
@@ -1690,7 +1734,7 @@
       color:#64748b;
       line-height:1.25;
     }
-    .hq-submit-mini.sent{color:#2563eb}
+    .hq-submit-mini.sent{color:#16a34a}
     .hq-submit-mini.resub{color:#d97706}
     .hq-batch-btn{
       width:auto!important;
@@ -4003,6 +4047,14 @@ body.arena-admin-ui #managePage .btn{
 #managePage .btn-hq-submit{
   background:linear-gradient(135deg,#60a5fa,#2563eb)!important;
   color:#fff!important;
+}
+#managePage .btn-hq-submit.hq-ok:disabled{
+  background:linear-gradient(135deg,#22c55e,#16a34a)!important;
+  color:#f0fdf4!important;
+}
+#managePage .btn-hq-submit.hq-sent:disabled{
+  background:linear-gradient(135deg,#0ea5e9,#2563eb)!important;
+  color:#eff6ff!important;
 }
 #managePage .btn-green,
 #managePage .btn-locked{
@@ -7443,6 +7495,69 @@ body.arena-admin-ui #adminHomePage .wc-home-shell,
         left:214px!important;
       }
     }
+
+
+/* ===== LIGHTWEIGHT PREMIUM DEPTH (CSS ONLY, NO THREE.JS/WEBGL) ===== */
+.panel,.metric-card,.stat-card,.home-card,.table-wrap,.hq-batch-btn,.admin-card{
+  box-shadow:0 20px 50px rgba(15,23,42,.10),0 2px 10px rgba(37,99,235,.06)!important;
+}
+.panel,.metric-card,.stat-card,.home-card,.admin-card{
+  transform:translateZ(0);
+  position:relative;
+  overflow:hidden;
+}
+.panel::before,.metric-card::before,.stat-card::before,.home-card::before,.admin-card::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto 0;
+  height:3px;
+  background:linear-gradient(90deg,#38bdf8,#6366f1,#22c55e);
+  opacity:.70;
+  pointer-events:none;
+}
+.sidebar{
+  box-shadow:14px 0 36px rgba(15,23,42,.12)!important;
+}
+.btn,.refresh-btn,.hq-batch-btn,.btn-hq-submit{
+  transform:translateZ(0);
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease!important;
+}
+.btn:hover,.refresh-btn:hover,.hq-batch-btn:hover,.btn-hq-submit:hover{
+  transform:translateY(-1px)!important;
+  filter:saturate(1.06);
+}
+@media (prefers-reduced-motion:reduce){
+  .btn,.refresh-btn,.hq-batch-btn,.btn-hq-submit{transition:none!important}
+  .btn:hover,.refresh-btn:hover,.hq-batch-btn:hover,.btn-hq-submit:hover{transform:none!important}
+}
+
+</style>
+
+<style id="ix-ui-polish-stage-css">
+  :root{--ix-soft-border:rgba(148,163,184,.24);--ix-card-shadow:0 24px 70px rgba(15,23,42,.12);}
+  .panel,.metric-card,.claim-card,.owner-control-section,.wc-stat-card{border:1px solid var(--ix-soft-border)!important;box-shadow:var(--ix-card-shadow)!important;}
+  .panel{border-radius:24px!important;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(248,250,252,.94))!important;}
+  .subtitle,.dash-sub{line-height:1.55!important;}
+  .owner-release-section{background:linear-gradient(135deg,rgba(15,23,42,.96),rgba(30,64,175,.92))!important;color:#fff!important;border:1px solid rgba(255,255,255,.18)!important;}
+  .owner-release-section .owner-section-title{color:#fff!important;}
+  .owner-release-section .owner-mini-note{color:rgba(255,255,255,.82)!important;background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.16)!important;}
+  .owner-release-section .owner-source-pill{background:rgba(34,197,94,.18)!important;color:#bbf7d0!important;border-color:rgba(187,247,208,.25)!important;}
+  .owner-release-grid{display:grid;grid-template-columns:minmax(260px,1fr) 150px auto;gap:12px;align-items:end;margin-top:14px;}
+  .owner-release-field{display:flex;flex-direction:column;gap:7px;font-size:11px;font-weight:950;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.78);}
+  .owner-release-field input,.owner-release-field select{width:100%;border:1px solid rgba(219,234,254,.78);border-radius:14px;padding:12px 13px;background:rgba(255,255,255,.96);color:#0f172a!important;font-weight:850;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 10px 24px rgba(15,23,42,.16);}
+  .owner-release-field input::placeholder{color:#64748b!important;opacity:1;}
+  .owner-release-field select option{color:#0f172a;background:#fff;}
+  .owner-release-actions{display:flex;gap:9px;flex-wrap:wrap;}
+  .owner-release-btn{background:linear-gradient(90deg,#22c55e,#06b6d4)!important;}
+  .owner-release-clear{background:linear-gradient(90deg,#ef4444,#f97316)!important;}
+  .owner-release-status{margin-top:12px;color:#e0f2fe!important;font-weight:900!important;}
+  .owner-access-grid{gap:18px!important;}
+  .owner-access-tools{gap:10px!important;}
+  #ownerControlPage .owner-access-table-wrap{border-radius:18px!important;}
+  .metric-grid,.hq-metric-grid{gap:18px!important;}
+  #tableWrap,.table-wrap{border-radius:22px!important;border:1px solid rgba(148,163,184,.22)!important;box-shadow:0 18px 50px rgba(15,23,42,.08)!important;}
+  .btn,.refresh-btn,.hq-batch-btn,.btn-hq-submit{border-radius:13px!important;}
+  @media(max-width:900px){.owner-release-grid{grid-template-columns:1fr}.owner-release-actions{width:100%}.owner-release-actions button{flex:1}}
 </style>
 </head>
 
@@ -7451,21 +7566,34 @@ body.arena-admin-ui #adminHomePage .wc-home-shell,
 
 <div id="adminProfileOverlay" class="profile-register-overlay">
   <div class="profile-register-card">
-    <h2>Checking Admin Access</h2>
-    <p>
+    <h2 id="profileOverlayTitle">Checking Admin Access</h2>
+    <p id="profileOverlayDesc">
       Mohon tunggu sebentar. Sistem sedang mengecek akses admin dari USER_ACCESS.
     </p>
+    <div class="profile-register-field" id="adminLoginEmailBox" style="margin:12px 0 14px;">
+      <label id="profileLoginEmailLabel">Gmail Invite</label>
+      <input id="profileLoginEmail" type="email" autocomplete="email" placeholder="nama@gmail.com">
+    </div>
+    <div class="profile-register-lang-box">
+      <label id="profileLangLabel" for="profileLangSelect">Language</label>
+      <select id="profileLangSelect" onchange="setAdminRegisterLang(this.value)" title="Language">
+        <option value="id">Indonesia</option>
+        <option value="th">ไทย</option>
+        <option value="vn">Tiếng Việt</option>
+        <option value="zh">繁體中文</option>
+      </select>
+    </div>
     <div class="profile-register-grid">
       <div class="profile-register-field">
-        <label>Nama Staff</label>
+        <label id="profileNamaStaffLabel">Nama Staff</label>
         <input id="profileNamaStaff" placeholder="Contoh: DRAKE">
       </div>
       <div class="profile-register-field">
-        <label>ID Anggota</label>
+        <label id="profileIdAnggotaLabel">ID Anggota</label>
         <input id="profileIdAnggota" placeholder="Contoh: IX001">
       </div>
       <div class="profile-register-field">
-        <label>Posisi</label>
+        <label id="profilePosisiLabel">Posisi</label>
         <select id="profilePosisi">
           <option value="">Pilih Posisi</option>
           <option value="Admin">Admin</option>
@@ -7474,13 +7602,13 @@ body.arena-admin-ui #adminHomePage .wc-home-shell,
         </select>
       </div>
       <div class="profile-register-field">
-        <label>Team <span style="color:#94a3b8;">(optional)</span></label>
+        <label id="profileTeamLabel">Team <span id="profileTeamOptional" style="color:#94a3b8;">(optional)</span></label>
         <input id="profileTeam" placeholder="Boleh kosong">
       </div>
     </div>
     <div class="profile-register-actions">
       <button class="refresh-btn" id="saveProfileBtn" onclick="saveAdminPanelProfile()">Save & Continue</button>
-      <button class="small-btn" onclick="closeAdminProfileOverlay()">Later</button>
+      <button class="small-btn" id="profileLaterBtn" onclick="closeAdminProfileOverlay()">Later</button>
       <div class="profile-register-status" id="profileRegisterStatus">Checking access...</div>
     </div>
   </div>
@@ -7512,6 +7640,7 @@ body.arena-admin-ui #adminHomePage .wc-home-shell,
         <div class="claim-cat-item" data-claim-view="Lucky Money 88" onclick="setClaimCategoryView('Lucky Money 88', this)">🍀 <span>Lucky 88</span><b id="catBadge_LuckyMoney88">0</b></div>
         <div class="claim-cat-item" data-claim-view="Hello Friends" onclick="setClaimCategoryView('Hello Friends', this)">👥 <span>Hello Friends</span><b id="catBadge_HelloFriends">0</b></div>
         <div class="claim-cat-item" data-claim-view="Direct Agent" onclick="setClaimCategoryView('Direct Agent', this)">🤝 <span>Direct Agent</span><b id="catBadge_DirectAgent">0</b></div>
+        <div class="claim-cat-item" data-claim-view="VVIP TO Mingguan" onclick="setClaimCategoryView('VVIP TO Mingguan', this)">💎 <span>VVIP TO</span><b id="catBadge_VVIPTOMingguan">0</b></div>
         <div class="claim-cat-item" data-claim-view="Tiap Hari Bonus Besar" onclick="setClaimCategoryView('Tiap Hari Bonus Besar', this)">🎯 <span>Tiap Hari</span><b id="catBadge_TiapHariBonusBesar">0</b></div>
       </div>
     </div>
@@ -7551,6 +7680,7 @@ body.arena-admin-ui #adminHomePage .wc-home-shell,
   <div class="content">
     <div class="topbar">
       <select id="dateMode" onchange="setDateFilter(this.value)">
+        <option value="todayYesterday">Today + Yesterday</option>
         <option value="today">Today</option>
         <option value="yesterday">Yesterday</option>
         <option value="thisMonth">This Month</option>
@@ -7666,6 +7796,31 @@ body.arena-admin-ui #adminHomePage .wc-home-shell,
         <div class="subtitle" id="ownerControlMainSub">Kelola akses admin, role, lock/remove, dan request baru.</div>
 
         <div class="owner-access-grid">
+          <div id="ownerReleaseUpdateSection" class="owner-control-section owner-admin-mode-section owner-release-section">
+            <div class="owner-section-title">🚀 Release Update Notice</div>
+            <div class="owner-mini-note owner-compact-note"><span class="owner-source-pill">UPDATE</span><span>Owner release notif hanya setelah script sudah fix. User/Admin akan lihat countdown, lalu action terkunci 15 detik terakhir sampai klik Update.</span></div>
+            <div class="owner-release-grid">
+              <label class="owner-release-field">
+                <span>Message</span>
+                <input id="ownerUpdateNoticeMessage" placeholder="Contoh: Update baru sudah siap. Minta user/admin tekan F5 atau refresh tab browser.">
+              </label>
+              <label class="owner-release-field small">
+                <span>Countdown</span>
+                <select id="ownerUpdateNoticeCountdown">
+                  <option value="30">30 detik</option>
+                  <option value="45" selected>45 detik</option>
+                  <option value="60">60 detik</option>
+                  <option value="90">90 detik</option>
+                </select>
+              </label>
+              <div class="owner-release-actions">
+                <button class="refresh-btn owner-release-btn" type="button" onclick="ownerReleaseUpdateNoticeFromPanel(this)">Release Notice</button>
+                <button class="refresh-btn owner-release-clear" type="button" onclick="ownerClearUpdateNoticeFromPanel(this)">Clear Notice</button>
+              </div>
+            </div>
+            <div class="owner-status-text owner-release-status" id="ownerUpdateNoticeStatus">Belum dicek.</div>
+          </div>
+
           <div id="ownerAdminActiveSection" class="owner-control-section owner-admin-mode-section">
             <div class="owner-section-title">Active Admins</div>
             <div class="owner-mini-note owner-compact-note"><span class="owner-source-pill">USER_ACCESS</span><span>Admin aktif, role, team, dan status akun.</span></div>
@@ -8031,6 +8186,13 @@ let claimFilteredData = [];
 let adminEditingRemarks = false;
 let adminRefreshPausedUntil = 0;
 let adminActionInFlight = 0;
+let adminDataRequestInFlight = false;
+let lastAdminDataRequestAt = 0;
+let lastAdminClaimVersion = "";
+let lastAdminClaimFilterKey = "";
+const ADMIN_AUTO_REFRESH_MS = 25000;
+const ADMIN_MIN_REQUEST_GAP_MS = 6000;
+const ADMIN_CLAIM_DEFAULT_ROWS = 5000;
 let autoSyncCountdownSeconds = 60;
 let autoSyncCountdownTimer = null;
 let adminOnlyUnreadComments = false;
@@ -8145,6 +8307,7 @@ const ADMIN_I18N = {
     claims: "claims",
     refresh: "Refresh",
     syncHQ: "SyncHQ",
+    todayYesterday: "Today + Yesterday",
     today: "Today",
     yesterday: "Yesterday",
     thisMonth: "This Month",
@@ -8240,6 +8403,7 @@ const ADMIN_I18N = {
     claims: "เคลม",
     refresh: "รีเฟรช",
     syncHQ: "ซิงก์ HQ",
+    todayYesterday: "วันนี้ + เมื่อวาน",
     today: "วันนี้",
     yesterday: "เมื่อวาน",
     thisMonth: "เดือนนี้",
@@ -8335,6 +8499,7 @@ const ADMIN_I18N = {
     claims: "claim",
     refresh: "Làm mới",
     syncHQ: "Đồng bộ HQ",
+    todayYesterday: "Hôm nay + Hôm qua",
     today: "Hôm nay",
     yesterday: "Hôm qua",
     thisMonth: "Tháng này",
@@ -8430,6 +8595,7 @@ const ADMIN_I18N = {
     claims: "筆申請",
     refresh: "刷新",
     syncHQ: "同步 HQ",
+    todayYesterday: "今天 + 昨天",
     today: "今天",
     yesterday: "昨天",
     thisMonth: "本月",
@@ -8640,16 +8806,285 @@ function tf(key, params){
   return text;
 }
 
+const ADMIN_REGISTER_I18N = {
+  id: {
+    langLabel: "Bahasa Tampilan",
+    checkingTitle: "Checking Admin Access",
+    checkingDesc: "Mohon tunggu sebentar. Sistem sedang mengecek akses admin dari USER_ACCESS.",
+    checkingStatus: "Checking access...",
+    registerTitle: "Register Admin / TL / FZR Access",
+    registerDesc: "Gmail ini belum aktif di USER_ACCESS. Isi request, lalu tunggu Owner approve.",
+    profileTitle: "Admin Profile",
+    profileDesc: "Lengkapi profile admin sebelum masuk panel.",
+    lockedTitle: "Akun Admin Locked",
+    removedTitle: "Akun Admin Removed",
+    deniedDesc: "Akses admin sedang dikunci oleh Owner. Hubungi Owner untuk membuka akses.",
+    setupTitle: "Setup Akses Database",
+    setupStatus: "Setup database belum siap",
+    staffName: "Nama Staff",
+    staffId: "ID Anggota",
+    position: "Posisi",
+    team: "Team",
+    optional: "(optional)",
+    choosePosition: "Pilih Posisi",
+    teamPlaceholder: "Boleh kosong",
+    staffPlaceholder: "Contoh: DRAKE",
+    idPlaceholder: "Contoh: IX001",
+    saveContinue: "Save & Continue",
+    submitRequest: "Submit Request",
+    later: "Later",
+    accessActive: "Access active.",
+    completeProfile: "Lengkapi profile admin dan klik Save & Continue sebelum masuk panel.",
+    requestStatus: "Request status: {status}",
+    accessStatus: "Access Status: {status}",
+    required: "Nama Staff, ID Anggota, Posisi wajib diisi.",
+    submitting: "Submitting...",
+    saving: "Saving...",
+    submittingStatus: "Submitting request...",
+    savingStatus: "Saving profile...",
+    requestSent: "Request terkirim. Tunggu Owner approve.",
+    requestFailed: "Gagal submit request.",
+    saved: "Saved.",
+    saveFailed: "Gagal save profile.",
+    closeRegister: "Akses belum aktif. Submit request dan tunggu Owner approve.",
+    closeLocked: "Akses terkunci. Hubungi Owner."
+  },
+  th: {
+    langLabel: "ภาษาที่แสดง",
+    checkingTitle: "กำลังตรวจสอบสิทธิ์ Admin",
+    checkingDesc: "กรุณารอสักครู่ ระบบกำลังตรวจสอบสิทธิ์ Admin จาก USER_ACCESS",
+    checkingStatus: "กำลังตรวจสอบสิทธิ์...",
+    registerTitle: "ลงทะเบียนสิทธิ์ Admin / TL / FZR",
+    registerDesc: "Gmail นี้ยังไม่ active ใน USER_ACCESS กรุณากรอกคำขอแล้วรอ Owner อนุมัติ",
+    profileTitle: "โปรไฟล์ Admin",
+    profileDesc: "กรอกโปรไฟล์ Admin ก่อนเข้าใช้งาน panel",
+    lockedTitle: "บัญชี Admin ถูกล็อก",
+    removedTitle: "บัญชี Admin ถูกนำออก",
+    deniedDesc: "สิทธิ์ Admin ถูก Owner ล็อก กรุณาติดต่อ Owner เพื่อเปิดสิทธิ์",
+    setupTitle: "ตั้งค่าการเข้าถึงฐานข้อมูล",
+    setupStatus: "การตั้งค่าฐานข้อมูลยังไม่พร้อม",
+    staffName: "ชื่อ Staff",
+    staffId: "ID สมาชิก",
+    position: "ตำแหน่ง",
+    team: "ทีม",
+    optional: "(ไม่บังคับ)",
+    choosePosition: "เลือกตำแหน่ง",
+    teamPlaceholder: "เว้นว่างได้",
+    staffPlaceholder: "ตัวอย่าง: DRAKE",
+    idPlaceholder: "ตัวอย่าง: IX001",
+    saveContinue: "บันทึกและดำเนินการต่อ",
+    submitRequest: "ส่งคำขอ",
+    later: "ภายหลัง",
+    accessActive: "สิทธิ์ active แล้ว",
+    completeProfile: "กรอกโปรไฟล์ Admin แล้วกดบันทึกก่อนเข้า panel",
+    requestStatus: "สถานะคำขอ: {status}",
+    accessStatus: "สถานะสิทธิ์: {status}",
+    required: "กรุณากรอกชื่อ Staff, ID สมาชิก และตำแหน่ง",
+    submitting: "กำลังส่ง...",
+    saving: "กำลังบันทึก...",
+    submittingStatus: "กำลังส่งคำขอ...",
+    savingStatus: "กำลังบันทึกโปรไฟล์...",
+    requestSent: "ส่งคำขอแล้ว กรุณารอ Owner อนุมัติ",
+    requestFailed: "ส่งคำขอไม่สำเร็จ",
+    saved: "บันทึกแล้ว",
+    saveFailed: "บันทึกโปรไฟล์ไม่สำเร็จ",
+    closeRegister: "สิทธิ์ยังไม่ active กรุณาส่งคำขอและรอ Owner อนุมัติ",
+    closeLocked: "สิทธิ์ถูกล็อก กรุณาติดต่อ Owner"
+  },
+  vn: {
+    langLabel: "Ngôn ngữ hiển thị",
+    checkingTitle: "Đang kiểm tra quyền Admin",
+    checkingDesc: "Vui lòng chờ. Hệ thống đang kiểm tra quyền admin từ USER_ACCESS.",
+    checkingStatus: "Đang kiểm tra quyền...",
+    registerTitle: "Đăng ký quyền Admin / TL / FZR",
+    registerDesc: "Gmail này chưa active trong USER_ACCESS. Điền request và chờ Owner duyệt.",
+    profileTitle: "Hồ sơ Admin",
+    profileDesc: "Hoàn tất hồ sơ admin trước khi vào panel.",
+    lockedTitle: "Tài khoản Admin bị khóa",
+    removedTitle: "Tài khoản Admin đã bị gỡ",
+    deniedDesc: "Quyền admin đang bị Owner khóa. Vui lòng liên hệ Owner để mở quyền.",
+    setupTitle: "Thiết lập quyền truy cập Database",
+    setupStatus: "Database chưa sẵn sàng",
+    staffName: "Tên Staff",
+    staffId: "ID thành viên",
+    position: "Vị trí",
+    team: "Team",
+    optional: "(không bắt buộc)",
+    choosePosition: "Chọn vị trí",
+    teamPlaceholder: "Có thể bỏ trống",
+    staffPlaceholder: "Ví dụ: DRAKE",
+    idPlaceholder: "Ví dụ: IX001",
+    saveContinue: "Lưu & tiếp tục",
+    submitRequest: "Gửi request",
+    later: "Để sau",
+    accessActive: "Quyền đã active.",
+    completeProfile: "Hoàn tất hồ sơ admin và bấm Lưu trước khi vào panel.",
+    requestStatus: "Trạng thái request: {status}",
+    accessStatus: "Trạng thái quyền: {status}",
+    required: "Tên Staff, ID thành viên và vị trí là bắt buộc.",
+    submitting: "Đang gửi...",
+    saving: "Đang lưu...",
+    submittingStatus: "Đang gửi request...",
+    savingStatus: "Đang lưu hồ sơ...",
+    requestSent: "Đã gửi request. Chờ Owner duyệt.",
+    requestFailed: "Gửi request thất bại.",
+    saved: "Đã lưu.",
+    saveFailed: "Lưu hồ sơ thất bại.",
+    closeRegister: "Quyền chưa active. Gửi request và chờ Owner duyệt.",
+    closeLocked: "Quyền bị khóa. Liên hệ Owner."
+  },
+  zh: {
+    langLabel: "顯示語言",
+    checkingTitle: "正在檢查 Admin 權限",
+    checkingDesc: "請稍等，系統正在從 USER_ACCESS 檢查 Admin 權限。",
+    checkingStatus: "正在檢查權限...",
+    registerTitle: "註冊 Admin / TL / FZR 權限",
+    registerDesc: "此 Gmail 尚未在 USER_ACCESS 啟用。請填寫申請，等待 Owner 審核。",
+    profileTitle: "Admin 個人資料",
+    profileDesc: "進入後台前，請先完成 Admin 個人資料。",
+    lockedTitle: "Admin 帳號已鎖定",
+    removedTitle: "Admin 帳號已移除",
+    deniedDesc: "Admin 權限已被 Owner 鎖定，請聯絡 Owner 開啟權限。",
+    setupTitle: "資料庫權限設定",
+    setupStatus: "資料庫設定尚未完成",
+    staffName: "員工姓名",
+    staffId: "成員 ID",
+    position: "職位",
+    team: "團隊",
+    optional: "（可不填）",
+    choosePosition: "選擇職位",
+    teamPlaceholder: "可以留空",
+    staffPlaceholder: "例如：DRAKE",
+    idPlaceholder: "例如：IX001",
+    saveContinue: "儲存並繼續",
+    submitRequest: "提交申請",
+    later: "稍後",
+    accessActive: "權限已啟用。",
+    completeProfile: "請先完成 Admin 個人資料並儲存，才能進入後台。",
+    requestStatus: "申請狀態：{status}",
+    accessStatus: "權限狀態：{status}",
+    required: "員工姓名、成員 ID、職位為必填。",
+    submitting: "提交中...",
+    saving: "儲存中...",
+    submittingStatus: "正在提交申請...",
+    savingStatus: "正在儲存資料...",
+    requestSent: "申請已送出，請等待 Owner 審核。",
+    requestFailed: "提交申請失敗。",
+    saved: "已儲存。",
+    saveFailed: "儲存資料失敗。",
+    closeRegister: "權限尚未啟用，請提交申請並等待 Owner 審核。",
+    closeLocked: "權限已鎖定，請聯絡 Owner。"
+  }
+};
+
+let adminProfileOverlayMode_ = "checking";
+let adminProfileOverlayInfo_ = null;
+
+function trAdminRegister_(key, params){
+  const pack = ADMIN_REGISTER_I18N[adminLang] || ADMIN_REGISTER_I18N.id;
+  let text = (pack && pack[key]) || ADMIN_REGISTER_I18N.id[key] || key;
+  params = params || {};
+  Object.keys(params).forEach(function(k){
+    text = String(text).replace(new RegExp("\\{" + k + "\\}", "g"), params[k]);
+  });
+  return text;
+}
+
+function setAdminRegisterLang(lang){
+  setAdminLang(lang || "id");
+}
+
+function syncAdminRegisterLangSelect_(){
+  const select = document.getElementById("profileLangSelect");
+  if(select) select.value = adminLang;
+}
+
+function setAdminRegisterText_(id, text){
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = text;
+}
+
+function applyAdminRegisterOverlayStaticLanguage_(){
+  syncAdminRegisterLangSelect_();
+  setAdminRegisterText_("profileLangLabel", trAdminRegister_("langLabel"));
+  setAdminRegisterText_("profileNamaStaffLabel", trAdminRegister_("staffName"));
+  setAdminRegisterText_("profileIdAnggotaLabel", trAdminRegister_("staffId"));
+  setAdminRegisterText_("profilePosisiLabel", trAdminRegister_("position"));
+  const teamLabel = document.getElementById("profileTeamLabel");
+  if(teamLabel) teamLabel.innerHTML = trAdminRegister_("team") + ' <span id="profileTeamOptional" style="color:#94a3b8;">' + trAdminRegister_("optional") + '</span>';
+
+  const staff = document.getElementById("profileNamaStaff");
+  if(staff) staff.placeholder = trAdminRegister_("staffPlaceholder");
+  const id = document.getElementById("profileIdAnggota");
+  if(id) id.placeholder = trAdminRegister_("idPlaceholder");
+  const team = document.getElementById("profileTeam");
+  if(team) team.placeholder = trAdminRegister_("teamPlaceholder");
+  setOptionText("profilePosisi", "", trAdminRegister_("choosePosition"));
+
+  const later = document.getElementById("profileLaterBtn");
+  if(later) later.innerHTML = trAdminRegister_("later");
+}
+
+function applyAdminRegisterOverlayLanguage_(){
+  applyAdminRegisterOverlayStaticLanguage_();
+
+  const info = adminProfileOverlayInfo_ || {};
+  const mode = adminProfileOverlayMode_ || "checking";
+  const title = document.getElementById("profileOverlayTitle") || document.querySelector("#adminProfileOverlay h2");
+  const desc = document.getElementById("profileOverlayDesc") || document.querySelector("#adminProfileOverlay p");
+  const btn = document.getElementById("saveProfileBtn");
+  const st = document.getElementById("profileRegisterStatus");
+
+  if(mode === "checking"){
+    if(title) title.innerHTML = trAdminRegister_("checkingTitle");
+    if(desc) desc.innerHTML = trAdminRegister_("checkingDesc");
+    if(btn && !btn.disabled) btn.innerHTML = trAdminRegister_("saveContinue");
+    if(st){ st.classList.remove("danger"); st.style.color = "#2563eb"; st.innerHTML = trAdminRegister_("checkingStatus"); }
+    return;
+  }
+
+  if(mode === "denied"){
+    const status = String(info.accountStatus || "LOCKED").toUpperCase();
+    const isSetupError = info.systemSetupError || status === "SETUP_PERMISSION_DENIED";
+    if(title) title.innerHTML = isSetupError ? trAdminRegister_("setupTitle") : (status === "REMOVED" ? trAdminRegister_("removedTitle") : trAdminRegister_("lockedTitle"));
+    if(desc) desc.innerHTML = esc(info.message || (isSetupError ? trAdminRegister_("setupStatus") : trAdminRegister_("deniedDesc")));
+    if(btn && !btn.disabled) btn.innerHTML = trAdminRegister_("saveContinue");
+    if(st){ st.classList.add("danger"); st.innerHTML = isSetupError ? trAdminRegister_("setupStatus") : trAdminRegister_("accessStatus", {status: esc(status)}); }
+    return;
+  }
+
+  if(mode === "register"){
+    if(title) title.innerHTML = trAdminRegister_("registerTitle");
+    if(desc) desc.innerHTML = trAdminRegister_("registerDesc");
+    if(btn && !btn.disabled) btn.innerHTML = trAdminRegister_("submitRequest");
+    if(st){
+      st.classList.remove("danger");
+      const pending = info.pendingRequest || null;
+      if(pending){ st.style.color = "#d97706"; st.innerHTML = trAdminRegister_("requestStatus", {status: esc(pending.status || "PENDING")}); }
+      else { st.style.color = "#64748b"; st.innerHTML = ""; }
+    }
+    return;
+  }
+
+  if(title) title.innerHTML = trAdminRegister_("profileTitle");
+  if(desc) desc.innerHTML = trAdminRegister_("profileDesc");
+  if(btn && !btn.disabled) btn.innerHTML = trAdminRegister_("saveContinue");
+}
+
 function initAdminLang(){
   adminLang = localStorage.getItem("adminLang") || "id";
   const select = document.getElementById("langSelect");
   if(select) select.value = adminLang;
+  syncAdminRegisterLangSelect_();
   applyAdminLanguage();
 }
 
 function setAdminLang(lang){
   adminLang = lang || "id";
   localStorage.setItem("adminLang", adminLang);
+  const select = document.getElementById("langSelect");
+  if(select) select.value = adminLang;
+  syncAdminRegisterLangSelect_();
   applyAdminLanguage();
   updateAll();
 }
@@ -8718,6 +9153,7 @@ function applyClaimCategoryLanguage_(){
     "VVIP Special Prize": getBonusCategoryLabel("VVIP Special Prize"),
     "Lucky Money 88": getBonusCategoryLabel("Lucky Money 88"),
     "Tiap Hari Bonus Besar": getBonusCategoryLabel("Tiap Hari Bonus Besar"),
+    "VVIP TO Mingguan": getBonusCategoryLabel("VVIP TO Mingguan"),
     "Hello Friends": getBonusCategoryLabel("Hello Friends"),
     "Direct Agent": getBonusCategoryLabel("Direct Agent")
   };
@@ -8733,6 +9169,7 @@ function applyClaimCategoryLanguage_(){
 
 function applyAdminLanguage(){
   setTimeout(applyClaimCategoryLanguage_, 0);
+  applyAdminRegisterOverlayLanguage_();
   document.querySelectorAll("[data-i18n]").forEach(function(el){
     el.innerHTML = t(el.getAttribute("data-i18n"));
   });
@@ -8791,6 +9228,7 @@ function applyAdminLanguage(){
     if(el) el.innerHTML = t(pairs[id]);
   });
 
+  setOptionText("dateMode","todayYesterday",t("todayYesterday"));
   setOptionText("dateMode","today",t("today"));
   setOptionText("dateMode","yesterday",t("yesterday"));
   setOptionText("dateMode","thisMonth",t("thisMonth"));
@@ -8953,6 +9391,7 @@ function updateAdminSidebarToggleIcon(){
 
 
 window.onload = function(){
+  initAdminGoogleIdentity_();
   initAdminSidebarCollapse();
   setTimeout(initAdminProfileSessionSafe, 700);
   initAdminLang();
@@ -8967,7 +9406,7 @@ window.onload = function(){
   if(statusFilter) statusFilter.value = savedStatus;
 
   showAdminHomePage(document.getElementById("adminHomeMenu"));
-  setDateFilter("today");
+  setDateFilter("todayYesterday", true);
   startAdminAutoRefresh();
   startAutoSyncCountdown();
   updateNotifySoundStatus();
@@ -8982,6 +9421,102 @@ let adminPanelProfileLoaded = false;
 let adminPanelHeartbeatTimer = null;
 let adminAccessRegisterMode = false;
 let ownerAccessData = { staff: [], adminRequests: [] };
+let adminAuthToken = localStorage.getItem("ixAdminAuthToken") || "";
+let adminGoogleIdentityReady = false;
+
+function getAdminAuthToken_(){
+  return adminAuthToken || localStorage.getItem("ixAdminAuthToken") || "";
+}
+
+function setAdminAuthToken_(token){
+  adminAuthToken = token || "";
+  if(adminAuthToken) localStorage.setItem("ixAdminAuthToken", adminAuthToken);
+}
+
+function clearAdminAuthToken_(){
+  adminAuthToken = "";
+  localStorage.removeItem("ixAdminAuthToken");
+}
+
+function getAdminInviteEmail_(){
+  const el = document.getElementById("profileLoginEmail");
+  return String((el && el.value) || localStorage.getItem("ixAdminInviteEmail") || "").trim().toLowerCase();
+}
+
+function restoreAdminInviteEmail_(){
+  const el = document.getElementById("profileLoginEmail");
+  if(el && !el.value) el.value = localStorage.getItem("ixAdminInviteEmail") || "";
+}
+
+function initAdminGoogleIdentity_(){
+  restoreAdminInviteEmail_();
+  return false;
+}
+
+function showAdminManualLoginOverlay_(){
+  adminAccessRegisterMode = false;
+  adminProfileOverlayMode_ = "manualLogin";
+  adminProfileOverlayInfo_ = {};
+  setAdminPanelAccessGate_(false);
+  setAdminProfileOverlayLocked_(true);
+  document.body.classList.remove("admin-access-checking");
+
+  const title = document.getElementById("profileOverlayTitle");
+  const desc = document.getElementById("profileOverlayDesc");
+  const grid = document.querySelector('#adminProfileOverlay .profile-register-grid');
+  const btn = document.getElementById("saveProfileBtn");
+  const st = document.getElementById("profileRegisterStatus");
+  const later = document.getElementById("profileLaterBtn");
+
+  if(title) title.innerHTML = "Admin Invite Login";
+  if(desc) desc.innerHTML = "Isi Gmail yang sudah Owner taruh di USER_ACCESS kolom A, lalu lanjut register/masuk panel.";
+  if(grid) grid.style.display = "none";
+  if(btn){ btn.style.display = ""; btn.disabled = false; btn.innerHTML = "Check Invite / Register"; }
+  if(later) later.style.display = "none";
+  if(st){ st.classList.remove("danger"); st.style.color = "#64748b"; st.innerHTML = "Belum login invite."; }
+  restoreAdminInviteEmail_();
+  openAdminProfileOverlay();
+}
+
+function promptAdminGoogleLogin_(){
+  showAdminManualLoginOverlay_();
+}
+
+function adminManualLoginStart_(){
+  const email = getAdminInviteEmail_();
+  const btn = document.getElementById("saveProfileBtn");
+  const st = document.getElementById("profileRegisterStatus");
+
+  if(!email || email.indexOf("@") < 1){
+    if(st){ st.classList.add("danger"); st.innerHTML = "Isi Gmail invite yang benar dulu."; }
+    return;
+  }
+
+  localStorage.setItem("ixAdminInviteEmail", email);
+  if(btn){ btn.disabled = true; btn.innerHTML = "Checking..."; }
+  if(st){ st.classList.remove("danger"); st.style.color = "#2563eb"; st.innerHTML = "Mengecek USER_ACCESS..."; }
+
+  google.script.run
+    .withSuccessHandler(function(info){
+      info = info || {};
+      if(info.accessDenied && String(info.accountStatus || "").toUpperCase() === "NOT_INVITED"){
+        clearAdminAuthToken_();
+        if(btn){ btn.disabled = false; btn.innerHTML = "Check Invite / Register"; }
+        if(st){ st.classList.add("danger"); st.innerHTML = esc(info.message || "Gmail ini belum di-invite Owner di USER_ACCESS."); }
+        return;
+      }
+      if(info.authToken) setAdminAuthToken_(info.authToken);
+      if(btn){ btn.disabled = false; }
+      handleAdminAccessInfo_(info, { firstRun:true, loadData:true });
+      startAdminAccessWatcher_();
+    })
+    .withFailureHandler(function(err){
+      clearAdminAuthToken_();
+      if(btn){ btn.disabled = false; btn.innerHTML = "Check Invite / Register"; }
+      if(st){ st.classList.add("danger"); st.innerHTML = err && err.message ? esc(err.message) : "Gagal cek invite."; }
+    })
+    .loginWithInviteEmail(email, "admin");
+}
 
 function initAdminProfileSessionSafe(){
   google.script.run
@@ -8997,7 +9532,7 @@ function initAdminProfileSessionSafe(){
         const btn = document.getElementById("saveProfileBtn");
         if(title) title.innerHTML = "Register Admin / TL / FZR Access";
         if(desc) desc.innerHTML = "Gmail ini belum ada di USER_ACCESS. Isi data request, lalu tunggu Owner approve.";
-        if(btn) btn.innerHTML = "Submit Request";
+        if(btn) btn.innerHTML = trAdminRegister_("submitRequest");
         const pending = info.pendingRequest || null;
         if(pending){
           fillAdminProfileForm_({
@@ -9030,7 +9565,7 @@ function initAdminProfileSessionSafe(){
     .withFailureHandler(function(){
       // Jangan block panel kalau function belum siap / akses gagal.
     })
-    .getAdminPanelAccessInfo();
+    .getAdminPanelAccessInfo(getAdminAuthToken_());
 }
 
 function fillAdminProfileForm_(p){
@@ -9057,6 +9592,11 @@ function closeAdminProfileOverlay(){
 }
 
 function saveAdminPanelProfile(){
+  if(adminProfileOverlayMode_ === "manualLogin"){
+    adminManualLoginStart_();
+    return;
+  }
+
   const btn = document.getElementById("saveProfileBtn");
   const st = document.getElementById("profileRegisterStatus");
 
@@ -9064,24 +9604,26 @@ function saveAdminPanelProfile(){
     namaStaff: (document.getElementById("profileNamaStaff") || {}).value || "",
     idAnggota: (document.getElementById("profileIdAnggota") || {}).value || "",
     posisi: (document.getElementById("profilePosisi") || {}).value || "",
-    team: (document.getElementById("profileTeam") || {}).value || ""
+    team: (document.getElementById("profileTeam") || {}).value || "",
+    email: getAdminInviteEmail_(),
+    authToken: getAdminAuthToken_()
   };
 
   if(!payload.namaStaff || !payload.idAnggota || !payload.posisi){
     if(st){
       st.style.color = "#dc2626";
-      st.innerHTML = "Nama Staff, ID Anggota, Posisi wajib diisi.";
+      st.innerHTML = trAdminRegister_("required");
     }
     return;
   }
 
   if(btn){
     btn.disabled = true;
-    btn.innerHTML = adminAccessRegisterMode ? "Submitting..." : "Saving...";
+    btn.innerHTML = adminAccessRegisterMode ? trAdminRegister_("submitting") : trAdminRegister_("saving");
   }
   if(st){
     st.style.color = "#2563eb";
-    st.innerHTML = adminAccessRegisterMode ? "Submitting request..." : "Saving profile...";
+    st.innerHTML = adminAccessRegisterMode ? trAdminRegister_("submittingStatus") : trAdminRegister_("savingStatus");
   }
 
   if(adminAccessRegisterMode){
@@ -9089,21 +9631,21 @@ function saveAdminPanelProfile(){
       .withSuccessHandler(function(res){
         if(st){
           st.style.color = "#16a34a";
-          st.innerHTML = (res && res.message) ? esc(res.message) : "Request terkirim. Tunggu Owner approve.";
+          st.innerHTML = (res && res.message) ? esc(res.message) : trAdminRegister_("requestSent");
         }
         if(btn){
           btn.disabled = false;
-          btn.innerHTML = "Submit Request";
+          btn.innerHTML = trAdminRegister_("submitRequest");
         }
       })
       .withFailureHandler(function(err){
         if(st){
           st.style.color = "#dc2626";
-          st.innerHTML = err && err.message ? esc(err.message) : "Gagal submit request.";
+          st.innerHTML = err && err.message ? esc(err.message) : trAdminRegister_("requestFailed");
         }
         if(btn){
           btn.disabled = false;
-          btn.innerHTML = "Submit Request";
+          btn.innerHTML = trAdminRegister_("submitRequest");
         }
       })
       .registerAdminAccessRequest(payload);
@@ -9121,13 +9663,15 @@ function saveAdminPanelProfile(){
 
       if(st){
         st.style.color = "#16a34a";
-        st.innerHTML = "Saved.";
+        st.innerHTML = trAdminRegister_("saved");
       }
       if(btn){
         btn.disabled = false;
-        btn.innerHTML = "Save & Continue";
+        btn.innerHTML = trAdminRegister_("saveContinue");
       }
 
+      setAdminPanelAccessGate_(true);
+      setAdminProfileOverlayLocked_(false);
       closeAdminProfileOverlay();
       updateActiveSessions(res.activeSessions || null);
       startAdminPanelHeartbeat();
@@ -9135,11 +9679,11 @@ function saveAdminPanelProfile(){
     .withFailureHandler(function(err){
       if(st){
         st.style.color = "#dc2626";
-        st.innerHTML = err && err.message ? esc(err.message) : "Gagal save profile.";
+        st.innerHTML = err && err.message ? esc(err.message) : trAdminRegister_("saveFailed");
       }
       if(btn){
         btn.disabled = false;
-        btn.innerHTML = "Save & Continue";
+        btn.innerHTML = trAdminRegister_("saveContinue");
       }
     })
     .adminPanelLogin(payload);
@@ -9158,7 +9702,7 @@ function startAdminPanelSession_(profile, auto){
         updateActiveSessions(res.activeSessions || null);
         startAdminPanelHeartbeat();
       })
-      .adminPanelLogin(profile || {});
+      .adminPanelLogin(Object.assign({}, profile || {}, { authToken: getAdminAuthToken_() }));
     return;
   }
 
@@ -9441,6 +9985,7 @@ function getClaimCategoryBadgeId_(cat){
     "VVIP Special Prize":"catBadge_VVIPSpecialPrize",
     "Lucky Money 88":"catBadge_LuckyMoney88",
     "Tiap Hari Bonus Besar":"catBadge_TiapHariBonusBesar",
+    "VVIP TO Mingguan":"catBadge_VVIPTOMingguan",
     "Hello Friends":"catBadge_HelloFriends",
     "Direct Agent":"catBadge_DirectAgent"
   };
@@ -9605,6 +10150,7 @@ function getHiddenAdminTableColumns_(category){
     "VVIP Special Prize": [7,8,9,10,11,12],
     "Lucky Money 88": [3,8,9,10,11,12,15,16],
     "Tiap Hari Bonus Besar": [3,11,12,15,16],
+    "VVIP TO Mingguan": [3,9,10,11,12,15],
     "Hello Friends": [3,8,9,10,12,15],
     "Direct Agent": [3,6,7,8,9,10,12,14]
   };
@@ -9665,6 +10211,7 @@ function refreshClaimCategorySidebarBadges_(){
     "VVIP Special Prize": 0,
     "Lucky Money 88": 0,
     "Tiap Hari Bonus Besar": 0,
+    "VVIP TO Mingguan": 0,
     "Hello Friends": 0,
     "Direct Agent": 0
   };
@@ -9702,11 +10249,18 @@ function openClaimManagementDefault(el){
   setClaimCategoryView("All", el || document.querySelector('[data-claim-view="All"]'));
 }
 
-function setDateFilter(mode){
+function setDateFilter(mode, silent){
   resetClaimPagination();
   const today = new Date();
   let from = "";
   let to = "";
+
+  if(mode === "todayYesterday"){
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    from = formatDate(y);
+    to = formatDate(today);
+  }
 
   if(mode === "today"){
     from = formatDate(today);
@@ -9736,6 +10290,10 @@ function setDateFilter(mode){
   if(mode !== "custom"){
     document.getElementById("dateFrom").value = from;
     document.getElementById("dateTo").value = to;
+  }
+
+  if(silent === true){
+    return;
   }
 
   loadData(false);
@@ -9792,6 +10350,8 @@ function startAdminAutoRefresh(){
   if(adminAutoRefreshTimer) return;
 
   adminAutoRefreshTimer = setInterval(function(){
+    if(document.hidden) return;
+
     if(!isAdminAutoRefreshPaused_()){
       loadData(true);
     }
@@ -9799,32 +10359,61 @@ function startAdminAutoRefresh(){
     if(activeBonusCommentRow){
       refreshOpenBonusComment();
     }
-  }, 10000);
+  }, ADMIN_AUTO_REFRESH_MS);
+}
+
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden && !isAdminAutoRefreshPaused_()){
+    loadData(true);
+  }
+});
+
+function getFriendlyAdminError_(err){
+  const msg = err && err.message ? String(err.message) : String(err || "");
+  if(/Too many simultaneous invocations|Service invoked too many times|Spreadsheets/i.test(msg)){
+    return "Server sedang ramai. Coba refresh lagi beberapa detik.";
+  }
+  return msg || "Request gagal.";
+}
+
+function updateAdminUnreadFromRows_(data, isAuto){
+  const prevUnread = lastAdminUnreadTotal;
+  const map = {};
+
+  (data || []).forEach(function(r){
+    const count = Number(r.commentUnread || 0);
+    if(count > 0) map[r.row] = count;
+  });
+
+  bonusCommentUnreadMap = map;
+  lastAdminUnreadTotal = getTotalUnread_(bonusCommentUnreadMap);
+
+  if(adminDataInitialized && isAuto === true && lastAdminUnreadTotal > prevUnread){
+    showAdminToast("Ada comment baru dari user.");
+  }
 }
 
 function loadData(isAuto){
+  if(adminPanelAccessBlocked && !adminPanelAccessAllowed){
+    return;
+  }
+
   if(isAuto === true && isAdminAutoRefreshPaused_()){
     return;
   }
 
-  google.script.run
-    .withSuccessHandler(function(unreadMap){
-      const prevUnread = lastAdminUnreadTotal;
+  const now = Date.now();
+  if(adminDataRequestInFlight){
+    return;
+  }
 
-      bonusCommentUnreadMap = unreadMap || {};
-      lastAdminUnreadTotal = getTotalUnread_(bonusCommentUnreadMap);
+  if(isAuto === true && now - lastAdminDataRequestAt < ADMIN_MIN_REQUEST_GAP_MS){
+    return;
+  }
 
-      if(adminDataInitialized && isAuto === true && lastAdminUnreadTotal > prevUnread){
-        showAdminToast("Ada comment baru dari user.");
-      }
-
-      loadClaimData_(isAuto);
-    })
-    .withFailureHandler(function(){
-      bonusCommentUnreadMap = {};
-      loadClaimData_(isAuto);
-    })
-    .getBonusCommentUnreadMap();
+  adminDataRequestInFlight = true;
+  lastAdminDataRequestAt = now;
+  loadClaimData_(isAuto);
 }
 
 
@@ -9846,13 +10435,33 @@ function buildAdminDataSignature(data){
 }
 
 function loadClaimData_(isAuto){
+  const filter = {
+    todayOnly:false,
+    dateFrom:document.getElementById("dateFrom").value,
+    dateTo:document.getElementById("dateTo").value,
+    status:"All",
+    maxRows:ADMIN_CLAIM_DEFAULT_ROWS
+  };
+  const filterKey = JSON.stringify(filter);
+  const versionForRequest = (isAuto === true && filterKey === lastAdminClaimFilterKey) ? lastAdminClaimVersion : "";
+
   google.script.run
-    .withSuccessHandler(function(data){
+    .withSuccessHandler(function(payload){
+      adminDataRequestInFlight = false;
       if(isAuto === true && isAdminAutoRefreshPaused_()){
         return;
       }
 
-      const newData = applyLocalClaimStatusOverrides_(data || []);
+      lastAdminClaimFilterKey = filterKey;
+      if(payload && payload.version) lastAdminClaimVersion = payload.version;
+      if(payload && payload.changed === false){
+        return;
+      }
+
+      const data = payload && Array.isArray(payload.rows) ? payload.rows : (Array.isArray(payload) ? payload : []);
+      updateAdminUnreadFromRows_(data, isAuto);
+
+      const newData = applyLocalClaimStatusOverrides_(data);
       const newSignature = buildAdminDataSignature(newData);
 
       allData = newData;
@@ -9882,14 +10491,10 @@ function loadClaimData_(isAuto){
       }
     })
     .withFailureHandler(function(err){
-      if(!isAuto) alert(err.message);
+      adminDataRequestInFlight = false;
+      if(!isAuto) alert(getFriendlyAdminError_(err));
     })
-    .getClaimHistory({
-      todayOnly:false,
-      dateFrom:document.getElementById("dateFrom").value,
-      dateTo:document.getElementById("dateTo").value,
-      status:"All"
-    });
+    .getClaimHistoryPayload(Object.assign({}, filter || {}, { authToken: getAdminAuthToken_() }), versionForRequest);
 }
 
 
@@ -10151,6 +10756,7 @@ function getBonusCategoryOrder(){
     "Lucky Money 88",
     "Hello Friends",
     "Direct Agent",
+    "VVIP TO Mingguan",
     "Tiap Hari Bonus Besar"
   ];
 }
@@ -10166,6 +10772,7 @@ function getBonusCategoryHQMap(){
     "Lucky Money 88":"新升銅禮金Lucky money",
     "Hello Friends":"介紹好友 FRIENDS",
     "Direct Agent":"Direct Agent",
+    "VVIP TO Mingguan":"VVIP-每周流水",
     "Tiap Hari Bonus Besar":"(新)天天拿大獎"
   };
 }
@@ -10219,7 +10826,8 @@ function getBonusIcon(name){
     "Lucky Money 88":"88",
     "Tiap Hari Bonus Besar":"🎯",
     "Hello Friends":"👥",
-    "Direct Agent":"👤"
+    "Direct Agent":"👤",
+    "VVIP TO Mingguan":"💎"
   };
   return map[name] || "📌";
 }
@@ -10856,7 +11464,7 @@ function verifyTiapHariClaim(row, clickedBtn){
       setButtonError_(clickedBtn, "Error", 1200);
       alert(err && err.message ? err.message : err);
     })
-    .updateTiapHariVerifyStatus(row);
+    .updateTiapHariVerifyStatus(row, getAdminAuthToken_());
 }
 
 function renderTable(keepPage){
@@ -11000,6 +11608,10 @@ function isVvipDepo_(r){
   return String((r && r.bonusCategory) || "").trim() === "VVIP DEPO";
 }
 
+function isVvipToMingguan_(r){
+  return String((r && r.bonusCategory) || "").trim() === "VVIP TO Mingguan";
+}
+
 function isVvipSpecial_(r){
   return String((r && r.bonusCategory) || "").trim() === "VVIP Special Prize";
 }
@@ -11017,11 +11629,23 @@ function isHelloFriends_(r){
 }
 
 function isBatchHQCategory_(r){
-  return isCuSport_(r) || isWelcomeBonus_(r) || isPromoSyukuran_(r) || isVvipDepo_(r) || isVvipSpecial_(r) || isLuckyMoney_(r) || isHelloFriends_(r);
+  return isTransferAgen_(r) || isCuSport_(r) || isWelcomeBonus_(r) || isPromoSyukuran_(r) || isVvipDepo_(r) || isVvipToMingguan_(r) || isVvipSpecial_(r) || isLuckyMoney_(r) || isHelloFriends_(r);
 }
 
 function isHQSubmitCategory_(r){
-  return isTransferAgen_(r) || isBatchHQCategory_(r);
+  return isBatchHQCategory_(r);
+}
+
+function getHQSubmitActionFn_(r){
+  if(isCuSport_(r)) return "submitCuSportHQ";
+  if(isWelcomeBonus_(r)) return "submitWelcomeBonusHQ";
+  if(isPromoSyukuran_(r)) return "submitPromoSyukuranHQ";
+  if(isVvipDepo_(r)) return "submitVvipDepoHQ";
+  if(isVvipToMingguan_(r)) return "submitVvipToMingguanHQ";
+  if(isVvipSpecial_(r)) return "submitVvipSpecialHQ";
+  if(isLuckyMoney_(r)) return "submitLuckyMoneyHQ";
+  if(isHelloFriends_(r)) return "submitHelloFriendsHQ";
+  return "submitTransferAgenHQ";
 }
 
 function isClaimOnProcessForHQ_(r){
@@ -11062,22 +11686,10 @@ function renderTransferAgenHQButton_(r){
   const claimStatus = String(r.status || "").trim();
   const statusHQ = String(r.statusHQ || "").trim();
   const submitStatus = String(r.hqSubmitStatus || "").trim();
-  const actionFn = isCuSport_(r)
-    ? "submitCuSportHQ"
-    : (isWelcomeBonus_(r)
-      ? "submitWelcomeBonusHQ"
-      : (isPromoSyukuran_(r)
-        ? "submitPromoSyukuranHQ"
-        : (isVvipDepo_(r)
-          ? "submitVvipDepoHQ"
-          : (isVvipSpecial_(r)
-            ? "submitVvipSpecialHQ"
-            : (isLuckyMoney_(r)
-              ? "submitLuckyMoneyHQ"
-              : (isHelloFriends_(r) ? "submitHelloFriendsHQ" : "submitTransferAgenHQ"))))));
+  const actionFn = getHQSubmitActionFn_(r);
 
   if(claimStatus === "Rejected") return "";
-  if(isHQOkStatusClient_(statusHQ)) return `<button class="btn btn-hq-submit admin-action-btn" data-hq-row="${esc(r.row)}" disabled>HQ OK</button>`;
+  if(isHQOkStatusClient_(statusHQ)) return `<button class="btn btn-hq-submit hq-ok admin-action-btn" data-hq-row="${esc(r.row)}" disabled>✅ HQ OK</button>`;
   if(!isClaimOnProcessForHQ_(r)){
     return `<button class="btn btn-hq-submit lock-first admin-action-btn" data-hq-row="${esc(r.row)}" disabled title="${esc(t("hqNeedProcessFirst"))}">${esc(t("lockFirstHQ"))}</button>`;
   }
@@ -11090,7 +11702,7 @@ function renderTransferAgenHQButton_(r){
     return `<button class="btn btn-hq-submit resubmit admin-action-btn" data-hq-row="${esc(r.row)}" id="btn_hq_${r.row}" onclick="${actionFn}(${r.row},this)">Resubmit HQ</button>`;
   }
 
-  return `<button class="btn btn-hq-submit admin-action-btn" data-hq-row="${esc(r.row)}" disabled>HQ Sent</button>`;
+  return `<button class="btn btn-hq-submit hq-sent admin-action-btn" data-hq-row="${esc(r.row)}" disabled>HQ Sent</button>`;
 }
 
 function canBatchSubmitWelcomeHQ_(r){
@@ -11261,20 +11873,24 @@ function submitSelectedWelcomeHQ(){
       setTimeout(function(){ renderTable(true); }, 800);
     });
 
-  if(category === "CU Sport"){
-    runner.submitCuSportBatchToHQ(rows);
+  if(category === "Transfer Agen"){
+    runner.submitTransferAgenBatchToHQ(rows, getAdminAuthToken_());
+  }else if(category === "CU Sport"){
+    runner.submitCuSportBatchToHQ(rows, getAdminAuthToken_());
   }else if(category === "Promo Syukuran"){
-    runner.submitPromoSyukuranBatchToHQ(rows);
+    runner.submitPromoSyukuranBatchToHQ(rows, getAdminAuthToken_());
   }else if(category === "VVIP DEPO"){
-    runner.submitVvipDepoBatchToHQ(rows);
+    runner.submitVvipDepoBatchToHQ(rows, getAdminAuthToken_());
+  }else if(category === "VVIP TO Mingguan"){
+    runner.submitVvipToMingguanBatchToHQ(rows, getAdminAuthToken_());
   }else if(category === "VVIP Special Prize"){
-    runner.submitVvipSpecialBatchToHQ(rows);
+    runner.submitVvipSpecialBatchToHQ(rows, getAdminAuthToken_());
   }else if(category === "Lucky Money 88"){
-    runner.submitLuckyMoneyBatchToHQ(rows);
+    runner.submitLuckyMoneyBatchToHQ(rows, getAdminAuthToken_());
   }else if(category === "Hello Friends"){
-    runner.submitHelloFriendsBatchToHQ(rows);
+    runner.submitHelloFriendsBatchToHQ(rows, getAdminAuthToken_());
   }else{
-    runner.submitWelcomeBonusBatchToHQ(rows);
+    runner.submitWelcomeBonusBatchToHQ(rows, getAdminAuthToken_());
   }
 }
 
@@ -11312,7 +11928,7 @@ function submitCuSportHQ(row, clickedBtn){
       setButtonError_(clickedBtn, t("hqError"), 1500);
       alert(err && err.message ? err.message : err);
     })
-    .submitCuSportToHQ(row);
+    .submitCuSportToHQ(row, getAdminAuthToken_());
 }
 
 function submitTransferAgenHQ(row, clickedBtn){
@@ -11349,7 +11965,7 @@ function submitTransferAgenHQ(row, clickedBtn){
       setButtonError_(clickedBtn, "HQ Error", 1500);
       alert(err && err.message ? err.message : err);
     })
-    .submitTransferAgenToHQ(row);
+    .submitTransferAgenToHQ(row, getAdminAuthToken_());
 }
 
 function submitWelcomeBonusHQ(row, clickedBtn){
@@ -11386,7 +12002,7 @@ function submitWelcomeBonusHQ(row, clickedBtn){
       setButtonError_(clickedBtn, "HQ Error", 1500);
       alert(err && err.message ? err.message : err);
     })
-    .submitWelcomeBonusToHQ(row);
+    .submitWelcomeBonusToHQ(row, getAdminAuthToken_());
 }
 
 function submitPromoSyukuranHQ(row, clickedBtn){
@@ -11423,7 +12039,7 @@ function submitPromoSyukuranHQ(row, clickedBtn){
       setButtonError_(clickedBtn, t("hqError"), 1500);
       alert(err && err.message ? err.message : err);
     })
-    .submitPromoSyukuranToHQ(row);
+    .submitPromoSyukuranToHQ(row, getAdminAuthToken_());
 }
 
 function submitVvipDepoHQ(row, clickedBtn){
@@ -11460,7 +12076,44 @@ function submitVvipDepoHQ(row, clickedBtn){
       setButtonError_(clickedBtn, t("hqError"), 1500);
       alert(err && err.message ? err.message : err);
     })
-    .submitVvipDepoToHQ(row);
+    .submitVvipDepoToHQ(row, getAdminAuthToken_());
+}
+
+function submitVvipToMingguanHQ(row, clickedBtn){
+  if(isViewerOnlyAdmin_()){
+    alert(t("viewerSubmitHQLocked"));
+    return;
+  }
+
+  const item = findClaimByRow_(row);
+  if(!item || !isClaimOnProcessForHQ_(item)){
+    warnNeedProcessBeforeHQ_();
+    return;
+  }
+
+  setButtonLoading_(clickedBtn, "Sending HQ...");
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      const msg = res && res.message ? res.message : "Submit HQ VVIP TO Mingguan berhasil";
+      setButtonSuccess_(clickedBtn, t("hqSent"), 900);
+
+      const item = allData.find(x => Number(x.row) === Number(row));
+      if(item && res){
+        item.hqSubmitStatus = res.hqSubmitStatus || item.hqSubmitStatus || "Submitted";
+        item.hqSubmitBy = res.hqSubmitBy || item.hqSubmitBy || "";
+        item.hqSubmitTargetRow = res.hqRow || item.hqSubmitTargetRow || "";
+        item.hqSubmitCount = res.hqSubmitCount || item.hqSubmitCount || "";
+      }
+
+      setTimeout(function(){ loadData(false); }, 900);
+      if(typeof showToast === "function") showToast(msg, "success");
+    })
+    .withFailureHandler(function(err){
+      setButtonError_(clickedBtn, t("hqError"), 1500);
+      alert(err && err.message ? err.message : err);
+    })
+    .submitVvipToMingguanToHQ(row, getAdminAuthToken_());
 }
 
 function submitVvipSpecialHQ(row, clickedBtn){
@@ -11497,7 +12150,7 @@ function submitVvipSpecialHQ(row, clickedBtn){
       setButtonError_(clickedBtn, t("hqError"), 1500);
       alert(err && err.message ? err.message : err);
     })
-    .submitVvipSpecialToHQ(row);
+    .submitVvipSpecialToHQ(row, getAdminAuthToken_());
 }
 
 
@@ -11535,7 +12188,7 @@ function submitLuckyMoneyHQ(row, clickedBtn){
       setButtonError_(clickedBtn, t("hqError"), 1500);
       alert(err && err.message ? err.message : err);
     })
-    .submitLuckyMoneyToHQ(row);
+    .submitLuckyMoneyToHQ(row, getAdminAuthToken_());
 }
 
 
@@ -11573,7 +12226,7 @@ function submitHelloFriendsHQ(row, clickedBtn){
       setButtonError_(clickedBtn, t("hqError"), 1500);
       alert(err && err.message ? err.message : err);
     })
-    .submitHelloFriendsToHQ(row);
+    .submitHelloFriendsToHQ(row, getAdminAuthToken_());
 }
 
 function setButtonLoading_(btn, text){
@@ -11803,7 +12456,7 @@ function updateStatus(row, status, clickedBtn){
       adminActionInFlight = Math.max(0, adminActionInFlight - 1);
       pauseAdminAutoRefresh_(6000);
     })
-    .updateClaimStatus(row, status, remark);
+    .updateClaimStatus(row, status, remark, getAdminAuthToken_());
 }
 
 
@@ -11850,7 +12503,7 @@ function syncHQAdmin(){
       btn.disabled = false;
       btn.innerHTML = "SyncHQ";
     })
-    .syncBonusReceivedToday();
+    .syncBonusReceivedToday(getAdminAuthToken_());
 }
 
 
@@ -11923,17 +12576,13 @@ function openBonusComment(row, clickedBtn){
         updateAdminNotificationBadge();
         renderTable(true);
       }
-
-      setTimeout(function(){
-        loadData(true);
-      }, 300);
     })
     .withFailureHandler(function(err){
       if(clickedBtn){ setButtonError_(clickedBtn, "Error", 1200); }
       sub.innerHTML = "";
       list.innerHTML = `<div style="text-align:center;color:#dc2626;font-weight:900;">${esc(err.message)}</div>`;
     })
-    .getBonusCommentCase(row);
+    .getBonusCommentCase(row, getAdminAuthToken_());
 }
 
 function refreshOpenBonusComment(){
@@ -11946,7 +12595,7 @@ function refreshOpenBonusComment(){
     .withSuccessHandler(function(data){
       renderBonusCommentModal(data);
     })
-    .getBonusCommentCase(activeBonusCommentRow);
+    .getBonusCommentCase(activeBonusCommentRow, getAdminAuthToken_());
 }
 
 function renderBonusCommentModal(data){
@@ -12133,9 +12782,7 @@ async function sendBonusComment(){
       document.getElementById("bcFileName").innerHTML = "Optional";
 
       setButtonSuccess_(btn, "✓ Comment Sent", 1100);
-
-      openBonusComment(activeBonusCommentRow);
-      loadData(true);
+      refreshOpenBonusComment();
     })
     .withFailureHandler(function(err){
       status.style.color = "#dc2626";
@@ -12145,7 +12792,8 @@ async function sendBonusComment(){
     .addBonusComment({
       row: activeBonusCommentRow,
       message: message,
-      uploadFiles: uploadFiles
+      uploadFiles: uploadFiles,
+      authToken: getAdminAuthToken_()
     });
 }
 
@@ -12230,7 +12878,7 @@ function loadOwnerAccessControl(){
     .withFailureHandler(function(err){
       if(st) st.innerHTML = err && err.message ? esc(err.message) : "Failed load owner data";
     })
-    .getOwnerAccessControlData();
+    .getOwnerAccessControlData(getAdminAuthToken_());
 }
 
 function ownerBool_(v){
@@ -12292,6 +12940,10 @@ function saveOwnerAdminRow(row, btn){
     else payload[f] = el.value || "";
   });
 
+  payload.authToken = getAdminAuthToken_();
+
+  payload.authToken = getAdminAuthToken_();
+
   setButtonLoading_(btn, "Saving...");
   google.script.run
     .withSuccessHandler(function(res){
@@ -12329,7 +12981,7 @@ function renderOwnerStaffAccessTable(){
       <td>${esc(r.email || "")}</td>
       <td><input data-field="staffName" value="${esc(r.staffName || "")}"></td>
       <td><input data-field="staffId" value="${esc(r.staffId || "")}"></td>
-      <td><select data-field="posisi"><option value="IT" ${r.posisi==="IT"?"selected":""}>IT</option><option value="MT" ${r.posisi==="MT"?"selected":""}>MT</option><option value="BZ" ${r.posisi==="BZ"?"selected":""}>BZ</option></select></td>
+      <td><select data-field="posisi"><option value="IT" ${r.posisi==="IT"?"selected":""}>IT</option><option value="MT" ${r.posisi==="MT"?"selected":""}>MT</option><option value="BZ" ${r.posisi==="BZ"?"selected":""}>BZ</option><option value="TM" ${r.posisi==="TM"?"selected":""}>TM</option><option value="ST" ${r.posisi==="ST"?"selected":""}>ST</option></select></td>
       <td><input data-field="team" value="${esc(r.team || "")}"></td>
       <td><input type="checkbox" data-field="active" ${active?"checked":""}></td>
       <td><select data-field="accessStatus"><option value="PENDING" ${status==="PENDING"?"selected":""}>PENDING</option><option value="APPROVED" ${status==="APPROVED"?"selected":""}>APPROVED</option><option value="OFF" ${status==="OFF"?"selected":""}>OFF</option><option value="BLOCKED" ${status==="BLOCKED"?"selected":""}>BLOCKED</option></select></td>
@@ -12355,6 +13007,8 @@ function saveOwnerStaffRow(row, btn){
       payload[f] = el.value || "";
     }
   });
+
+  payload.authToken = getAdminAuthToken_();
 
   setButtonLoading_(btn, "Saving...");
   google.script.run
@@ -12416,7 +13070,8 @@ function approveOwnerAdminRequest(email, btn){
       role: row.posisi,
       staffName: row.staffName,
       staffId: row.staffId,
-      team: row.team
+      team: row.team,
+      authToken: getAdminAuthToken_()
     });
 }
 
@@ -12433,7 +13088,7 @@ function rejectOwnerAdminRequest(email, btn){
       setButtonError_(btn, "Error", 1400);
       alert(err && err.message ? err.message : err);
     })
-    .ownerRejectAdminAccessRequest(email);
+    .ownerRejectAdminAccessRequest(email, getAdminAuthToken_());
 }
 
 
@@ -12506,7 +13161,7 @@ function loadOwnerAdminControl(){
     .withFailureHandler(function(err){
       if(st) st.innerHTML = err && err.message ? esc(err.message) : "Failed load admin data";
     })
-    .getOwnerAdminControlData();
+    .getOwnerAdminControlData(getAdminAuthToken_());
 }
 
 function loadOwnerUserControl(){
@@ -12523,7 +13178,7 @@ function loadOwnerUserControl(){
     .withFailureHandler(function(err){
       if(st) st.innerHTML = err && err.message ? esc(err.message) : "Failed load user data";
     })
-    .getOwnerUserControlData();
+    .getOwnerUserControlData(getAdminAuthToken_());
 }
 
 // Backward compatibility. Split mode prevents unnecessary huge reload and makes Save faster.
@@ -12550,6 +13205,8 @@ function saveOwnerAdminRow(row, btn){
     if(el.type === "checkbox") payload[f] = el.checked;
     else payload[f] = el.value || "";
   });
+
+  payload.authToken = getAdminAuthToken_();
 
   setButtonLoading_(btn, "Saving...");
   google.script.run
@@ -12578,6 +13235,8 @@ function saveOwnerStaffRow(row, btn){
       payload[f] = el.value || "";
     }
   });
+
+  payload.authToken = getAdminAuthToken_();
 
   setButtonLoading_(btn, "Saving...");
   google.script.run
@@ -12865,7 +13524,7 @@ function renderOwnerStaffAccessTable(){
       <td>${esc(r.email || "")}</td>
       <td><input data-field="staffName" value="${esc(r.staffName || "")}"></td>
       <td><input data-field="staffId" value="${esc(r.staffId || "")}"></td>
-      <td><select data-field="posisi"><option value="IT" ${r.posisi==="IT"?"selected":""}>IT</option><option value="MT" ${r.posisi==="MT"?"selected":""}>MT</option><option value="BZ" ${r.posisi==="BZ"?"selected":""}>BZ</option></select></td>
+      <td><select data-field="posisi"><option value="IT" ${r.posisi==="IT"?"selected":""}>IT</option><option value="MT" ${r.posisi==="MT"?"selected":""}>MT</option><option value="BZ" ${r.posisi==="BZ"?"selected":""}>BZ</option><option value="TM" ${r.posisi==="TM"?"selected":""}>TM</option><option value="ST" ${r.posisi==="ST"?"selected":""}>ST</option></select></td>
       <td><input data-field="team" value="${esc(r.team || "")}"></td>
       <td>
         <input type="checkbox" data-field="active" ${active?"checked":""}>
@@ -12914,6 +13573,8 @@ function saveOwnerAdminRow(row, btn){
     else payload[f] = el.value || "";
   });
 
+  payload.authToken = getAdminAuthToken_();
+
   setButtonLoading_(btn, "Saving...");
   google.script.run
     .withSuccessHandler(function(res){
@@ -12943,6 +13604,8 @@ function saveOwnerStaffRow(row, btn){
     if(el.type === "checkbox") payload[f] = el.checked;
     else payload[f] = el.value || "";
   });
+
+  payload.authToken = getAdminAuthToken_();
 
   setButtonLoading_(btn, "Saving...");
   google.script.run
@@ -13087,7 +13750,7 @@ function renderOwnerStaffAccessTable(){
       <td>${esc(r.email || "")}</td>
       <td><input data-field="staffName" value="${esc(r.staffName || "")}"></td>
       <td><input data-field="staffId" value="${esc(r.staffId || "")}"></td>
-      <td><select data-field="posisi"><option value="IT" ${r.posisi==="IT"?"selected":""}>IT</option><option value="MT" ${r.posisi==="MT"?"selected":""}>MT</option><option value="BZ" ${r.posisi==="BZ"?"selected":""}>BZ</option></select></td>
+      <td><select data-field="posisi"><option value="IT" ${r.posisi==="IT"?"selected":""}>IT</option><option value="MT" ${r.posisi==="MT"?"selected":""}>MT</option><option value="BZ" ${r.posisi==="BZ"?"selected":""}>BZ</option><option value="TM" ${r.posisi==="TM"?"selected":""}>TM</option><option value="ST" ${r.posisi==="ST"?"selected":""}>ST</option></select></td>
       <td><input data-field="team" value="${esc(r.team || "")}"></td>
       <td>${ownerStatusPill_(status)}</td>
       <td><select data-field="accessStatus">
@@ -13117,7 +13780,8 @@ function collectOwnerAdminPayload_(row, statusOverride){
     row: row,
     email: original.email || "",
     accountStatus: statusOverride || tr.getAttribute("data-owner-account-status") || ownerAdminStatus_(original),
-    active: (statusOverride || tr.getAttribute("data-owner-account-status") || ownerAdminStatus_(original)) === "ACTIVE"
+    active: (statusOverride || tr.getAttribute("data-owner-account-status") || ownerAdminStatus_(original)) === "ACTIVE",
+    authToken: getAdminAuthToken_()
   };
 
   tr.querySelectorAll("[data-admin-field]").forEach(function(el){
@@ -13139,7 +13803,8 @@ function collectOwnerStaffPayload_(row, statusOverride){
     row: row,
     email: original ? (original.email || "") : "",
     accountStatus: status,
-    active: status === "ACTIVE"
+    active: status === "ACTIVE",
+    authToken: getAdminAuthToken_()
   };
 
   tr.querySelectorAll("[data-field]").forEach(function(el){
@@ -13156,6 +13821,8 @@ function collectOwnerStaffPayload_(row, statusOverride){
 function saveOwnerAdminRow(row, btn){
   const payload = collectOwnerAdminPayload_(row);
   if(!payload) return;
+
+  payload.authToken = getAdminAuthToken_();
 
   setButtonLoading_(btn, "Saving...");
   google.script.run
@@ -13174,6 +13841,8 @@ function saveOwnerAdminRow(row, btn){
 function saveOwnerStaffRow(row, btn){
   const payload = collectOwnerStaffPayload_(row);
   if(!payload) return;
+
+  payload.authToken = getAdminAuthToken_();
 
   setButtonLoading_(btn, "Saving...");
   google.script.run
@@ -13293,6 +13962,9 @@ function showAdminRegisterOverlay_(info){
   if(grid) grid.style.display = '';
   if(btn){ btn.style.display = ''; btn.innerHTML = 'Submit Request'; }
 
+  const emailInput = document.getElementById('profileLoginEmail');
+  if(emailInput && info.email) emailInput.value = info.email;
+
   const pending = info.pendingRequest || null;
   if(pending){
     fillAdminProfileForm_({
@@ -13356,10 +14028,10 @@ function initAdminProfileSessionSafe(){
     .withFailureHandler(function(err){
       showAdminAccessDeniedOverlay_({
         accountStatus:'DENIED',
-        message: err && err.message ? err.message : 'Gagal cek akses admin. Refresh halaman atau hubungi Owner.'
+        message: getFriendlyAdminError_(err) || 'Gagal cek akses admin. Refresh halaman atau hubungi Owner.'
       });
     })
-    .getAdminPanelAccessInfo();
+    .getAdminPanelAccessInfo(getAdminAuthToken_());
 }
 
 function closeAdminProfileOverlay(){
@@ -13430,26 +14102,19 @@ function setAdminPanelAccessGate_(allowed){
 function setAdminAccessChecking_(){
   adminPanelAccessAllowed = false;
   adminPanelAccessBlocked = true;
+  adminProfileOverlayMode_ = "checking";
+  adminProfileOverlayInfo_ = null;
   document.body.classList.add("admin-access-blocked");
   document.body.classList.add("admin-access-checking");
 
   const card = document.querySelector('#adminProfileOverlay .profile-register-card');
-  const title = document.querySelector('#adminProfileOverlay h2');
-  const desc = document.querySelector('#adminProfileOverlay p');
   const grid = document.querySelector('#adminProfileOverlay .profile-register-grid');
   const btn = document.getElementById('saveProfileBtn');
-  const st = document.getElementById('profileRegisterStatus');
 
   if(card) card.classList.remove('access-denied-card');
-  if(title) title.innerHTML = 'Checking Admin Access';
-  if(desc) desc.innerHTML = 'Mohon tunggu sebentar. Sistem sedang mengecek akses admin dari USER_ACCESS.';
   if(grid) grid.style.display = 'none';
   if(btn) btn.style.display = 'none';
-  if(st){
-    st.classList.remove('danger');
-    st.style.color = '#2563eb';
-    st.innerHTML = 'Checking access...';
-  }
+  applyAdminRegisterOverlayLanguage_();
 
   setAdminProfileOverlayLocked_(true);
   openAdminProfileOverlay();
@@ -13466,28 +14131,20 @@ function setAdminProfileOverlayLocked_(locked){
 function showAdminAccessDeniedOverlay_(info){
   info = info || {};
   adminAccessRegisterMode = false;
+  adminProfileOverlayMode_ = "denied";
+  adminProfileOverlayInfo_ = info;
   setAdminPanelAccessGate_(false);
   setAdminProfileOverlayLocked_(true);
   document.body.classList.remove("admin-access-checking");
 
   const card = document.querySelector('#adminProfileOverlay .profile-register-card');
-  const title = document.querySelector('#adminProfileOverlay h2');
-  const desc = document.querySelector('#adminProfileOverlay p');
   const grid = document.querySelector('#adminProfileOverlay .profile-register-grid');
   const btn = document.getElementById('saveProfileBtn');
-  const st = document.getElementById('profileRegisterStatus');
 
   if(card) card.classList.add('access-denied-card');
-
-  const status = String(info.accountStatus || "LOCKED").toUpperCase();
-  if(title) title.innerHTML = status === 'REMOVED' ? 'Akun Admin Removed' : 'Akun Admin Locked';
-  if(desc) desc.innerHTML = esc(info.message || 'Akses admin sedang dikunci oleh Owner. Hubungi Owner untuk membuka akses.');
   if(grid) grid.style.display = 'none';
   if(btn) btn.style.display = 'none';
-  if(st){
-    st.classList.add('danger');
-    st.innerHTML = 'Access Status: ' + esc(status);
-  }
+  applyAdminRegisterOverlayLanguage_();
 
   openAdminProfileOverlay();
 }
@@ -13495,22 +14152,20 @@ function showAdminAccessDeniedOverlay_(info){
 function showAdminRegisterOverlay_(info){
   info = info || {};
   adminAccessRegisterMode = true;
+  adminProfileOverlayMode_ = "register";
+  adminProfileOverlayInfo_ = info;
   setAdminPanelAccessGate_(false);
   setAdminProfileOverlayLocked_(true);
   document.body.classList.remove("admin-access-checking");
 
   const card = document.querySelector('#adminProfileOverlay .profile-register-card');
-  const title = document.querySelector('#adminProfileOverlay h2');
-  const desc = document.querySelector('#adminProfileOverlay p');
   const grid = document.querySelector('#adminProfileOverlay .profile-register-grid');
   const btn = document.getElementById('saveProfileBtn');
-  const st = document.getElementById('profileRegisterStatus');
 
   if(card) card.classList.remove('access-denied-card');
-  if(title) title.innerHTML = 'Register Admin / TL / FZR Access';
-  if(desc) desc.innerHTML = 'Gmail ini belum aktif di USER_ACCESS. Isi request, lalu tunggu Owner approve.';
   if(grid) grid.style.display = '';
-  if(btn){ btn.style.display = ''; btn.innerHTML = 'Submit Request'; }
+  if(btn){ btn.style.display = ''; btn.disabled = false; }
+  restoreAdminInviteEmail_();
 
   const pending = info.pendingRequest || null;
   if(pending){
@@ -13520,16 +14175,8 @@ function showAdminRegisterOverlay_(info){
       posisi: pending.posisi,
       team: pending.team
     });
-    if(st){
-      st.classList.remove('danger');
-      st.style.color = '#d97706';
-      st.innerHTML = 'Request status: ' + esc(pending.status || 'PENDING');
-    }
-  }else if(st){
-    st.classList.remove('danger');
-    st.style.color = '#64748b';
-    st.innerHTML = '';
   }
+  applyAdminRegisterOverlayLanguage_();
 
   openAdminProfileOverlay();
 }
@@ -13560,8 +14207,8 @@ function handleAdminAccessInfo_(info, opts){
   }
 
   adminAccessRegisterMode = false;
-  setAdminPanelAccessGate_(true);
-  setAdminProfileOverlayLocked_(false);
+  adminProfileOverlayMode_ = "profile";
+  adminProfileOverlayInfo_ = info;
 
   const card = document.querySelector('#adminProfileOverlay .profile-register-card');
   const grid = document.querySelector('#adminProfileOverlay .profile-register-grid');
@@ -13570,11 +14217,12 @@ function handleAdminAccessInfo_(info, opts){
 
   if(card) card.classList.remove('access-denied-card');
   if(grid) grid.style.display = '';
-  if(btn){ btn.style.display = ''; btn.innerHTML = 'Save & Continue'; }
+  if(btn){ btn.style.display = ''; btn.disabled = false; }
+  applyAdminRegisterOverlayLanguage_();
   if(st){
     st.classList.remove('danger');
     st.style.color = '#16a34a';
-    st.innerHTML = 'Access active.';
+    st.innerHTML = trAdminRegister_("accessActive");
   }
 
   const saved = info.savedProfile || null;
@@ -13582,6 +14230,8 @@ function handleAdminAccessInfo_(info, opts){
   // If locked overlay/register overlay was visible and access is now active,
   // return to normal panel immediately.
   if(saved){
+    setAdminPanelAccessGate_(true);
+    setAdminProfileOverlayLocked_(false);
     adminPanelProfileLoaded = true;
     fillAdminProfileForm_(saved);
     startAdminPanelSession_(saved, true);
@@ -13591,7 +14241,15 @@ function handleAdminAccessInfo_(info, opts){
       setTimeout(function(){ loadData(false); }, opts.firstRun ? 500 : 150);
     }
   }else{
-    // Access is active but profile detail is not saved yet.
+    // Access is active, but the profile form is still mandatory. Do not let
+    // "Later" close the overlay or expose admin actions before Save succeeds.
+    setAdminPanelAccessGate_(false);
+    setAdminProfileOverlayLocked_(true);
+    if(st){
+      st.classList.remove('danger');
+      st.style.color = '#d97706';
+      st.innerHTML = trAdminRegister_("completeProfile");
+    }
     openAdminProfileOverlay();
   }
 
@@ -13636,24 +14294,28 @@ function pollAdminPanelAccess_(opts){
       if(opts.firstRun){
         showAdminAccessDeniedOverlay_({
           accountStatus:'DENIED',
-          message: err && err.message ? err.message : 'Gagal cek akses admin. Refresh halaman atau hubungi Owner.'
+          message: getFriendlyAdminError_(err) || 'Gagal cek akses admin. Refresh halaman atau hubungi Owner.'
         });
       }
     })
-    .getAdminPanelAccessInfo();
+    .getAdminPanelAccessInfo(getAdminAuthToken_());
 }
 
 function startAdminAccessWatcher_(){
   if(adminAccessWatchTimer) return;
   adminAccessWatchTimer = setInterval(function(){
     pollAdminPanelAccess_({ loadData:false });
-  }, 15000);
+  }, 45000);
 }
 
 function initAdminProfileSessionSafe(){
   setAdminAccessChecking_();
-  pollAdminPanelAccess_({ firstRun:true, loadData:true });
-  startAdminAccessWatcher_();
+  if(getAdminAuthToken_()){
+    pollAdminPanelAccess_({ firstRun:true, loadData:true });
+    startAdminAccessWatcher_();
+    return;
+  }
+  promptAdminGoogleLogin_();
 }
 
 function closeAdminProfileOverlay(){
@@ -13662,8 +14324,8 @@ function closeAdminProfileOverlay(){
     if(st){
       st.style.color = '#dc2626';
       st.innerHTML = adminAccessRegisterMode
-        ? 'Akses belum aktif. Submit request dan tunggu Owner approve.'
-        : 'Akses terkunci. Hubungi Owner.';
+        ? trAdminRegister_("closeRegister")
+        : trAdminRegister_("closeLocked");
     }
     return;
   }
@@ -13876,6 +14538,7 @@ function saveAdminFieldModal(){
   }else if(type === "slip"){
     payload.nomorSlip = String(document.getElementById("adminFieldInput").value || "").trim().toUpperCase();
   }
+  payload.authToken = getAdminAuthToken_();
 
   setButtonLoading_(btn, "Saving...");
   google.script.run
@@ -14020,7 +14683,7 @@ function updateStatus(row, status, clickedBtn){
       adminActionInFlight = Math.max(0, adminActionInFlight - 1);
       pauseAdminAutoRefresh_(6000);
     })
-    .updateClaimStatus(row, status, remark);
+    .updateClaimStatus(row, status, remark, getAdminAuthToken_());
 }
 
 // Override renderTable to remove wide Admin Remarks textarea and add compact modal buttons.
@@ -14146,7 +14809,7 @@ function submitAllReadyThbHQ(clickedBtn){
       alert(err && err.message ? err.message : err);
       setTimeout(function(){ renderThbHelperPanel_(); }, 800);
     })
-    .submitTiapHariBonusBesarBatchToHQ(rows);
+    .submitTiapHariBonusBesarBatchToHQ(rows, getAdminAuthToken_());
 }
 
 
@@ -14323,7 +14986,7 @@ function syncThbHelperStatus(){
       renderThbHelperPanel_();
       alert(err && err.message ? err.message : err);
     })
-    .getThbHelperSyncData(rows);
+    .getThbHelperSyncData(rows, getAdminAuthToken_());
 }
 
 
@@ -14498,22 +15161,10 @@ function renderTransferAgenHQButton_(r){
   const claimStatus = String(r.status || "").trim();
   const statusHQ = String(r.statusHQ || "").trim();
   const submitStatus = String(r.hqSubmitStatus || "").trim();
-  const actionFn = isCuSport_(r)
-    ? "submitCuSportHQ"
-    : (isWelcomeBonus_(r)
-      ? "submitWelcomeBonusHQ"
-      : (isPromoSyukuran_(r)
-        ? "submitPromoSyukuranHQ"
-        : (isVvipDepo_(r)
-          ? "submitVvipDepoHQ"
-          : (isVvipSpecial_(r)
-            ? "submitVvipSpecialHQ"
-            : (isLuckyMoney_(r)
-              ? "submitLuckyMoneyHQ"
-              : (isHelloFriends_(r) ? "submitHelloFriendsHQ" : "submitTransferAgenHQ"))))));
+  const actionFn = getHQSubmitActionFn_(r);
 
   if(claimStatus === "Rejected") return "";
-  if(isHQOkStatusClient_(statusHQ)) return `<button class="btn btn-hq-submit admin-action-btn" data-hq-row="${esc(r.row)}" disabled>HQ OK</button>`;
+  if(isHQOkStatusClient_(statusHQ)) return `<button class="btn btn-hq-submit hq-ok admin-action-btn" data-hq-row="${esc(r.row)}" disabled>✅ HQ OK</button>`;
 
   if(!isClaimOnProcessForHQ_(r)){
     return `<button class="btn btn-hq-submit lock-first admin-action-btn" data-hq-row="${esc(r.row)}" disabled title="${esc(t("hqNeedProcessFirst"))}">${esc(t("lockFirstHQ"))}</button>`;
@@ -14531,8 +15182,242 @@ function renderTransferAgenHQButton_(r){
     return `<button class="btn btn-hq-submit resubmit admin-action-btn" data-hq-row="${esc(r.row)}" id="btn_hq_${r.row}" onclick="${actionFn}(${r.row},this)">Resubmit HQ</button>`;
   }
 
-  return `<button class="btn btn-hq-submit admin-action-btn" data-hq-row="${esc(r.row)}" disabled>HQ Sent</button>`;
+  return `<button class="btn btn-hq-submit hq-sent admin-action-btn" data-hq-row="${esc(r.row)}" disabled>HQ Sent</button>`;
 }
+
+
+
+function setOwnerUpdateNoticeStatus_(message, type){
+  const el = document.getElementById("ownerUpdateNoticeStatus");
+  if(!el) return;
+  el.textContent = message || "";
+  el.style.color = type === "err" ? "#fecaca" : (type === "ok" ? "#bbf7d0" : "#e0f2fe");
+}
+
+function ownerReleaseUpdateNoticeFromPanel(btn){
+  if(!isOwnerUser_()){
+    alert("Owner only.");
+    return;
+  }
+
+  const msgEl = document.getElementById("ownerUpdateNoticeMessage");
+  const countdownEl = document.getElementById("ownerUpdateNoticeCountdown");
+  const message = String((msgEl && msgEl.value) || "Update baru sudah siap. Minta user/admin tekan F5 atau refresh tab browser.").trim();
+  const countdown = Number((countdownEl && countdownEl.value) || 45);
+
+  if(!confirm("Release update notice ke semua user dan admin? Action akan dikunci di 15 detik terakhir.")) return;
+
+  const oldText = btn ? btn.innerHTML : "";
+  if(btn){ btn.disabled = true; btn.innerHTML = "Releasing..."; }
+  setOwnerUpdateNoticeStatus_("Mengirim update notice...", "");
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(btn){ btn.disabled = false; btn.innerHTML = oldText || "Release Notice"; }
+      setOwnerUpdateNoticeStatus_((res && res.message) || "Update notice aktif.", "ok");
+      if(typeof showAdminToast === "function") showAdminToast("Update notice sudah direlease.");
+    })
+    .withFailureHandler(function(err){
+      if(btn){ btn.disabled = false; btn.innerHTML = oldText || "Release Notice"; }
+      setOwnerUpdateNoticeStatus_(err && err.message ? err.message : String(err), "err");
+    })
+    .ownerReleaseAppUpdateNotice(message, countdown, getAdminAuthToken_());
+}
+
+function ownerClearUpdateNoticeFromPanel(btn){
+  if(!isOwnerUser_()){
+    alert("Owner only.");
+    return;
+  }
+
+  if(!confirm("Matikan update notice aktif?")) return;
+
+  const oldText = btn ? btn.innerHTML : "";
+  if(btn){ btn.disabled = true; btn.innerHTML = "Clearing..."; }
+  setOwnerUpdateNoticeStatus_("Mematikan update notice...", "");
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(btn){ btn.disabled = false; btn.innerHTML = oldText || "Clear Notice"; }
+      setOwnerUpdateNoticeStatus_((res && res.message) || "Update notice dimatikan.", "ok");
+      if(typeof showAdminToast === "function") showAdminToast("Update notice dimatikan.");
+    })
+    .withFailureHandler(function(err){
+      if(btn){ btn.disabled = false; btn.innerHTML = oldText || "Clear Notice"; }
+      setOwnerUpdateNoticeStatus_(err && err.message ? err.message : String(err), "err");
+    })
+    .ownerClearAppUpdateNotice(getAdminAuthToken_());
+}
+
+/* ===== OWNER RELEASE UPDATE NOTICE ===== */
+(function(){
+  const APP_UPDATE_POLL_MS = 30000;
+  const APP_UPDATE_ACCEPT_KEY = "ixAppUpdateAcceptedVersion";
+  const APP_UPDATE_PENDING_ACCEPT_KEY = "ixAppUpdatePendingAcceptedVersion";
+  const APP_UPDATE_BANNER_ID = "appUpdateNoticeBanner";
+  let appUpdateNoticeStarted_ = false;
+  let appUpdateNotice_ = null;
+  let appUpdateDeadlineMs_ = 0;
+  let appUpdateCountdownTimer_ = null;
+  let appUpdatePollTimer_ = null;
+  let appUpdateActionLocked_ = false;
+
+  function ensureAppUpdateStyles_(){
+    if(document.getElementById("appUpdateNoticeStyle")) return;
+    const style = document.createElement("style");
+    style.id = "appUpdateNoticeStyle";
+    style.textContent = `
+      .app-update-notice{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;width:min(760px,calc(100vw - 28px));background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,64,175,.95));color:#fff;border:1px solid rgba(255,255,255,.24);border-radius:20px;box-shadow:0 24px 70px rgba(15,23,42,.38);padding:14px 16px;display:none;align-items:center;justify-content:space-between;gap:14px;font-family:Inter,Arial,sans-serif;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+      .app-update-notice.show{display:flex;animation:appUpdateRise_.24s ease-out}
+      .app-update-copy{display:flex;flex-direction:column;gap:3px;min-width:0}.app-update-title{font-weight:950;font-size:14px;letter-spacing:.02em}.app-update-msg{font-size:12px;font-weight:700;line-height:1.35;color:rgba(255,255,255,.88)}
+      .app-update-count{font-size:12px;font-weight:950;color:#fde68a;white-space:normal}.app-update-refresh-btn{border:0;border-radius:14px;padding:10px 14px;background:linear-gradient(90deg,#22c55e,#06b6d4);color:#fff;font-weight:950;cursor:pointer;box-shadow:0 12px 26px rgba(6,182,212,.26);white-space:nowrap}.app-update-refresh-btn:hover{transform:translateY(-1px)}
+      body.app-update-action-locked button:not(.app-update-refresh-btn),body.app-update-action-locked input[type="submit"]{filter:grayscale(.8);cursor:not-allowed!important}
+      @keyframes appUpdateRise_{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+      @media(max-width:640px){.app-update-notice{bottom:max(10px,env(safe-area-inset-bottom));align-items:flex-start;flex-direction:column}.app-update-refresh-btn{width:100%}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function ensureAppUpdateBanner_(){
+    ensureAppUpdateStyles_();
+    let banner = document.getElementById(APP_UPDATE_BANNER_ID);
+    if(banner) return banner;
+    banner = document.createElement("div");
+    banner.id = APP_UPDATE_BANNER_ID;
+    banner.className = "app-update-notice";
+    banner.innerHTML = `
+      <div class="app-update-copy">
+        <div class="app-update-title">🚀 Update panel tersedia</div>
+        <div class="app-update-msg" id="appUpdateNoticeMessage">Selesaikan pekerjaan yang sedang berjalan lalu klik Update.</div>
+        <div class="app-update-count" id="appUpdateNoticeCountdown">Menyiapkan update...</div>
+      </div>
+      <button type="button" class="app-update-refresh-btn" id="appUpdateRefreshBtn">Panduan Refresh</button>
+    `;
+    document.body.appendChild(banner);
+    document.getElementById("appUpdateRefreshBtn").addEventListener("click", acceptAndReloadAppUpdate_);
+    return banner;
+  }
+
+  function isAppUpdateAccepted_(notice){
+    return !!(notice && notice.version && localStorage.getItem(APP_UPDATE_ACCEPT_KEY) === String(notice.version));
+  }
+
+  function setAppUpdateActionLocked_(locked){
+    appUpdateActionLocked_ = !!locked;
+    document.body.classList.toggle("app-update-action-locked", appUpdateActionLocked_);
+  }
+
+  function showAppUpdateToast_(message){
+    if(typeof showAdminToast === "function") showAdminToast(message);
+  }
+
+  function acceptAndReloadAppUpdate_(){
+    const version = appUpdateNotice_ && appUpdateNotice_.version ? String(appUpdateNotice_.version) : "";
+    if(version){
+      try{ sessionStorage.setItem(APP_UPDATE_PENDING_ACCEPT_KEY, version); }catch(e){}
+    }
+
+    const btn = document.getElementById("appUpdateRefreshBtn");
+    if(btn){
+      btn.textContent = "Tekan F5 / Refresh Tab";
+      btn.title = "Setelah klik ini, tekan F5 atau tombol refresh browser supaya panel memuat versi terbaru.";
+    }
+
+    const counter = document.getElementById("appUpdateNoticeCountdown");
+    if(counter){
+      counter.textContent = "Silakan tekan F5 / tombol refresh browser sekarang. Setelah reload, banner ini tidak muncul lagi untuk versi update ini.";
+    }
+
+    showAppUpdateToast_("Tekan F5 atau tombol refresh Chrome/browser untuk memuat update terbaru.");
+  }
+
+  function markPendingAppUpdateAccepted_(){
+    try{
+      const version = sessionStorage.getItem(APP_UPDATE_PENDING_ACCEPT_KEY);
+      if(version){
+        localStorage.setItem(APP_UPDATE_ACCEPT_KEY, version);
+        sessionStorage.removeItem(APP_UPDATE_PENDING_ACCEPT_KEY);
+      }
+    }catch(e){}
+  }
+
+  function hideAppUpdateNotice_(){
+    const banner = document.getElementById(APP_UPDATE_BANNER_ID);
+    if(banner) banner.classList.remove("show");
+    setAppUpdateActionLocked_(false);
+    appUpdateNotice_ = null;
+    appUpdateDeadlineMs_ = 0;
+    if(appUpdateCountdownTimer_) clearInterval(appUpdateCountdownTimer_);
+    appUpdateCountdownTimer_ = null;
+  }
+
+  function renderAppUpdateCountdown_(){
+    if(!appUpdateNotice_) return;
+    const remaining = Math.max(0, Math.ceil((appUpdateDeadlineMs_ - Date.now()) / 1000));
+    const lockSeconds = Number(appUpdateNotice_.lockSeconds || 15);
+    const counter = document.getElementById("appUpdateNoticeCountdown");
+    if(counter){
+      counter.textContent = remaining > lockSeconds
+        ? "Action akan dikunci dalam " + (remaining - lockSeconds) + " detik. Mohon stop submit/action dulu."
+        : "Action dikunci sementara. Klik tombol panduan, lalu refresh tab browser / tekan F5.";
+    }
+    setAppUpdateActionLocked_(remaining <= lockSeconds);
+  }
+
+  function handleAppUpdateNotice_(notice){
+    if(!notice || !notice.active || !notice.version || isAppUpdateAccepted_(notice)){
+      hideAppUpdateNotice_();
+      return;
+    }
+    appUpdateNotice_ = notice;
+    const serverRemaining = Math.max(0, Math.ceil((Number(notice.releaseAt || 0) + Number(notice.countdownSeconds || 45) * 1000 - Number(notice.serverNow || Date.now())) / 1000));
+    appUpdateDeadlineMs_ = Date.now() + serverRemaining * 1000;
+    const banner = ensureAppUpdateBanner_();
+    const msg = document.getElementById("appUpdateNoticeMessage");
+    if(msg) msg.textContent = notice.message || "Update terbaru sudah tersedia. Klik tombol panduan, lalu refresh tab browser / tekan F5.";
+    banner.classList.add("show");
+    renderAppUpdateCountdown_();
+    if(appUpdateCountdownTimer_) clearInterval(appUpdateCountdownTimer_);
+    appUpdateCountdownTimer_ = setInterval(renderAppUpdateCountdown_, 1000);
+  }
+
+  function checkAppUpdateNotice_(){
+    if(!window.google || !google.script || !google.script.run) return;
+    google.script.run
+      .withSuccessHandler(handleAppUpdateNotice_)
+      .withFailureHandler(function(){})
+      .getAppUpdateNotice();
+  }
+
+  function initAppUpdateNotice_(){
+    if(appUpdateNoticeStarted_) return;
+    markPendingAppUpdateAccepted_();
+    appUpdateNoticeStarted_ = true;
+    ensureAppUpdateStyles_();
+    checkAppUpdateNotice_();
+    appUpdatePollTimer_ = setInterval(checkAppUpdateNotice_, APP_UPDATE_POLL_MS);
+  }
+
+  document.addEventListener("click", function(evt){
+    if(!appUpdateActionLocked_) return;
+    if(evt.target.closest(".app-update-refresh-btn")) return;
+    const actionEl = evt.target.closest("button,input[type='submit'],.btn,.refresh-btn,.case-btn,.history-page-btn");
+    if(!actionEl) return;
+    evt.preventDefault();
+    evt.stopPropagation();
+    showAppUpdateToast_("Update panel tersedia. Klik tombol panduan, lalu tekan F5 / refresh tab browser sebelum lanjut action.");
+  }, true);
+
+  document.addEventListener("submit", function(evt){
+    if(!appUpdateActionLocked_) return;
+    evt.preventDefault();
+    evt.stopPropagation();
+    showAppUpdateToast_("Update panel tersedia. Klik tombol panduan, lalu tekan F5 / refresh tab browser sebelum submit.");
+  }, true);
+
+  document.addEventListener("DOMContentLoaded", initAppUpdateNotice_);
+  setTimeout(initAppUpdateNotice_, 1200);
+})();
 
 </script>
 
